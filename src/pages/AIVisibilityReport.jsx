@@ -82,8 +82,10 @@ function normalizeIssueKey(text) {
 // In-memory cache to avoid redundant DB calls within the same session
 const FIX_MEM = {};
 
-function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
+function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerified }) {
   const [copied, setCopied] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
 
   // Determine tech_level from profile.user_preferences (JSON string)
   const techLevel = (() => {
@@ -162,6 +164,39 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
     navigator.clipboard.writeText(prompt || explanation || summary);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const res = await base44.functions.invoke('verifyFix', {
+        issue: issue.text,
+        taskTitle: issue.text,
+        fixData: content,
+        businessProfile: {
+          site_url: profile?.site_url,
+          identity_name: profile?.identity_name,
+          identity_industry: profile?.identity_industry,
+          identity_city: profile?.identity_city,
+          identity_target: profile?.identity_target,
+          brand_keywords: profile?.brand_keywords,
+          products: profile?.products,
+        },
+      });
+      const r = res?.data;
+      if (r && !r.error) {
+        setVerifyResult(r);
+        if (r.verified && onVerified) {
+          setTimeout(() => { onVerified(); }, 2500);
+        }
+      } else {
+        setVerifyResult({ verified: false, feedback: 'Impossible de vérifier. Réessayez dans un instant.', confidence: 0 });
+      }
+    } catch {
+      setVerifyResult({ verified: false, feedback: 'Erreur de vérification. Réessayez.', confidence: 0 });
+    }
+    setVerifying(false);
   };
 
   // Badge "Faisable seul" : fond beige #F5F0E6, bordure #E8DFD0, coche verte, texte vert foncé
@@ -348,6 +383,59 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade }) {
                   </div>
                 </div>
               )}
+
+              {/* Vérification IA */}
+              {!isFree && (
+                <div style={{ padding: '0 18px 20px' }}>
+                  <button
+                    onClick={handleVerify}
+                    disabled={verifying}
+                    style={{
+                      width: '100%', padding: '13px',
+                      background: verifying ? SURFACE : verifyResult?.verified ? GREEN : CARD_DARK,
+                      color: WHITE, border: 'none', borderRadius: 12,
+                      fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      fontFamily: F, transition: 'background 0.2s',
+                    }}
+                  >
+                    {verifying ? (
+                      <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyse de votre site…</>
+                    ) : verifyResult?.verified ? (
+                      <><CheckCircle2 size={14} /> Tâche validée par l'IA ✓</>
+                    ) : (
+                      <><Sparkles size={14} color={CORAL} /> Vérifier avec l'IA</>
+                    )}
+                  </button>
+                  {verifyResult && (
+                    <div style={{
+                      marginTop: 10, padding: '14px 16px',
+                      background: verifyResult.verified ? '#F0FDF4' : '#FFFBEB',
+                      border: `1px solid ${verifyResult.verified ? '#BBF7D0' : '#FEF3C7'}`,
+                      borderRadius: 12,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        {verifyResult.verified
+                          ? <CheckCircle2 size={14} color={GREEN} />
+                          : <AlertTriangle size={14} color="#D97706" />}
+                        <span style={{ fontSize: 11, fontWeight: 800, color: verifyResult.verified ? GREEN : '#D97706', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {verifyResult.verified ? 'Correction validée' : 'Pas encore validé'}
+                        </span>
+                        {verifyResult.confidence > 0 && (
+                          <span style={{ fontSize: 11, color: INK3, marginLeft: 'auto' }}>{verifyResult.confidence}% confiance</span>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 13, color: verifyResult.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{verifyResult.feedback}</p>
+                      {verifyResult.what_was_found && (
+                        <p style={{ fontSize: 12, color: INK3, margin: '0 0 6px', lineHeight: 1.5 }}><strong>Trouvé:</strong> {verifyResult.what_was_found}</p>
+                      )}
+                      {verifyResult.what_is_missing && !verifyResult.verified && (
+                        <p style={{ fontSize: 12, color: INK3, margin: 0, lineHeight: 1.5 }}><strong>Manquant:</strong> {verifyResult.what_is_missing}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ padding: '40px 18px', textAlign: 'center' }}>
@@ -448,12 +536,45 @@ function IssueCard({ issue, index, onClick, onStatusChange, status, saving }) {
 }
 
 // ── Plan action card ──────────────────────────────────────────────────────────
-function PlanCard({ item, index, status, onStatusChange, saving, onGuide, engineLogos }) {
+function PlanCard({ item, index, status, onStatusChange, saving, onGuide, engineLogos, profile }) {
   const [expanded, setExpanded] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
   const isHigh = item.impact === 'high';
   const isDone = status === 'done';
   const engineLogo = engineLogos[item.engine?.toLowerCase()];
   const effortLabel = item.effort === 'low' ? '⚡ Rapide' : item.effort === 'medium' ? '⏱ Quelques heures' : '📅 Plusieurs jours';
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const res = await base44.functions.invoke('verifyFix', {
+        issue: item.action_title,
+        taskTitle: item.action_title,
+        fixData: null,
+        businessProfile: {
+          site_url: profile?.site_url,
+          identity_name: profile?.identity_name,
+          identity_industry: profile?.identity_industry,
+          identity_city: profile?.identity_city,
+          identity_target: profile?.identity_target,
+          brand_keywords: profile?.brand_keywords,
+          products: profile?.products,
+        },
+      });
+      const r = res?.data;
+      if (r && !r.error) {
+        setVerifyResult(r);
+        if (r.verified) onStatusChange('done');
+      } else {
+        setVerifyResult({ verified: false, feedback: 'Impossible de vérifier. Réessayez.', confidence: 0 });
+      }
+    } catch {
+      setVerifyResult({ verified: false, feedback: 'Erreur. Réessayez.', confidence: 0 });
+    }
+    setVerifying(false);
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 * index }}
@@ -504,6 +625,24 @@ function PlanCard({ item, index, status, onStatusChange, saving, onGuide, engine
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: CARD_DARK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
                 <Sparkles size={13} color={CORAL} /> Voir le guide étape par étape
               </button>
+              {isHigh && (
+                <button onClick={handleVerify} disabled={verifying}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: verifying ? SURFACE : verifyResult?.verified ? GREEN : WHITE, color: verifyResult?.verified ? WHITE : INK, border: `1px solid ${verifyResult?.verified ? GREEN : BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer', fontFamily: F }}>
+                  {verifying ? '⏳ Analyse…' : verifyResult?.verified ? '✓ Validé par l\'IA' : '✨ Vérifier avec l\'IA'}
+                </button>
+              )}
+              {verifyResult && (
+                <div style={{ padding: '12px 14px', background: verifyResult.verified ? '#F0FDF4' : '#FFFBEB', border: `1px solid ${verifyResult.verified ? '#BBF7D0' : '#FEF3C7'}`, borderRadius: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    {verifyResult.verified ? <CheckCircle2 size={13} color={GREEN} /> : <AlertTriangle size={13} color="#D97706" />}
+                    <span style={{ fontSize: 11, fontWeight: 800, color: verifyResult.verified ? GREEN : '#D97706', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      {verifyResult.verified ? 'Validé' : 'Pas encore'}
+                    </span>
+                    {verifyResult.confidence > 0 && <span style={{ fontSize: 11, color: INK3, marginLeft: 'auto' }}>{verifyResult.confidence}%</span>}
+                  </div>
+                  <p style={{ fontSize: 12, color: verifyResult.verified ? '#15803D' : '#92400E', margin: 0, lineHeight: 1.5 }}>{verifyResult.feedback}</p>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -1045,6 +1184,7 @@ export default function AIVisibilityReport() {
                   saving={!!savingTask[i]}
                   onGuide={setActiveDrawer}
                   engineLogos={AI_LOGOS}
+                  profile={data}
                 />
               ))}
             </div>
@@ -1068,7 +1208,14 @@ export default function AIVisibilityReport() {
 
       {activeDrawer && (
         <FixDrawer issue={activeDrawer} profile={data} user={user} isFree={isFree}
-          onClose={() => setActiveDrawer(null)} onUpgrade={() => setShowUpgrade(true)} />
+          onClose={() => setActiveDrawer(null)} onUpgrade={() => setShowUpgrade(true)}
+          onVerified={() => {
+            if (activeDrawer.id?.startsWith('plan_')) {
+              const idx = parseInt(activeDrawer.id.replace('plan_', ''));
+              if (plan[idx]) handleTaskStatus(idx, 'done', plan[idx]);
+            }
+            setActiveDrawer(null);
+          }} />
       )}
 
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)}

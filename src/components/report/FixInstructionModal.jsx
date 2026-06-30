@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, Wrench, FileText } from 'lucide-react';
+import { X, Copy, Check, Wrench, FileText, Sparkles, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 // Thinking animation
@@ -60,10 +60,12 @@ function ThinkingAnimation() {
   );
 }
 
-export default function FixInstructionModal({ issue, issueId, profile, cachedFix, onClose, onFixSaved }) {
+export default function FixInstructionModal({ issue, issueId, profile, cachedFix, onClose, onFixSaved, onVerified }) {
   const [fix, setFix] = useState(cachedFix || null);
   const [loading, setLoading] = useState(!cachedFix);
   const [copied, setCopied] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
 
   useEffect(() => {
     if (cachedFix) { setFix(cachedFix); setLoading(false); return; }
@@ -95,6 +97,39 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
     navigator.clipboard.writeText(fix?.prompt || fix?.explanation || fix?.steps?.join('\n') || fix?.summary || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const res = await base44.functions.invoke('verifyFix', {
+        issue: issue,
+        taskTitle: issue,
+        fixData: fix,
+        businessProfile: {
+          site_url: profile?.site_url,
+          identity_name: profile?.identity_name,
+          identity_industry: profile?.identity_industry,
+          identity_city: profile?.identity_city,
+          identity_target: profile?.identity_target,
+          brand_keywords: profile?.brand_keywords,
+          products: profile?.products,
+        },
+      });
+      const r = res?.data;
+      if (r && !r.error) {
+        setVerifyResult(r);
+        if (r.verified && onVerified) {
+          setTimeout(() => { onVerified(); }, 2500);
+        }
+      } else {
+        setVerifyResult({ verified: false, feedback: 'Impossible de vérifier. Réessayez dans un instant.', confidence: 0 });
+      }
+    } catch {
+      setVerifyResult({ verified: false, feedback: 'Erreur de vérification. Réessayez.', confidence: 0 });
+    }
+    setVerifying(false);
   };
 
   const isText = fix?.type === 'TEXTE';
@@ -217,6 +252,49 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                   >
                     {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le prompt</>}
                   </button>
+                )}
+
+                {/* Vérification IA */}
+                <button
+                  onClick={handleVerify}
+                  disabled={verifying}
+                  style={{
+                    marginTop: 10, width: '100%', padding: '12px',
+                    background: verifying ? '#F5F5F3' : verifyResult?.verified ? '#059669' : '#15130F',
+                    color: '#fff', border: 'none', borderRadius: 10,
+                    fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  {verifying ? '⏳ Analyse de votre site…' : verifyResult?.verified ? '✓ Tâche validée par l\'IA' : '✨ Vérifier avec l\'IA'}
+                </button>
+                {verifyResult && (
+                  <div style={{
+                    marginTop: 10, padding: '14px 16px',
+                    background: verifyResult.verified ? '#F0FDF4' : '#FFFBEB',
+                    border: `1px solid ${verifyResult.verified ? '#BBF7D0' : '#FEF3C7'}`,
+                    borderRadius: 10,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                      {verifyResult.verified
+                        ? <CheckCircle2 size={14} color="#10B981" />
+                        : <AlertTriangle size={14} color="#D97706" />}
+                      <span style={{ fontSize: 11, fontWeight: 800, color: verifyResult.verified ? '#10B981' : '#D97706', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        {verifyResult.verified ? 'Correction validée' : 'Pas encore validé'}
+                      </span>
+                      {verifyResult.confidence > 0 && (
+                        <span style={{ fontSize: 11, color: '#888', marginLeft: 'auto' }}>{verifyResult.confidence}% confiance</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 13, color: verifyResult.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{verifyResult.feedback}</p>
+                    {verifyResult.what_was_found && (
+                      <p style={{ fontSize: 12, color: '#666', margin: '0 0 6px', lineHeight: 1.5 }}><strong>Trouvé:</strong> {verifyResult.what_was_found}</p>
+                    )}
+                    {verifyResult.what_is_missing && !verifyResult.verified && (
+                      <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.5 }}><strong>Manquant:</strong> {verifyResult.what_is_missing}</p>
+                    )}
+                  </div>
                 )}
               </div>
             ) : null}

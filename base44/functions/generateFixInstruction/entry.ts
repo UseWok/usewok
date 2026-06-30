@@ -170,6 +170,13 @@ F. INFOS PRÉ-REMPLIES (JAMAIS de placeholder):
    - "${issueProblem}" → toujours pré-rempli comme contexte
    - Seuls [NUMÉRO_TÉLÉPHONE], [ADRESSE_POSTALE], [HORAIRES] sont acceptés comme placeholders (infos strictement privées)
 
+G. QUALITÉ MAXIMALE DU CONTENU GÉNÉRÉ:
+   - Le prompt doit demander des quantités PRÉCISES: "5 paragraphes", "3 bénéfices", "4 services" — jamais "plusieurs" ou "quelques"
+   - Le prompt doit demander un CTA (Call-to-Action) à la fin: "Contactez-nous", "Découvrir", "Réserver"
+   - Le prompt doit demander un vocabulaire adapté au secteur ${industry}: mots-clés métier, termes techniques pertinents
+   - Le prompt doit demander des bénéfices CHIFFRÉS quand possible: "économisez 2h par semaine", "30% de clients en plus"
+   - Le prompt doit demander une structure visuelle claire: titres, sous-titres, listes à puces
+
 EXEMPLE CONCRET DE BON "prompt" (adapte au problème, ne copie pas):
 
 Copie ceci dans ChatGPT ou Claude:
@@ -207,22 +214,59 @@ INSTRUCTIONS - GÉNÉRATION DU "explanation" (CHAMP CRITIQUE - 10X)
 ==================================================================
 Tu génères le champ "explanation": une réponse technique experte pour un développeur.
 
-PHILOSOPHIE: ZERO CHARGE MENTALE.
-Le développeur lit l'explication, copie le code s'il y en a, et l'implémente. Il ne doit rien chercher.
+PHILOSOPHIE: ZERO CHARGE MENTALE, EFFET WOW.
+Le développeur lit l'explication, copie le code, le colle, et ça marche. POINT FINAL.
+Il ne doit JAMAIS chercher sur Google, ouvrir une doc, ou deviner quoi que ce soit.
 
-L'explication DOIT contenir:
-1. CAUSE - Pourquoi ce problème existe (1-2 phrases techniques)
-2. IMPACT IA - Comment ça affecte les LLMs (ChatGPT, Gemini, Claude) — sois spécifique: crawling? parsing? entity recognition? trust signals?
-3. SOLUTION - Les fichiers/technos concernés (ex: schema.org/LocalBusiness, robots.txt, sitemap.xml, meta tags, JSON-LD)
-4. CODE COMPLET - Si applicable, donne le code EXACT (JSON-LD, meta tag, etc.) avec "${businessName}" et "${siteUrl}" pré-remplis — pas de "adaptez ce template", le code prêt à coller
+L'explication DOIT contenir ces 6 sections OBLIGATOIRES:
 
-RÈGLES:
-- FRANÇAIS, ton expert mais accessible
-- 150-300 mots — dense en information, zéro blabla
-- Inclure "${businessName}" et "${siteUrl}" dans l'explication et le code
-- Si JSON-LD: donner le code COMPLET et VALIDÉ, pas une référence ou un squelette
-- Citer les spec standards (schema.org, W3C) si pertinent
+1. CAUSE RACINE (2-3 phrases)
+   - Pourquoi ce problème existe techniquement
+   - Référence précise à la spec/RFC/doc (ex: "schema.org/LocalBusiness requiert...", "Google AEO guidelines stipulent...")
+   - Sois hyper-spécifique, pas générique
+
+2. IMPACT IA DÉTAILLÉ (2-3 phrases)
+   - Comment ça affecte CHAQUE LLM:
+     * ChatGPT: entity recognition, knowledge graph parsing
+     * Gemini: real-time web crawling, structured data extraction
+     * Claude: context window parsing, trust signal evaluation
+     * Perplexity: citation sourcing, fact verification
+   - Dis exactement ce que l'IA ne peut pas faire à cause de ce problème
+
+3. SOLUTION ÉTAPE PAR ÉTAPE
+   - Les fichiers EXACTS à modifier (ex: "Dans le <head> de index.html...", "Dans le fichier robots.txt à la racine...")
+   - Les lignes/balises concernées
+   - L'ordre des opérations
+   - Si backend: les endpoints/APIs concernés
+
+4. CODE COMPLET PRÊT À COLLER
+   - Le code EXACT avec "${businessName}" et "${siteUrl}" pré-remplis
+   - Pas de "adaptez ce template" — le code final, validé, prêt à coller
+   - Si JSON-LD: le bloc <script type="application/ld+json"> COMPLET avec toutes les propriétés requises
+   - Si meta tag: la balise complète avec content pré-rempli
+   - Si robots.txt/sitemap.xml: le contenu complet du fichier
+   - Indente proprement, commente les sections clés
+
+5. VÉRIFICATION (1-2 phrases)
+   - Comment vérifier que ça marche:
+     * URL de test (ex: "search.google.com/test/rich-results")
+     * Commande curl ou DevTools (ex: "curl -s ${siteUrl} | grep 'application/ld+json'")
+     * Ce que tu dois voir si c'est valide
+
+6. PIÈGES COURANTS (1-2 phrases)
+   - Les erreurs fréquentes avec cette correction
+   - Comment les éviter
+   - Cas particuliers (ex: "Si votre site est en SPA, le JSON-LD doit être dans le HTML initial, pas injecté en JS")
+
+RÈGLES ABSOLUES:
+- FRANÇAIS, ton expert mais accessible — pas condescendant
+- 300-600 mots — DENSE en information, zéro blabla, zéro remplissage
+- Inclure "${businessName}" et "${siteUrl}" dans l'explication ET le code
+- Si JSON-LD: donner le code COMPLET et VALIDÉ — pas une référence, pas un squelette
+- Citer les spec standards (schema.org, W3C, Google Search Central) avec liens si pertinent
 - ZÉRO placeholder à trous — tout est concret et pré-rempli
+- Le code doit être copiable-collable directement (pas de "voici le template", juste le code)
+- EFFET WOW: le développeur doit se dire "wow, c'est exactement ce qu'il me fallait"
 ==================================================================
 `;
       requiredFields = ['summary', 'explanation', 'time_estimate'];
