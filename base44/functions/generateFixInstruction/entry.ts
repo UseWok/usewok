@@ -91,9 +91,9 @@ Deno.serve(async (req) => {
     const brandContext = `Site web: ${siteUrl}, Entreprise: ${businessName}, Secteur: ${industry}`;
 
     const techContextMap = {
-      no_code: `PROFIL NO-CODE: Donne UNIQUEMENT des chemins interface (Wix/WordPress/Squarespace). Zéro code. 2-3 étapes MAX.`,
-      ai_nocode: `PROFIL AI-HELPER: Donne UN seul PROMPT prêt à copier-coller pour ChatGPT/Claude. Rien d'autre. Prompt direct, pas de blablabla.`,
-      developer: `PROFIL DEVELOPER: Explique la solution en 2-3 phrases. C'EST TOUT. Pas de code, juste pourquoi ça bloque.`,
+      no_code: `PROFIL NO-CODE: ${businessName} est ${businessSize === 'solo' ? 'solo' : businessSize === 'small' ? 'petite équipe' : 'PME'}. Donne UNIQUEMENT les clics interface (Wix/WordPress/Squarespace). Zéro code. 2-3 étapes MAX. Utilise les vrais noms des pages du site.`,
+      ai_nocode: `PROFIL AI-HELPER: ${businessName} utilise l'IA pour l'aider. Donne UN SEUL PROMPT prêt à copier-coller pour ChatGPT/Claude. Format: "Copie EXACTEMENT ceci:" [PROMPT]. Puis "Copie la réponse dans [endroit exact]". Rien d'autre.`,
+      developer: `PROFIL DEVELOPER: ${businessName} a un dev ou peut coder. Explique la solution EN CONTEXTE du site. Nomme les fichiers réels. Pourquoi c'est bloquant pour les IA? JSON-LD? Données structurées? Crawlabilité?`,
     };
 
     const goalContextMap = {
@@ -132,43 +132,51 @@ Dans tes étapes :
 Type = "avec aide" si profondeur > 2 pages concernées, sinon "seul".
 ` : '';
 
-    const prompt = `Tu es un expert AEO qui NE DONNE QUE L'ESSENTIEL. Mission ultra-rapide.
+    const prompt = `Tu es un expert AEO AUTHENTIQUE qui connais ${businessName} (${industry}). CONTEXTE RÉEL:
+- Site: ${siteUrl}
+- Secteur: ${industry}
+- Niveau: ${userProfile.business_size || 'solo'}
+- Objectif principal: ${mainGoal === 'more_clients' ? 'Attirer plus de clients' : mainGoal === 'local_visibility' ? 'Visibilité locale/géographique' : mainGoal === 'brand_authority' ? 'Être expert référent du secteur' : 'Dépasser les concurrents'}
+- Profil: ${techLevel === 'no_code' ? 'NO-CODE (Wix/WordPress standard, pas de dev)' : techLevel === 'ai_nocode' ? 'AI-HELPER (utilise ChatGPT/Claude/Make)' : 'DEVELOPER (a accès au code)'}
 
-Profil: ${techLevel} | Problème: "${issueProblem}" | Site: ${siteUrl}
+PROBLÈME À CORRIGER: "${issueProblem}"
 
-${
-  techLevel === 'no_code' ? `
-RÉPONSE POUR NO-CODE:
-- summary: Pourquoi ça bloque en 1 phrase. Chiffre clé.
-- steps: 2-3 ÉTAPES UNIQUEMENT. Chemin interface clair (ex: "Paramètres > Pages > [page] > SEO")
-  Si impossible sans code → dire "Contactez un dev pour [raison]"
-- time_estimate: 10 min / 30 min / 1h (c'est tout)
-- type: "seul" ou "avec aide"
+${techLevel === 'no_code' ? `
+INSTRUCTIONS POUR NO-CODE:
+Donne 2-3 étapes CONCRETS ET AUTHENTIQUES pour un ${businessSize} qui gère tout seul:
+- Chaque étape = 1 CHEMIN EXACT dans Wix/WordPress/Squarespace ("Tableau de bord > Pages > [nom réel] > Paramètres > [champ]")
+- Utilise les vrais noms de sections qu'on voit dans ces outils
+- Si c'est impossible sans code: "Tu dois contacter un développeur car ça demande [raison précise]"
+- Sois BREF et CLAIR comme si tu parlais à un artisan qui veut comprendre sans jargon
+- Donne des chiffres réalistes de temps ("15 min", pas "quelques jours")
+- Donne la raison CONCRÈTE pourquoi ça améliore la visibilité IA (ex: "les IA voient mieux ton secteur d'activité")
 ` : techLevel === 'ai_nocode' ? `
-RÉPONSE POUR AI-NOCODE:
-- summary: 1 phrase pourquoi ça bloque. C'EST TOUT.
-- prompt: LE PROMPT EXACT à copier-coller dans ChatGPT/Claude. Prêt 100%. Placeholders [EN CROCHETS].
-  Format: "Copie dans ChatGPT: [PROMPT TEXTE EXACT]"
-- time_estimate: 5 min / 15 min / 30 min
-- type: "seul"
+INSTRUCTIONS POUR AI-NOCODE:
+Donne LE PROMPT EXACT à copier-coller dans ChatGPT/Claude (rien d'autre):
+- Format: "Copie EXACTEMENT ceci dans ChatGPT:"
+- Puis: [PROMPT EN GUILLEMETS, 100% prêt à copier]
+- Placeholders en [CROCHETS]: [SECTEUR], [NOM_ENTREPRISE], [EMAIL], [URL]
+- Le prompt DOIT générer un résultat à copier-coller direct dans le site (texte, JSON, HTML)
+- Puis: "Prends la réponse et copie-la dans [endroit exact du site]"
+- Sois ULTRA CLAIR et sans blablabla - l'utilisateur veut juste un prompt et un endroit où le coller
 ` : `
-RÉPONSE POUR DEVELOPER:
-- summary: Pourquoi ça bloque en 1 phrase.
-- explanation: 2-3 phrases sur la solution (PAS DE CODE). Juste l'approche.
-- time_estimate: 30 min / 1h / 1 jour
-- type: "seul" ou "avec aide"
-`
-}
+INSTRUCTIONS POUR DEVELOPER:
+Explique la solution AUTHENTIQUE en contexte du site:
+- Pourquoi ça bloque les IA exactement? (manque JSON-LD? Pas de données structurées? Coherence des infos?)
+- Donne le CONTEXTE exact (quels fichiers? Quels attributs HTML?)
+- Pourquoi c'est critique pour les IA (e-e-a-t, Entity Authority, Trust signals)
+- Sois CONCIS (2-3 phrases max) et PERTINENT pour un dev qui veut comprendre le "pourquoi"
+`}
 
-JSON requis (STRICT):
+JSON STRICT:
 {
-  "summary": "...",
-  ${techLevel === 'ai_nocode' ? `"prompt": "Copie dans ChatGPT: ..."` : `"steps": [...] ou "explanation": "..."`},
-  "time_estimate": "...",
+  "summary": "Pourquoi ça bloque ${businessName}? (1-2 phrases authentiques + 1 chiffre clé)",
+  ${techLevel === 'ai_nocode' ? `"prompt": "Copie EXACTEMENT ceci dans ChatGPT: [PROMPT TEXTE EXACT]"` : `"steps": ["Étape 1 concrète", "Étape 2 concrète", ...] ou "explanation": "Explication développeur"`},
+  "time_estimate": "10-15 min" ou "30 min" ou "1-2h",
   "type": "seul" ou "avec aide"
 }
 
-Français direct concis.`;
+Français authentique, concis, ZÉRO blablabla.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
