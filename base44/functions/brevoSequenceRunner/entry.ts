@@ -1,13 +1,13 @@
 /**
  * brevoSequenceRunner — Séquence déterministe 3 emails
  *
- * Logique simple, zéro maintenance :
  * J+0 → welcome
- * J+3 → education (no_scan_j3 — "pourquoi les IA t'ignorent")
+ * J+3 → no_scan_j3 ("pourquoi les IA t'ignorent")
  * J+7 → final_offer ("tes concurrents captent ces clients")
  *
- * Le cron tourne chaque jour. Le jour exact = l'email part.
- * Pas de EmailLog, pas de sentMap, pas de doublons possibles.
+ * Déduplication via EmailLog : un emailType donné n'est envoyé qu'UNE SEULE fois
+ * par utilisateur, peu importe combien de fois le cron ou une automation déclenche
+ * cette fonction.
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
@@ -40,6 +40,13 @@ Deno.serve(async (req) => {
       if (!profileMap[p.created_by_id]) profileMap[p.created_by_id] = p;
     }
 
+    // ── Build a set of already-sent (user_id, emailType) pairs from EmailLog ──
+    const allLogs = await base44.asServiceRole.entities.EmailLog.list('-created_date', 1000).catch(() => []);
+    const sentSet = new Set();
+    for (const log of allLogs) {
+      if (log.user_id && log.email_type) sentSet.add(`${log.user_id}:${log.email_type}`);
+    }
+
     const results = [];
 
     for (const user of users) {
@@ -67,6 +74,13 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // ── Déduplication : skip si déjà envoyé ──
+      const dedupKey = `${user.id}:${emailType}`;
+      if (sentSet.has(dedupKey)) {
+        results.push({ email: user.email, skipped: `already_sent_${emailType}` });
+        continue;
+      }
+
       try {
         await base44.asServiceRole.functions.invoke(BREVO_FN, {
           action: 'sendEmail',
@@ -81,6 +95,18 @@ Deno.serve(async (req) => {
             scanDate: profile?.last_scan || '',
           },
         });
+
+        // ── Log to EmailLog for deduplication ──
+        await base44.asServiceRole.entities.EmailLog.create({
+          user_id: user.id,
+          user_email: user.email,
+          email_type: emailType,
+          segment: user.subscription_plan ? 'paid' : 'free_active',
+          site_url: siteUrl,
+          score_at_send: score,
+        }).catch(() => {});
+
+        sentSet.add(dedupKey); // prevent duplicate within same run
         results.push({ email: user.email, sent: emailType, day: jours });
         console.log(`[brevoSequenceRunner] Sent ${emailType} to ${user.email} (day ${jours})`);
       } catch (e) {
