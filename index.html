@@ -76,7 +76,9 @@
     .uw-price-table th { color: rgba(240,238,232,0.5); font-weight: 600; }
     .uw-price-table .uw-plan { font-weight: 700; color: #F0F0EE; }
     @media (max-width: 768px) { h1 { font-size: 26px; } .uw-nav { gap: 10px; } }
-  </style>
+    /* Hide static SEO content — React renders into #root */
+    .uw-nav, .uw-wrap, .uw-footer { display: none !important; }
+    </style>
 
   <!-- JSON-LD — Schema.org (Mis à jour avec les nouveaux témoignages et la FAQ) -->
   <script type="application/ld+json">
