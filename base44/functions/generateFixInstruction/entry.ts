@@ -120,90 +120,134 @@ Tu génères le champ "prompt": un prompt EXPERT prêt à copier-coller dans Cha
 
 ${platformHint}
 
-PHILOSOPHIE: ZERO CHARGE MENTALE.
+PHILOSOPHIE: ZERO CHARGE MENTALE, RÉSULTAT IMMÉDIAT.
 L'utilisateur copie le prompt, le colle dans ChatGPT/Claude, copie la réponse, la colle dans son site. POINT FINAL.
-Il ne doit JAMAIS avoir à reflechir, choisir, remplir, deviner, ou adapter quoi que ce soit.
+L'IA qui reçoit le prompt doit produire un RÉSULTAT PARFAIT du premier coup. Pas d'itération, pas d'ajustement.
 
-Le prompt DOIT suivre le pattern RTCEF (Role, Task, Context, Examples, Format):
+LE PROMPT QUE TU GÉNÈRES DOIT ÊTRE STRUCTURÉ COMME UN BRIEF PROFESSIONNEL:
 
-1. ROLE - Assigne un rôle expert hyper-spécifique à l'IA (ex: "Tu es un expert en SEO local, AEO et rédaction web pour ${industry}...")
-2. TASK - Une instruction claire, unique, avec un VERBE d'action fort (Génère, Écris, Crée, Produis...)
-3. CONTEXT - Injecte TOUTES les infos: "${businessName}", "${siteUrl}", "${industry}", problème: "${issueProblem}"
-4. EXAMPLES - Donne 1 exemple concret du format et du ton attendus
-5. FORMAT - Spécifie EXACTEMENT le format de sortie: HTML, texte, JSON-LD? Nombre de mots exact?
+═══════════════════════════════════════════════════
+STRUCTURE OBLIGATOIRE DU PROMPT GÉNÉRÉ (CHAQUE SECTION EST CRITIQUE)
+═══════════════════════════════════════════════════
 
-RÈGLES ABSOLUES (ZÉRO ERREUR, QUALITÉ LUXE, EFFET WOW):
+Le prompt que tu génères DOIT contenir ces blocs DANS CET ORDRE:
 
-A. INTERDICTION ABSOLUE DE PLACEHOLDERS À TROUS:
-   - JAMAIS de [LISTE_FEATURES], [VOS_AVANTAGES], [NOMBRE], [TYPE], [LONGUEUR]...
-   - L'IA qui recevra le prompt DOIT tout inventer elle-même: le nombre, les features, les avantages, le contenu...
-   - Le seul moment ou un [CROCHET] est acceptable: une info strictement personnelle que l'IA ne peut pas deviner (numéro de téléphone, adresse physique précise, horaires réels)
-   - Pour TOUT le reste: laisse l'IA être créative et autonome. Elle a carte blanche.
+1. ROLE (1 ligne)
+   Tu es un expert en [domaine précis lié au problème], spécialiste [sous-spécialité] pour [plateformes: Wix, WordPress, Squarespace si no_code].
+   → Assigne un rôle HYPER-spécifique, pas générique.
 
-B. AUTONOMIE TOTALE DE L'IA:
-   - Ne dis pas "Génère [NOMBRE] paragraphes" → dis "Génère 3 paragraphes"
-   - Ne dis pas "Inclus [VOS_AVANTAGES]" → dis "Inclus 4 avantages concurrentiels pertinents pour ce secteur"
-   - Ne dis pas "Ajoute [LISTE_FEATURES]" → dis "Ajoute une liste de 5 fonctionnalités clés que toute entreprise de ${industry} devrait mettre en avant"
-   - L'IA doit pouvoir produire un résultat COMPLET sans aucune intervention humaine.
+2. CONTEXTE (2-3 lignes)
+   Mon entreprise s'appelle "${businessName}" et l'URL est ${siteUrl}.
+   CONTEXTE: [problème précis: "${issueProblem}"]
+   → Pré-rempli avec "${businessName}", "${siteUrl}", "${industry}".
 
-C. FORMAT DE SORTIE IMPLACABLE:
-   - Le résultat généré par l'IA doit être 100% COPABLE-COLLABLE dans le site
-   - HTML prêt à coller (balises <p>, <h2>, <h3>, <ul>, <li>) OU texte formaté selon le besoin
-   - ZÉRO commentaire, zéro "Voici le contenu demandé:", zéro explication
-   - Juste le contenu final, propre, nickel.
+3. TÂCHE (3-5 lignes)
+   Génère en sortie [NOMBRE] sections strictes et directement copiable-collable:
+   1) [section 1 avec description exacte]
+   2) [section 2 avec description exacte]
+   3) [section 3 avec description exacte] (si applicable)
+   → Décompose la tâche en sections NUMÉROTÉES avec des livrables clairs.
 
-D. EFFET WOW:
-   - Le prompt doit demander un contenu de niveau premium — pas du remplissage générique
-   - Inclus des consignes de ton: "professionnel mais chaleureux", "expert mais accessible", etc.
-   - Demande des chiffres, des bénéfices concrets, des mots déclencheurs d'action
-   - Le résultat doit impressionner l'utilisateur quand il le lit
+4. EXEMPLE DU FORMAT ET DU TON (2-4 lignes)
+   - Exemple [format]: [montre un mini-exemple du format attendu]
+   - Ton: professionnel mais chaleureux, expert mais accessible, direct, sans jargon.
+   → Donne un exemple CONCRET du format, pas une description vague.
 
-E. STRUCTURE OBLIGATOIRE DU "prompt":
-   - Commence par "Copie ceci dans ChatGPT ou Claude:\\n\\n"
-   - Puis le prompt complet (8-25 lignes selon la complexité)
-   - Termine par "\\n\\nPuis colle la réponse dans [endroit EXACT, ex: la section Services de ${siteUrl}]"
+5. CONTRAINTES PRÉCISES (5-8 lignes avec puces)
+   - ZÉRO commentaire hors des sections demandées.
+   - [Contrainte de quantité exacte: "exactly 3 points", "exactly 4 étapes", "5-8 lignes"]
+   - [Contrainte de format: "texte pur", "HTML avec balises <h2>, <p>, <ul>"]
+   - [Contrainte de contenu: "inclure au moins un bénéfice chiffré"]
+   - ZÉRO placeholders. Inclure "${businessName}" et "${siteUrl}" textuellement.
+   → Chaque contrainte est une puce avec un exigence MESURABLE et VÉRIFIABLE.
 
-F. INFOS PRÉ-REMPLIES (JAMAIS de placeholder):
-   - "${businessName}" → toujours pré-rempli dans le prompt
-   - "${siteUrl}" → toujours pré-rempli dans le prompt
-   - "${industry}" → toujours pré-rempli dans le prompt
+6. FORMAT DE SORTIE FINAL (2-3 lignes)
+   - D'abord [section 1] puis [section 2] puis [section 3]. Tout doit être copiable-collable tel quel.
+   Puis colle la réponse dans [endroit EXACT sur le site: "la section Services de ${siteUrl}"]
+   → Spécifie l'ORDRE exact des sections et où coller le résultat.
+
+═══════════════════════════════════════════════════
+
+RÈGLES ABSOLUES POUR CHAQUE PROMPT GÉNÉRÉ:
+
+A. QUANTITÉS EXACTES — JAMAIS VAGUE:
+   - JAMAIS "plusieurs", "quelques", "plusieurs paragraphes" → TOUJOURS "3 paragraphes", "5 bénéfices", "4 étapes"
+   - JAMAIS "inclus vos avantages" → TOUJOURS "inclus 4 avantages concurrentiels pour le secteur ${industry}"
+   - Chaque contrainte doit être chiffrée et vérifiable.
+
+B. SECTIONS NUMÉROTÉES — STRUCTURE PRO:
+   - Si la tâche produit plusieurs livrables (ex: texte + guide + explication), divise en sections 1), 2), 3)
+   - Chaque section a un but clair et un format de sortie précis.
+   - L'IA sait EXACTEMENT quoi produire dans chaque section.
+
+C. CONTRAINTES PRÉCISES — SECTION DÉDIÉE:
+   - Le prompt DOIT contenir une section "CONTRAINTES PRÉCISES" avec des puces
+   - Chaque puce est une règle mesurable: nombre exact, format exact, contenu obligatoire
+   - Pas de "sois créatif" — des instructions concrètes et vérifiables.
+
+D. FORMAT DE SORTIE EXPLICITE:
+   - Spécifie EXACTEMENT: HTML? Texte brut? JSON? Combien de lignes? Combien de mots?
+   - "HTML prêt à coller (balises <h2>, <p>, <ul>, <li>)"
+   - "Texte brut, 5-8 lignes, pas de balises"
+   - L'IA ne doit JAMAIS deviner le format.
+
+E. ZÉRO COMMENTAIRE HORS LIVRABLES:
+   - Le prompt doit exiger: "ZÉRO commentaire hors des sections demandées"
+   - Pas de "Voici le contenu demandé:", pas d'explication, pas d'introduction
+   - Juste le livrable, propre, nickel.
+
+F. EFFET WOW — CONTENU PREMIUM:
+   - Demande un CTA à la fin: "Contactez-nous", "Découvrir", "Réserver"
+   - Demande des bénéfices CHIFFRÉS: "+30% d'indexation", "économisez 2h/semaine"
+   - Demande un vocabulaire adapté au secteur ${industry}
+   - Demande une structure visuelle: titres, sous-titres, listes à puces
+   - Le résultat doit impressionner l'utilisateur.
+
+G. INFOS PRÉ-REMPLIES — JAMAIS DE PLACEHOLDER À TROUS:
+   - "${businessName}" → toujours pré-rempli textuellement
+   - "${siteUrl}" → toujours pré-rempli textuellement
+   - "${industry}" → toujours pré-rempli comme contexte
    - "${issueProblem}" → toujours pré-rempli comme contexte
-   - Seuls [NUMÉRO_TÉLÉPHONE], [ADRESSE_POSTALE], [HORAIRES] sont acceptés comme placeholders (infos strictement privées)
+   - Seuls [NUMÉRO_TÉLÉPHONE], [ADRESSE_POSTALE], [HORAIRES] sont acceptés (infos privées)
 
-G. QUALITÉ MAXIMALE DU CONTENU GÉNÉRÉ:
-   - Le prompt doit demander des quantités PRÉCISES: "5 paragraphes", "3 bénéfices", "4 services" — jamais "plusieurs" ou "quelques"
-   - Le prompt doit demander un CTA (Call-to-Action) à la fin: "Contactez-nous", "Découvrir", "Réserver"
-   - Le prompt doit demander un vocabulaire adapté au secteur ${industry}: mots-clés métier, termes techniques pertinents
-   - Le prompt doit demander des bénéfices CHIFFRÉS quand possible: "économisez 2h par semaine", "30% de clients en plus"
-   - Le prompt doit demander une structure visuelle claire: titres, sous-titres, listes à puces
+H. STRUCTURE DU CHAMP "prompt":
+   - Commence TOUJOURS par: "Copie ceci dans ChatGPT ou Claude:\\n\\n"
+   - Puis le prompt complet structuré (15-40 lignes selon la complexité)
+   - Termine TOUJOURS par: "\\n\\nPuis colle la réponse dans [endroit EXACT] de ${siteUrl}"
 
-EXEMPLE CONCRET DE BON "prompt" (adapte au problème, ne copie pas):
+═══════════════════════════════════════════════════
+EXEMPLE DE BON PROMPT GÉNÉRÉ (adapte au problème, ne copie pas):
+═══════════════════════════════════════════════════
 
 Copie ceci dans ChatGPT ou Claude:
 
-Tu es un expert en SEO local, AEO et rédaction web pour les entreprises de ${industry}.
-Mon entreprise s'appelle "${businessName}" et mon site est ${siteUrl}.
+Tu es un expert en Optimisation de visibilité IA (AEO), spécialiste robots.txt et workflows no-code pour Wix, WordPress et Squarespace. Mon site s'appelle "${businessName}" et l'URL est ${siteUrl}.
 
 CONTEXTE: ${issueProblem}
 
-TÂCHE:
-Génère 3 paragraphes de présentation de mon entreprise (50-70 mots chacun) optimisés pour que les IA comme ChatGPT et Gemini comprennent et recommandent "${businessName}".
+TÂCHE: Génère en sortie 3 sections strictes et directement copiable-collable:
+1) Un bloc "robots.txt" en texte brut prêt à remplacer l'actuel. Doit autoriser toutes les IA, pointer vers le sitemap, protéger uniquement /wp-admin/ et /private/. Inclure Sitemap: ${siteUrl}/sitemap.xml. Pas de commentaires.
+2) Une section HTML (balises <h2>, <p>, <ul>) expliquant en 3 points clairs ce qui change et pourquoi ça améliore l'indexation IA (bénéfices chiffrés).
+3) Trois mini-guides pas-à-pas (HTML) — un pour Wix, un pour WordPress, un pour Squarespace — chacun avec 4 étapes: cliquer, coller, sauvegarder, vérifier.
 
-Chaque paragraphe doit:
-- Commencer par un angle différent (qui nous sommes / ce qu'on fait / pourquoi nous choisir)
-- Inclure naturellement "${businessName}" et "${siteUrl}"
-- Contenir 2-3 mots-clés du secteur ${industry}
-- Se terminer par un bénéfice client concret (chiffré si possible)
+EXEMPLE du format et du ton:
+- Exemple robots.txt (texte brut): User-agent: * / Allow: / / Disallow: /private/ / Sitemap: ${siteUrl}/sitemap.xml
+- Ton: professionnel mais chaleureux, expert mais accessible, direct, sans jargon.
 
-TON: Professionnel, chaleureux, confiant. Pas de jargon. Pas de superlatifs creux.
+CONTRAINTES PRÉCISES:
+- ZÉRO commentaire hors des 3 sections demandées.
+- robots.txt: texte pur, 5-8 lignes exactement.
+- Explication: exactement 3 points (<li>), au moins un bénéfice chiffré (+30% d'indexation en 4 semaines).
+- Chaque guide: exactement 4 étapes en <ol> avec menus en gras (Tableau de bord > Paramètres > SEO).
+- Terminer par un CTA HTML avec lien vers ${siteUrl}/contact.
+- ZÉRO placeholders. Inclure "${businessName}" et "${siteUrl}" textuellement.
 
-FORMAT DE SORTIE:
-- HTML prêt à coller (balises <p>)
-- Un paragraphe par balise <p>
-- Zéro commentaire, zéro explication — juste les 3 paragraphes
+FORMAT DE SORTIE FINAL:
+- D'abord robots.txt en texte brut, puis HTML "Explications", puis HTML "Guides". Tout copiable-collable tel quel.
 
-Puis colle la réponse dans la section "À propos" de ${siteUrl}
+Puis colle la réponse dans la zone 'Fichier robots.txt personnalisé' (Paramètres > SEO > Robots.txt) de ${siteUrl}
 
+═══════════════════════════════════════════════════
 FIN DE L'EXEMPLE.
 =============================================================
 `;
