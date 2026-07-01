@@ -178,6 +178,13 @@ body {
     display: none;
   }
 
+  /* ── Auth pages responsive ── */
+  @media (max-width: 900px) {
+    .auth-screen { grid-template-columns: 1fr !important; padding: 0 !important; gap: 0 !important; }
+    .auth-right { display: none !important; }
+    .auth-left { padding: 40px 28px !important; }
+  }
+
   /* ── Custom thin scrollbar for chat textarea ── */
   .textarea-custom-scroll {
     scrollbar-width: thin;

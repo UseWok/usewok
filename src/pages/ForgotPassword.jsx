@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
-import AuthBrand from "@/components/AuthBrand";
+import AuthRightPanel from "@/components/AuthRightPanel";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -26,80 +23,138 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-white font-sans">
-      {/* Left: form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 py-12">
-        <div className="max-w-[400px] w-full mx-auto">
-          {/* Logo */}
-          <div className="flex items-center gap-2 mb-10">
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-                <path d="M6 1L10.5 9H1.5L6 1Z" fill="white" />
-              </svg>
-            </div>
-            <span className="text-[18px] font-bold tracking-tight text-gray-900">UseWok</span>
+    <div className="auth-screen" style={{
+      display: "grid", gridTemplateColumns: "1fr 1fr",
+      minHeight: "100vh", padding: 16, gap: 16,
+      background: "#FBF8F2", fontFamily: "'Inter', sans-serif", color: "#15130F",
+    }}>
+      {/* ── LEFT ── */}
+      <div className="auth-left" style={{
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: "44px 64px",
+      }}>
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, background: "#FF5A1F",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/>
+            </svg>
           </div>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>UseWok</span>
+        </div>
 
+        {/* Form */}
+        <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
           {sent ? (
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(249,87,56,0.1)' }}>
-                <CheckCircle className="w-7 h-7" style={{ color: '#F95738' }} />
+            <div style={{ textAlign: "center" }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "rgba(255,90,31,0.10)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+              }}>
+                <CheckCircle size={28} style={{ color: "#FF5A1F" }} />
               </div>
-              <h1 className="text-[26px] font-bold text-gray-900 mb-2">Email envoyé !</h1>
-              <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
+              <h1 style={{
+                fontWeight: 800, fontSize: 26, letterSpacing: "-0.03em",
+                marginBottom: 8,
+              }}>Email envoyé !</h1>
+              <p style={{
+                fontSize: 14, color: "#4A453B", lineHeight: 1.6, marginBottom: 24,
+              }}>
                 Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation dans quelques minutes.
               </p>
-              <Link to="/login" className="inline-flex items-center gap-1.5 text-[13px] text-[#F95738] font-semibold hover:underline">
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Retour à la connexion
+              <Link to="/login" style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13, color: "#C43E14", fontWeight: 600,
+                textDecoration: "underline", textUnderlineOffset: 2,
+              }}>
+                <ArrowLeft size={14} /> Retour à la connexion
               </Link>
             </div>
           ) : (
             <>
-              <h1 className="text-[28px] font-bold text-gray-900 mb-1">Mot de passe oublié ?</h1>
-              <p className="text-[14px] text-gray-500 mb-8">
+              <h1 style={{
+                fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
+                lineHeight: 1.08, marginBottom: 12,
+              }}>Mot de passe<br />oublié ?</h1>
+              <p style={{
+                fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 28,
+              }}>
                 Entrez votre email et nous vous enverrons un lien de réinitialisation.
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-[13px] font-medium text-gray-800">Adresse email</Label>
-                  <Input
-                    id="email"
+              <form onSubmit={handleSubmit}>
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
                     type="email"
-                    autoComplete="email"
-                    autoFocus
-                    placeholder="vous@exemple.com"
+                    placeholder="Entrez votre adresse e-mail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-[44px] border-gray-200 text-[14px] rounded-[8px] focus:ring-1 focus:ring-[#F95738] focus:border-[#F95738]"
+                    autoFocus
                     required
+                    style={{
+                      width: "100%", height: 50, borderRadius: 12,
+                      border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                      padding: "0 16px", fontFamily: "inherit", fontSize: 14.5,
+                      color: "#15130F", outline: "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                      boxSizing: "border-box",
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = "#FF5A1F";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,90,31,0.14)";
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-[44px] rounded-[8px] text-[14px] font-semibold text-white"
-                  style={{ background: 'linear-gradient(135deg, #F95738 0%, #e8401f 100%)', border: 'none' }}
+                <button type="submit" disabled={loading} style={{
+                  width: "100%", height: 50, border: "none", borderRadius: 12,
+                  background: loading ? "rgba(21,19,15,0.5)" : "#15130F",
+                  color: "#FBF8F2", fontFamily: "inherit",
+                  fontSize: 14.5, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "background .15s ease, transform .1s ease",
+                }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#C43E14"; }}
+                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#15130F"; }}
+                onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
+                onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Envoi en cours...</> : "Envoyer le lien →"}
-                </Button>
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Envoi en cours…</> : "Envoyer le lien"}
+                </button>
               </form>
 
-              <p className="text-center text-[13px] text-gray-500 mt-6">
-                <Link to="/login" className="inline-flex items-center gap-1.5 text-[#F95738] font-semibold hover:underline">
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  Retour à la connexion
+              <p style={{ textAlign: "center", fontSize: 14, color: "#4A453B", marginTop: 24 }}>
+                <Link to="/login" style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  color: "#15130F", fontWeight: 600,
+                  textDecoration: "underline", textUnderlineOffset: 2,
+                }}>
+                  <ArrowLeft size={14} /> Retour à la connexion
                 </Link>
               </p>
             </>
           )}
         </div>
+
+        {/* Legal */}
+        <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
+          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
+          {" "}et{" "}
+          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+        </p>
       </div>
 
-      {/* Right: brand panel */}
-      <AuthBrand />
+      {/* ── RIGHT ── */}
+      <AuthRightPanel className="auth-right" />
     </div>
   );
 }

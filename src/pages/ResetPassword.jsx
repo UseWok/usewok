@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader2, AlertTriangle } from "lucide-react";
-import AuthBrand from "@/components/AuthBrand";
+import AuthRightPanel from "@/components/AuthRightPanel";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -33,96 +30,169 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-white font-sans">
-      {/* Left: form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 py-12">
-        <div className="max-w-[400px] w-full mx-auto">
-          {/* Logo */}
-          <div className="flex items-center gap-2 mb-10">
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-                <path d="M6 1L10.5 9H1.5L6 1Z" fill="white" />
-              </svg>
-            </div>
-            <span className="text-[18px] font-bold tracking-tight text-gray-900">UseWok</span>
+    <div className="auth-screen" style={{
+      display: "grid", gridTemplateColumns: "1fr 1fr",
+      minHeight: "100vh", padding: 16, gap: 16,
+      background: "#FBF8F2", fontFamily: "'Inter', sans-serif", color: "#15130F",
+    }}>
+      {/* ── LEFT ── */}
+      <div className="auth-left" style={{
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: "44px 64px",
+      }}>
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, background: "#FF5A1F",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/>
+            </svg>
           </div>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>UseWok</span>
+        </div>
 
+        {/* Form */}
+        <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
           {!resetToken ? (
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-5">
-                <AlertTriangle className="w-7 h-7 text-red-400" />
+            <div style={{ textAlign: "center" }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "#FEF2F2", border: "1px solid #FECACA",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+              }}>
+                <AlertTriangle size={28} style={{ color: "#EF4444" }} />
               </div>
-              <h1 className="text-[26px] font-bold text-gray-900 mb-2">Lien invalide</h1>
-              <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
+              <h1 style={{
+                fontWeight: 800, fontSize: 26, letterSpacing: "-0.03em", marginBottom: 8,
+              }}>Lien invalide</h1>
+              <p style={{
+                fontSize: 14, color: "#4A453B", lineHeight: 1.6, marginBottom: 24,
+              }}>
                 Ce lien de réinitialisation est manquant ou invalide.<br />Veuillez en demander un nouveau.
               </p>
-              <Link to="/forgot-password" className="text-[#F95738] font-semibold text-[14px] hover:underline">
+              <Link to="/forgot-password" style={{
+                color: "#15130F", fontWeight: 600, fontSize: 14,
+                textDecoration: "underline", textUnderlineOffset: 2,
+              }}>
                 Demander un nouveau lien →
               </Link>
             </div>
           ) : (
             <>
-              <h1 className="text-[28px] font-bold text-gray-900 mb-1">Nouveau mot de passe</h1>
-              <p className="text-[14px] text-gray-500 mb-8">Choisissez un mot de passe sécurisé.</p>
+              <h1 style={{
+                fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
+                lineHeight: 1.08, marginBottom: 12,
+              }}>Nouveau<br />mot de passe</h1>
+              <p style={{
+                fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 28,
+              }}>Choisissez un mot de passe sécurisé.</p>
 
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-red-50 text-red-600 text-[13px] border border-red-100 text-center">
+                <div style={{
+                  marginBottom: 16, padding: "10px 14px", borderRadius: 10,
+                  background: "#FEF2F2", border: "1px solid #FECACA",
+                  color: "#DC2626", fontSize: 13, textAlign: "center",
+                }}>
                   {error}
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-[13px] font-medium text-gray-800">Nouveau mot de passe</Label>
-                  <Input
-                    id="password"
+              <form onSubmit={handleSubmit}>
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
                     type="password"
-                    autoComplete="new-password"
-                    autoFocus
-                    placeholder="Minimum 8 caractères"
+                    placeholder="Nouveau mot de passe"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="h-[44px] border-gray-200 text-[14px] rounded-[8px] focus:ring-1 focus:ring-[#F95738] focus:border-[#F95738]"
+                    autoFocus
                     required
+                    style={{
+                      width: "100%", height: 50, borderRadius: 12,
+                      border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                      padding: "0 16px", fontFamily: "inherit", fontSize: 14.5,
+                      color: "#15130F", outline: "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                      boxSizing: "border-box",
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = "#FF5A1F";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,90,31,0.14)";
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="confirm" className="text-[13px] font-medium text-gray-800">Confirmer le mot de passe</Label>
-                  <Input
-                    id="confirm"
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
                     type="password"
-                    autoComplete="new-password"
-                    placeholder="••••••••"
+                    placeholder="Confirmer le mot de passe"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-[44px] border-gray-200 text-[14px] rounded-[8px] focus:ring-1 focus:ring-[#F95738] focus:border-[#F95738]"
                     required
+                    style={{
+                      width: "100%", height: 50, borderRadius: 12,
+                      border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                      padding: "0 16px", fontFamily: "inherit", fontSize: 14.5,
+                      color: "#15130F", outline: "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                      boxSizing: "border-box",
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = "#FF5A1F";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,90,31,0.14)";
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-[44px] rounded-[8px] text-[14px] font-semibold text-white mt-1"
-                  style={{ background: 'linear-gradient(135deg, #F95738 0%, #e8401f 100%)', border: 'none' }}
+                <button type="submit" disabled={loading} style={{
+                  width: "100%", height: 50, border: "none", borderRadius: 12,
+                  background: loading ? "rgba(21,19,15,0.5)" : "#15130F",
+                  color: "#FBF8F2", fontFamily: "inherit",
+                  fontSize: 14.5, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "background .15s ease, transform .1s ease",
+                }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#C43E14"; }}
+                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#15130F"; }}
+                onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
+                onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Réinitialisation...</> : "Réinitialiser le mot de passe →"}
-                </Button>
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Réinitialisation…</> : "Réinitialiser le mot de passe"}
+                </button>
               </form>
 
-              <p className="text-center text-[13px] text-gray-500 mt-6">
-                <Link to="/forgot-password" className="text-[#F95738] font-semibold hover:underline">
+              <p style={{ textAlign: "center", fontSize: 14, color: "#4A453B", marginTop: 24 }}>
+                <Link to="/forgot-password" style={{
+                  color: "#15130F", fontWeight: 600,
+                  textDecoration: "underline", textUnderlineOffset: 2,
+                }}>
                   Retour au mot de passe oublié
                 </Link>
               </p>
             </>
           )}
         </div>
+
+        {/* Legal */}
+        <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
+          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
+          {" "}et{" "}
+          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+        </p>
       </div>
 
-      {/* Right: brand panel */}
-      <AuthBrand />
+      {/* ── RIGHT ── */}
+      <AuthRightPanel className="auth-right" />
     </div>
   );
 }

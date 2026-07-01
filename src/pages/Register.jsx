@@ -1,18 +1,23 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import GoogleIcon from "@/components/GoogleIcon";
-import AuthBrand from "@/components/AuthBrand";
 import { useToast } from "@/components/ui/use-toast";
+import AuthRightPanel from "@/components/AuthRightPanel";
 
 const AppleIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.126 3.805 3.06 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.62-1.516 3.6-2.98 1.15-1.682 1.623-3.313 1.645-3.396-.035-.013-3.176-1.22-3.21-4.86-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.56 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.2.048-2.671.805-3.536 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.564-1.702z"/>
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="#15130F">
+    <path d="M16.365 1.43c0 1.14-.474 2.223-1.246 2.994-.79.79-2.08 1.394-3.13 1.31a3.4 3.4 0 0 1-.02-.44c.05-1.11.62-2.19 1.32-2.88.79-.79 2.14-1.37 3.05-1.4.02.14.03.28.03.42zM20.4 17.3c-.44 1.02-.97 2.03-1.72 3.02-.98 1.29-1.99 2.58-3.59 2.6-1.57.03-2.08-.93-3.87-.93-1.8 0-2.35.9-3.85.96-1.54.06-2.71-1.39-3.7-2.68-2.01-2.63-3.55-7.44-1.48-10.7 1.03-1.62 2.87-2.65 4.87-2.68 1.5-.03 2.92.99 3.87.99.94 0 2.68-1.22 4.52-1.04.77.03 2.93.31 4.32 2.34-.11.07-2.58 1.5-2.55 4.48.03 3.56 3.13 4.75 3.18 4.77-.03.09-.5 1.7-1.65 3.4z"/>
+  </svg>
+);
+
+const GoogleLogo = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.82z"/>
+    <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.91l-3.88-3c-1.08.72-2.46 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.11A12 12 0 0 0 12 24z"/>
+    <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28V6.61H1.26A12 12 0 0 0 0 12c0 1.94.46 3.77 1.26 5.39l4.01-3.11z"/>
+    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.11C6.22 6.86 8.87 4.75 12 4.75z"/>
   </svg>
 );
 
@@ -70,34 +75,54 @@ export default function Register() {
   const handleApple = () => base44.auth.loginWithProvider("apple", "/app");
 
   return (
-    <div className="min-h-screen w-full flex bg-white font-sans">
-      {/* Left: form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 py-12">
-        <div className="max-w-[400px] w-full mx-auto">
-          {/* Logo */}
-          <div className="flex items-center gap-2 mb-10">
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F95738', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-                <path d="M6 1L10.5 9H1.5L6 1Z" fill="white" />
-              </svg>
-            </div>
-            <span className="text-[18px] font-bold tracking-tight text-gray-900">UseWok</span>
+    <div className="auth-screen" style={{
+      display: "grid", gridTemplateColumns: "1fr 1fr",
+      minHeight: "100vh", padding: 16, gap: 16,
+      background: "#FBF8F2", fontFamily: "'Inter', sans-serif", color: "#15130F",
+    }}>
+      {/* ── LEFT ── */}
+      <div className="auth-left" style={{
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: "44px 64px",
+      }}>
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, background: "#FF5A1F",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/>
+            </svg>
           </div>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>UseWok</span>
+        </div>
 
+        {/* Form */}
+        <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
           {showOtp ? (
             <>
-              <h1 className="text-[28px] font-bold text-gray-900 mb-1">Vérifiez votre email</h1>
-              <p className="text-[14px] text-gray-500 mb-8">
-                Nous avons envoyé un code à <span className="font-semibold text-gray-700">{email}</span>
+              <h1 style={{
+                fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
+                lineHeight: 1.08, marginBottom: 12,
+              }}>Vérifiez<br />votre email</h1>
+              <p style={{
+                fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 28,
+              }}>
+                Nous avons envoyé un code à <strong style={{ color: "#15130F" }}>{email}</strong>
               </p>
 
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-red-50 text-red-600 text-[13px] border border-red-100 text-center">
+                <div style={{
+                  marginBottom: 16, padding: "10px 14px", borderRadius: 10,
+                  background: "#FEF2F2", border: "1px solid #FECACA",
+                  color: "#DC2626", fontSize: 13, textAlign: "center",
+                }}>
                   {error}
                 </div>
               )}
 
-              <div className="flex justify-center mb-6">
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
                 <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus autoComplete="one-time-code">
                   <InputOTPGroup>
                     {[0,1,2,3,4,5].map(i => (
@@ -107,134 +132,219 @@ export default function Register() {
                 </InputOTP>
               </div>
 
-              <Button
-                onClick={handleVerify}
-                disabled={loading || otpCode.length < 6}
-                className="w-full h-[44px] rounded-[8px] text-[14px] font-semibold text-white"
-                style={{ background: 'linear-gradient(135deg, #F95738 0%, #e8401f 100%)', border: 'none' }}
+              <button onClick={handleVerify} disabled={loading || otpCode.length < 6} style={{
+                width: "100%", height: 50, border: "none", borderRadius: 12,
+                background: loading ? "rgba(21,19,15,0.5)" : "#15130F",
+                color: "#FBF8F2", fontFamily: "inherit",
+                fontSize: 14.5, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                transition: "background .15s ease, transform .1s ease",
+              }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#C43E14"; }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#15130F"; }}
+              onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
+              onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
               >
-                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Vérification...</> : "Vérifier →"}
-              </Button>
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Vérification…</> : "Vérifier"}
+              </button>
 
-              <p className="text-center text-[13px] text-gray-500 mt-5">
+              <p style={{ textAlign: "center", fontSize: 13, color: "#4A453B", marginTop: 20 }}>
                 Code non reçu ?{" "}
-                <button onClick={handleResend} className="text-[#F95738] font-semibold hover:underline">
+                <button onClick={handleResend} style={{
+                  color: "#C43E14", fontWeight: 600,
+                  textDecoration: "underline", textUnderlineOffset: 2,
+                  background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13,
+                }}>
                   Renvoyer
                 </button>
               </p>
             </>
           ) : (
             <>
-              <h1 className="text-[28px] font-bold text-gray-900 mb-1">Créer un compte</h1>
-              <p className="text-[14px] text-gray-500 mb-8">Gratuit · Sans carte bancaire · Sans engagement</p>
+              <h1 style={{
+                fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
+                lineHeight: 1.08, marginBottom: 12,
+              }}>Créer un<br />compte</h1>
+              <p style={{
+                fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 22,
+              }}>Gratuit · Sans carte bancaire · Sans engagement</p>
 
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-red-50 text-red-600 text-[13px] border border-red-100 text-center">
+                <div style={{
+                  marginBottom: 16, padding: "10px 14px", borderRadius: 10,
+                  background: "#FEF2F2", border: "1px solid #FECACA",
+                  color: "#DC2626", fontSize: 13, textAlign: "center",
+                }}>
                   {error}
                 </div>
               )}
 
-              {/* Social buttons */}
-              <div className="space-y-2.5 mb-6">
-                <button
-                  onClick={handleGoogle}
-                  className="w-full h-[44px] flex items-center justify-center gap-3 border border-gray-200 rounded-[8px] bg-white hover:bg-gray-50 transition-colors text-[14px] font-medium text-gray-700 shadow-sm"
+              {/* OAuth */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 22 }}>
+                <button onClick={handleGoogle} style={{
+                  height: 48, borderRadius: 12,
+                  border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                  fontFamily: "inherit", fontSize: 14.5, fontWeight: 500, color: "#15130F",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  cursor: "pointer", transition: "border-color .15s ease, transform .1s ease",
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = "#15130F"}
+                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)"}
+                onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
+                onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  <GoogleIcon className="w-4 h-4" />
-                  Continuer avec Google
+                  <GoogleLogo /> Se connecter avec Google
                 </button>
-                <button
-                  onClick={handleApple}
-                  className="w-full h-[44px] flex items-center justify-center gap-3 border border-gray-200 rounded-[8px] bg-white hover:bg-gray-50 transition-colors text-[14px] font-medium text-gray-700 shadow-sm"
+                <button onClick={handleApple} style={{
+                  height: 48, borderRadius: 12,
+                  border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                  fontFamily: "inherit", fontSize: 14.5, fontWeight: 500, color: "#15130F",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  cursor: "pointer", transition: "border-color .15s ease, transform .1s ease",
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = "#15130F"}
+                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)"}
+                onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
+                onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  <AppleIcon />
-                  Continuer avec Apple
+                  <AppleIcon /> Se connecter avec Apple
                 </button>
               </div>
 
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-100" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-3 text-[12px] text-gray-400 font-medium uppercase tracking-wide">ou par email</span>
-                </div>
+              {/* Divider */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "22px 0" }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(21,19,15,0.10)" }} />
+                <span style={{
+                  fontSize: 11, fontWeight: 600, letterSpacing: "0.05em",
+                  textTransform: "uppercase", color: "rgba(21,19,15,0.35)",
+                }}>Ou</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(21,19,15,0.10)" }} />
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-[13px] font-medium text-gray-800">Adresse email</Label>
-                  <Input
-                    id="email"
+              <form onSubmit={handleSubmit}>
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
                     type="email"
-                    autoComplete="email"
-                    autoFocus
-                    placeholder="vous@exemple.com"
+                    placeholder="Entrez votre adresse e-mail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-[44px] border-gray-200 text-[14px] rounded-[8px] focus:ring-1 focus:ring-[#F95738] focus:border-[#F95738]"
+                    autoFocus
                     required
+                    style={{
+                      width: "100%", height: 50, borderRadius: 12,
+                      border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                      padding: "0 16px", fontFamily: "inherit", fontSize: 14.5,
+                      color: "#15130F", outline: "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                      boxSizing: "border-box",
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = "#FF5A1F";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,90,31,0.14)";
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-[13px] font-medium text-gray-800">Mot de passe</Label>
-                  <Input
-                    id="password"
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
                     type="password"
-                    autoComplete="new-password"
-                    placeholder="Minimum 8 caractères"
+                    placeholder="Mot de passe (minimum 8 caractères)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-[44px] border-gray-200 text-[14px] rounded-[8px] focus:ring-1 focus:ring-[#F95738] focus:border-[#F95738]"
                     required
+                    style={{
+                      width: "100%", height: 50, borderRadius: 12,
+                      border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                      padding: "0 16px", fontFamily: "inherit", fontSize: 14.5,
+                      color: "#15130F", outline: "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                      boxSizing: "border-box",
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = "#FF5A1F";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,90,31,0.14)";
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="confirm" className="text-[13px] font-medium text-gray-800">Confirmer le mot de passe</Label>
-                  <Input
-                    id="confirm"
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
                     type="password"
-                    autoComplete="new-password"
-                    placeholder="••••••••"
+                    placeholder="Confirmer le mot de passe"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-[44px] border-gray-200 text-[14px] rounded-[8px] focus:ring-1 focus:ring-[#F95738] focus:border-[#F95738]"
                     required
+                    style={{
+                      width: "100%", height: 50, borderRadius: 12,
+                      border: "1px solid rgba(21,19,15,0.16)", background: "#fff",
+                      padding: "0 16px", fontFamily: "inherit", fontSize: 14.5,
+                      color: "#15130F", outline: "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                      boxSizing: "border-box",
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = "#FF5A1F";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,90,31,0.14)";
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = "rgba(21,19,15,0.16)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-[44px] rounded-[8px] text-[14px] font-semibold text-white mt-1"
-                  style={{ background: 'linear-gradient(135deg, #F95738 0%, #e8401f 100%)', border: 'none' }}
+                <button type="submit" disabled={loading} style={{
+                  width: "100%", height: 50, border: "none", borderRadius: 12,
+                  background: loading ? "rgba(21,19,15,0.5)" : "#15130F",
+                  color: "#FBF8F2", fontFamily: "inherit",
+                  fontSize: 14.5, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "background .15s ease, transform .1s ease",
+                }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#C43E14"; }}
+                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#15130F"; }}
+                onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
+                onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Création...</> : "Créer mon compte →"}
-                </Button>
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Création…</> : "Créer mon compte"}
+                </button>
               </form>
 
-              <p className="text-center text-[12px] text-gray-400 mt-4 leading-relaxed">
+              <p style={{ textAlign: "center", fontSize: 12, color: "rgba(21,19,15,0.4)", marginTop: 16, lineHeight: 1.5 }}>
                 En créant un compte, vous acceptez nos{" "}
-                <a href="/terms" className="text-[#F95738] hover:underline">CGU</a>
+                <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>CGU</Link>
                 {" "}et notre{" "}
-                <a href="/privacy" className="text-[#F95738] hover:underline">Politique de confidentialité</a>.
+                <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Politique de confidentialité</Link>.
               </p>
 
-              <p className="text-center text-[13px] text-gray-500 mt-4">
+              <p style={{ textAlign: "center", fontSize: 14, color: "#4A453B", marginTop: 16 }}>
                 Déjà un compte ?{" "}
-                <Link to="/login" className="text-[#F95738] font-semibold hover:underline">
+                <Link to="/login" style={{ color: "#15130F", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 2 }}>
                   Se connecter
                 </Link>
               </p>
             </>
           )}
         </div>
+
+        {/* Legal */}
+        <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
+          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
+          {" "}et{" "}
+          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+        </p>
       </div>
 
-      {/* Right: brand panel */}
-      <AuthBrand />
+      {/* ── RIGHT ── */}
+      <AuthRightPanel className="auth-right" />
     </div>
   );
 }
