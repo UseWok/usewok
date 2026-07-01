@@ -357,21 +357,26 @@ function Divider() {
 }
 
 // ─── WOK AI History Sidebar ───────────────────────────────────────
-const SK_AI = 'wok_ai_v3';
-function loadAIConvs() { try { return JSON.parse(localStorage.getItem(SK_AI) || '[]'); } catch { return []; } }
-function deleteAIConv(id) { try { const c = loadAIConvs().filter(x => x.id !== id); localStorage.setItem(SK_AI, JSON.stringify(c)); } catch {} }
+async function loadAIConvsCloud() {
+  try {
+    const recs = await base44.entities.Conversation.list('-updated_at', 50);
+    return recs.map(r => ({ id: r.id, title: r.title || 'Sans titre', updatedAt: r.updated_at || new Date(r.updated_date).getTime() }));
+  } catch { return []; }
+}
 
 function WokAISidebar({ navigate, onBack }) {
   const location = useLocation();
-  const [convs, setConvs] = useState(() => loadAIConvs());
+  const [convs, setConvs] = useState([]);
   const activeId = new URLSearchParams(location.search).get('conv');
+
+  useEffect(() => { loadAIConvsCloud().then(setConvs); }, []);
 
   const handleSelect = (id) => { navigate(`/wok-ai?conv=${id}`); };
   const handleNew = () => { navigate('/wok-ai'); };
-  const handleDelete = (e, id) => {
+  const handleDelete = async (e, id) => {
     e.stopPropagation();
-    deleteAIConv(id);
-    setConvs(loadAIConvs());
+    try { await base44.entities.Conversation.delete(id); } catch {}
+    loadAIConvsCloud().then(setConvs);
   };
 
   return (
