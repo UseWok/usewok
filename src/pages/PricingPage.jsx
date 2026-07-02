@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId } from '@/lib/plans-config';
 import { useAuth } from '@/lib/AuthContext';
-import { Check, ArrowRight, X } from 'lucide-react';
+import { Check, ArrowRight, X, ShieldCheck } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
 
 const WIX = "'Inter', 'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const SERIF = "'Fraunces', 'Helvetica Neue', serif";
 
-// ── Contact Modal ──
+// ── Contact Modal ── (unchanged)
 const ContactModal = ({ onClose }) => {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', website: '', role: '', message: '' });
@@ -88,6 +88,7 @@ export default function PricingPage() {
     if (authUser) { setUserPlanId(getNormalizedPlanId(authUser)); setUserEmail(authUser.email || ''); }
   }, [authUser]);
 
+  // Stripe: full-page redirect only — no modal, no same-tab tricks. Untouched logic.
   const handleUpgrade = async (plan) => {
     try { if (window.self !== window.top) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; } } catch {}
     const priceId = billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
@@ -107,6 +108,7 @@ export default function PricingPage() {
 
   const isCurrent = (plan) => plan.id === userPlanId;
   const isFree = (plan) => !plan.price_monthly || plan.price_monthly === 0;
+  const isPopular = (plan) => !!(plan.popular || plan.recommended || plan.featured || plan.highlighted);
 
   const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
 
@@ -115,7 +117,7 @@ export default function PricingPage() {
 
   if (loading) return (
     <div style={{ minHeight: '100%', background: '#FBF8F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
-      <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2.5px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -133,28 +135,65 @@ export default function PricingPage() {
         .uw-app-pricing .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #C43E14; }
         .uw-app-pricing .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #FF5A1F; }
 
-        /* HERO */
-        .uw-app-pricing .p-hero { position: relative; text-align: center; padding: 56px 0 8px; overflow: hidden; }
+        /* HERO — flat, precise, no gradient blobs. One quiet grid texture instead. */
+        .uw-app-pricing .p-hero { position: relative; text-align: center; padding: 72px 0 4px; overflow: hidden; }
         .uw-app-pricing .p-hero::before {
-          content: ''; position: absolute; inset: -40px 0 0; z-index: 0;
-          background:
-            radial-gradient(55% 140% at 15% 0%, #FFE0C7 0%, transparent 60%),
-            radial-gradient(55% 140% at 88% 0%, #FFD2AE 0%, transparent 60%);
-          pointer-events: none;
+          content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background-image:
+            linear-gradient(rgba(21,19,15,0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(21,19,15,0.035) 1px, transparent 1px);
+          background-size: 42px 42px;
+          -webkit-mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 0%, transparent 75%);
+          mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 0%, transparent 75%);
         }
         .uw-app-pricing .p-hero > * { position: relative; z-index: 1; }
-        .uw-app-pricing .p-hero h1 { font-size: 38px; margin-bottom: 12px; }
-        .uw-app-pricing .p-hero p { font-size: 14.5px; color: rgba(21,19,15,0.55); }
+        .uw-app-pricing .p-hero h1 { font-size: 40px; margin: 0 0 12px; }
+        .uw-app-pricing .p-hero p.lead { font-size: 14.5px; color: rgba(21,19,15,0.55); margin: 0; }
+        .uw-app-pricing .p-hero p.lead strong { color: #15130F; font-weight: 600; }
 
-        /* TOGGLE */
-        .uw-app-pricing .toggle { display: inline-flex; margin: 28px auto 0; padding: 4px; background: #F3EEE3; border-radius: 100px; border: 1px solid rgba(21,19,15,0.08); }
-        .uw-app-pricing .toggle button { padding: 9px 20px; font-size: 13px; font-weight: 600; border-radius: 100px; cursor: pointer; color: rgba(21,19,15,0.55); display: flex; align-items: center; gap: 7px; border: none; background: none; font-family: inherit; transition: background .15s ease, color .15s ease; }
+        /* Signature: a quiet French mark, Mistral-style — text, not a flag */
+        .uw-app-pricing .fr-mark {
+          display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+          font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+          color: rgba(21,19,15,0.38);
+        }
+        .uw-app-pricing .fr-mark svg { opacity: 0.55; }
+
+        /* TOGGLE — tighter, crisper, Linear-grade segmented control */
+        .uw-app-pricing .toggle-wrap { text-align: center; margin-top: 30px; }
+        .uw-app-pricing .toggle { display: inline-flex; padding: 3px; background: #F0EAdd; border-radius: 11px; border: 1px solid rgba(21,19,15,0.08); }
+        .uw-app-pricing .toggle button {
+          position: relative; padding: 8px 18px; font-size: 12.5px; font-weight: 600; border-radius: 8px;
+          cursor: pointer; color: rgba(21,19,15,0.5); display: flex; align-items: center; gap: 6px;
+          border: none; background: none; font-family: inherit; transition: background .16s ease, color .16s ease;
+        }
         .uw-app-pricing .toggle button.on { background: #15130F; color: #FBF8F2; }
-        .uw-app-pricing .toggle .save { font-size: 10.5px; font-weight: 700; color: #C43E14; background: #FFE7D6; padding: 2px 7px; border-radius: 100px; }
-        .uw-app-pricing .toggle-wrap { text-align: center; }
+        .uw-app-pricing .toggle .save { font-size: 10px; font-weight: 700; color: #FF7A3D; }
+        .uw-app-pricing .toggle button.on .save { color: #FFB088; }
 
-        /* PRICING GRID */
-        .uw-app-pricing .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; align-items: start; }
+        /* PRICING GRID — even rhythm, room for a popular card to lead visually without noise */
+        .uw-app-pricing .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; align-items: start; }
+        .uw-app-pricing .plan-slot { position: relative; border-radius: 18px; transition: transform .18s ease; }
+        .uw-app-pricing .plan-slot:hover { transform: translateY(-3px); }
+        .uw-app-pricing .plan-slot.popular {
+          border-radius: 19px; padding: 1px;
+          background: linear-gradient(180deg, #FF5A1F, rgba(255,90,31,0));
+        }
+        .uw-app-pricing .plan-slot.popular > .plan-slot-inner { background: #FBF8F2; border-radius: 18px; }
+        .uw-app-pricing .plan-badge {
+          position: absolute; top: -11px; left: 50%; transform: translateX(-50%); z-index: 2;
+          background: #15130F; color: #FBF8F2; font-size: 10.5px; font-weight: 700;
+          letter-spacing: 0.03em; padding: 5px 13px; border-radius: 100px;
+          box-shadow: 0 4px 12px rgba(21,19,15,0.18);
+        }
+
+        /* Reassurance row under the grid — precise, not decorative */
+        .uw-app-pricing .assure-row {
+          display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 30px;
+          font-size: 12px; color: rgba(21,19,15,0.5); font-weight: 500;
+        }
+        .uw-app-pricing .assure-row span { display: inline-flex; align-items: center; gap: 6px; }
+        .uw-app-pricing .assure-row svg { opacity: 0.55; }
 
         /* ENTERPRISE STRIP */
         .uw-app-pricing .ent-strip {
@@ -195,8 +234,12 @@ export default function PricingPage() {
         <section className="p-hero">
           <div className="wrap">
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 14 }}><span className="dot"></span>Tarifs simples</span>
-            <h1>Choisir votre plan</h1>
-            <p>Vous êtes sur le plan <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong>. Changez ou annulez à tout moment.</p>
+            <h1 className="serif">Choisir votre plan</h1>
+            <p className="lead">Vous êtes sur le plan <strong>{userPlanId}</strong>. Changez ou annulez à tout moment.</p>
+            <div className="fr-mark">
+              <ShieldCheck size={12} strokeWidth={2.2} />
+              Conçu &amp; hébergé en France — conforme RGPD
+            </div>
             <div className="toggle-wrap">
               <div className="toggle">
                 <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Mensuel</button>
@@ -213,9 +256,9 @@ export default function PricingPage() {
               {sortedPlans.map(plan => {
                 const curr = isCurrent(plan);
                 const free = isFree(plan);
-                return (
+                const popular = isPopular(plan);
+                const card = (
                   <PlanCard
-                    key={plan.id}
                     plan={plan}
                     billing={billing}
                     isCurrent={curr}
@@ -224,7 +267,18 @@ export default function PricingPage() {
                     ctaLabel={free ? 'Commencer gratuitement' : `Choisir ${plan.name}`}
                   />
                 );
+                return (
+                  <div key={plan.id} className={`plan-slot${popular ? ' popular' : ''}`}>
+                    {popular && <span className="plan-badge">Le plus choisi</span>}
+                    {popular ? <div className="plan-slot-inner">{card}</div> : card}
+                  </div>
+                );
               })}
+            </div>
+            <div className="assure-row">
+              <span><ShieldCheck size={13} strokeWidth={2.2} />Paiement sécurisé par Stripe</span>
+              <span><Check size={13} strokeWidth={2.2} />Sans engagement</span>
+              <span><Check size={13} strokeWidth={2.2} />Annulation en 1 clic</span>
             </div>
           </div>
         </section>
@@ -248,7 +302,7 @@ export default function PricingPage() {
         <section>
           <div className="wrap">
             <div className="faq-wrap">
-              <h2>Questions fréquentes</h2>
+              <h2 className="serif">Questions fréquentes</h2>
               <details open>
                 <summary>Qu'est-ce que UseWok ?</summary>
                 <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini.</p>
