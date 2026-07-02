@@ -1,508 +1,287 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
+import PlanCard from '@/components/pricing/PlanCard';
 
-const F = "'Inter', system-ui, sans-serif";
-const BG = '#0A0A0A';
-const BORDER = 'rgba(255,255,255,0.08)';
-const ACCENT = '#5A5AF0';
-
-// ─── Light theme tokens ───────────────────────────────────────────────────────
-const LBG = '#F9F9F8';
-const LCARD = '#FFFFFF';
-const LBORDER = 'rgba(0,0,0,0.08)';
-const LT1 = '#111111';
-const LT2 = 'rgba(0,0,0,0.55)';
-const LT3 = 'rgba(0,0,0,0.28)';
-
-function FontLoader() {
-  useEffect(() => {
-    if (document.getElementById('lp-font')) return;
-    const l = document.createElement('link');
-    l.id = 'lp-font'; l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap';
-    document.head.appendChild(l);
-  }, []);
-  return null;
-}
-
-function Navbar({ onLogin, onSignup }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', h, { passive: true });
-    return () => window.removeEventListener('scroll', h);
-  }, []);
-  return (
-    <header style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-      height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 32px', fontFamily: F,
-      background: scrolled ? 'rgba(10,10,10,0.94)' : 'rgba(10,10,10,0.7)',
-      backdropFilter: 'blur(20px)',
-      borderBottom: scrolled ? `1px solid ${BORDER}` : '1px solid transparent',
-      transition: 'all 0.3s ease',
-    }}>
-      <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="white"/>
-          <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="white"/>
-          <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="white"/>
-        </svg>
-        <span style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>Linear</span>
-      </a>
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-        {[['Product', '/'], ['Resources', '#'], ['Customers', '#'], ['Pricing', '/pricing'], ['Now', '#'], ['Contact', '#']].map(([l, h]) => (
-          <a key={l} href={h} style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}>
-            {l}
-          </a>
-        ))}
-        <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.15)' }} />
-        <button onClick={onLogin} style={{ fontFamily: F, fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.55)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 150ms', padding: 0 }}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}>
-          Log in
-        </button>
-        <button onClick={onSignup} style={{
-          fontFamily: F, fontSize: 14, fontWeight: 500, color: '#000',
-          background: '#fff', border: 'none', borderRadius: 20,
-          padding: '7px 18px', cursor: 'pointer', transition: 'opacity 150ms',
-        }}>Sign up</button>
-      </nav>
-    </header>
-  );
-}
-
-const CHECK = ({ color = 'rgba(255,255,255,0.7)' } = {}) => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-    <path d="M2 7L5.5 10.5L12 3.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-const LCHECK = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-    <path d="M2 7L5.5 10.5L12 3.5" stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-const DASH = () => <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 14 }}>—</span>;
-const LDASH = () => <span style={{ color: 'rgba(0,0,0,0.18)', fontSize: 14 }}>—</span>;
-
-const PLANS = [
-  {
-    name: 'Free', monthlyPrice: 0, annualPrice: 0, unit: 'per member / month',
-    desc: 'For individuals and small teams who want to try Linear.',
-    cta: 'Start for free', ctaStyle: 'outline',
-    features: { members: 'Up to 10 members', storage: '250 MB', history: '6 months', integrations: true, cycles: true, projects: true, roadmaps: false, analytics: false, sso: false, sla: false, support: 'Community', api: 'Basic' },
-  },
-  {
-    name: 'Standard', monthlyPrice: 10, annualPrice: 8, unit: 'per member / month',
-    desc: 'For growing teams that need more power and flexibility.',
-    cta: 'Start Standard', ctaStyle: 'primary',
-    badge: 'Most popular',
-    features: { members: 'Unlimited', storage: '10 GB', history: 'Unlimited', integrations: true, cycles: true, projects: true, roadmaps: true, analytics: true, sso: false, sla: false, support: 'Email', api: 'Full' },
-  },
-  {
-    name: 'Plus', monthlyPrice: 20, annualPrice: 16, unit: 'per member / month',
-    desc: 'For scaling teams that need advanced controls and support.',
-    cta: 'Start Plus', ctaStyle: 'outline',
-    features: { members: 'Unlimited', storage: '250 GB', history: 'Unlimited', integrations: true, cycles: true, projects: true, roadmaps: true, analytics: true, sso: 'SAML', sla: false, support: 'Priority', api: 'Full + Webhooks' },
-  },
-  {
-    name: 'Enterprise', monthlyPrice: null, annualPrice: null, unit: '',
-    desc: 'For large organizations that need enterprise-grade security and support.',
-    cta: 'Contact sales', ctaStyle: 'outline',
-    features: { members: 'Unlimited', storage: 'Custom', history: 'Unlimited', integrations: true, cycles: true, projects: true, roadmaps: true, analytics: true, sso: 'SAML + SCIM', sla: '99.9% uptime', support: 'Dedicated CSM', api: 'Full + Webhooks + Priority' },
-  },
-];
-
-const FEATURE_GROUPS = [
-  {
-    label: 'Workspace',
-    rows: [
-      { label: 'Members', key: 'members', type: 'text' },
-      { label: 'File storage', key: 'storage', type: 'text' },
-      { label: 'Issue history', key: 'history', type: 'text' },
-    ],
-  },
-  {
-    label: 'Core features',
-    rows: [
-      { label: 'Issues & sub-issues', key: 'issues', type: 'check_all' },
-      { label: 'Cycles', key: 'cycles', type: 'bool' },
-      { label: 'Projects', key: 'projects', type: 'bool' },
-      { label: 'Roadmaps', key: 'roadmaps', type: 'bool' },
-      { label: 'Analytics & insights', key: 'analytics', type: 'bool' },
-    ],
-  },
-  {
-    label: 'Security',
-    rows: [
-      { label: 'SSO / SAML', key: 'sso', type: 'text_or_bool' },
-      { label: 'SLA', key: 'sla', type: 'text_or_bool' },
-    ],
-  },
-  {
-    label: 'Support',
-    rows: [
-      { label: 'Support level', key: 'support', type: 'text' },
-      { label: 'API access', key: 'api', type: 'text' },
-    ],
-  },
-];
-
-function CellValue({ val, type, light = false }) {
-  const CheckComp = light ? LCHECK : CHECK;
-  const DashComp = light ? LDASH : DASH;
-  const textColor = light ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.6)';
-  if (type === 'check_all') return <CheckComp />;
-  if (type === 'bool') {
-    if (val === true) return <CheckComp />;
-    if (val === false) return <DashComp />;
-    return <span style={{ fontSize: 12, color: textColor }}>{val}</span>;
-  }
-  if (type === 'text_or_bool') {
-    if (val === false) return <DashComp />;
-    if (val === true) return <CheckComp />;
-    return <span style={{ fontSize: 12, color: textColor }}>{val}</span>;
-  }
-  return <span style={{ fontSize: 12, color: textColor }}>{val}</span>;
-}
-
-const LOGOS = ['▲ Vercel', '⊕ CURSOR', 'OSCAR', 'OpenAI', 'coinbase', '$ Cash App', '⊗ BOOM', 'ramp ↗'];
-
-// ─── Light theme pricing section (used on landing page via prop) ─────────────
-export function LandingPricingLight({ onSignup }) {
-  const [annual, setAnnual] = useState(true);
-  return (
-    <section style={{ background: LBG, fontFamily: F, padding: '100px 80px 120px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 700, color: LT1, letterSpacing: '-0.04em', lineHeight: 1.0, margin: '0 0 48px' }}>
-          Pricing
-        </h2>
-
-        {/* Billing toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48 }}>
-          <div style={{ display: 'inline-flex', background: 'rgba(0,0,0,0.04)', border: `1px solid ${LBORDER}`, borderRadius: 8, padding: 3 }}>
-            {[['Monthly', false], ['Annually', true]].map(([label, val]) => (
-              <button key={label} onClick={() => setAnnual(val)} style={{
-                fontFamily: F, fontSize: 13, fontWeight: 500,
-                padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                background: annual === val ? '#fff' : 'transparent',
-                color: annual === val ? LT1 : LT3,
-                boxShadow: annual === val ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 200ms',
-              }}>
-                {label}
-              </button>
-            ))}
-          </div>
-          {annual && <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 500 }}>Save 20%</span>}
-        </div>
-
-        {/* Plan cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, border: `1px solid ${LBORDER}`, borderRadius: 12, overflow: 'hidden', background: LBORDER }}>
-          {PLANS.map((plan, i) => (
-            <div key={i} style={{
-              padding: '32px 28px',
-              background: plan.name === 'Standard' ? 'rgba(90,90,240,0.04)' : LCARD,
-              position: 'relative',
-            }}>
-              {plan.badge && (
-                <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: ACCENT, borderRadius: '0 0 6px 6px', padding: '2px 12px', fontSize: 11, fontWeight: 600, color: '#fff' }}>
-                  {plan.badge}
-                </div>
-              )}
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: LT1, margin: '0 0 6px' }}>{plan.name}</h3>
-              <p style={{ fontSize: 12, color: LT3, lineHeight: 1.6, margin: '0 0 20px', minHeight: 48 }}>{plan.desc}</p>
-              <div style={{ marginBottom: 20 }}>
-                {plan.monthlyPrice === null ? (
-                  <span style={{ fontSize: 28, fontWeight: 700, color: LT1, letterSpacing: '-0.03em' }}>Custom</span>
-                ) : plan.monthlyPrice === 0 ? (
-                  <span style={{ fontSize: 28, fontWeight: 700, color: LT1, letterSpacing: '-0.03em' }}>Free</span>
-                ) : (
-                  <>
-                    <span style={{ fontSize: 28, fontWeight: 700, color: LT1, letterSpacing: '-0.03em' }}>
-                      ${annual ? plan.annualPrice : plan.monthlyPrice}
-                    </span>
-                    <span style={{ fontSize: 12, color: LT3, marginLeft: 6 }}>{plan.unit}</span>
-                  </>
-                )}
-              </div>
-              <button onClick={onSignup} style={{
-                fontFamily: F, fontSize: 13, fontWeight: 600, width: '100%',
-                padding: '10px 0', borderRadius: 7, border: `1px solid`,
-                borderColor: plan.ctaStyle === 'primary' ? 'transparent' : LBORDER,
-                background: plan.ctaStyle === 'primary' ? LT1 : 'transparent',
-                color: plan.ctaStyle === 'primary' ? '#fff' : LT2,
-                cursor: 'pointer', transition: 'opacity 150ms',
-              }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                {plan.cta}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Feature table */}
-        <div style={{ marginTop: 72 }}>
-          <h3 style={{ fontSize: 20, fontWeight: 700, color: LT1, marginBottom: 40, letterSpacing: '-0.02em' }}>Compare plans</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)', borderBottom: `1px solid ${LBORDER}`, paddingBottom: 14, marginBottom: 8 }}>
-            <div />
-            {PLANS.map((p, i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: LT1 }}>{p.name}</span>
-              </div>
-            ))}
-          </div>
-          {FEATURE_GROUPS.map((group, gi) => (
-            <div key={gi}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)', paddingTop: 24, paddingBottom: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: LT3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{group.label}</div>
-              </div>
-              {group.rows.map((row, ri) => (
-                <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)', padding: '10px 0', borderTop: `1px solid rgba(0,0,0,0.04)` }}>
-                  <div style={{ fontSize: 13, color: LT2 }}>{row.label}</div>
-                  {PLANS.map((plan, pi) => (
-                    <div key={pi} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <CellValue val={plan.features[row.key]} type={row.type} light={true} />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+const WIX = "'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 export default function LandingPricingPage() {
-  const [annual, setAnnual] = useState(true);
-  const onSignup = () => base44.auth.redirectToLogin('/app');
-  const onLogin = () => base44.auth.redirectToLogin('/app');
+  const navigate = useNavigate();
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [billing, setBilling] = useState('monthly');
+
+  useEffect(() => {
+    document.body.style.backgroundColor = '#FBF8F2';
+    document.body.style.fontFamily = WIX;
+    loadPlansFromDB()
+      .then(db => { setPlans((db || getPlansConfig()).filter(p => p.visible !== false)); setLoading(false); })
+      .catch(() => { setPlans(getPlansConfig().filter(p => p.visible !== false)); setLoading(false); });
+    return () => { document.body.style.backgroundColor = ''; document.body.style.fontFamily = ''; };
+  }, []);
+
+  const goRegister = () => navigate('/register');
+  const goLogin = () => navigate('/login');
+  const goHome = () => navigate('/');
+  const goBlog = () => navigate('/blog');
+
+  const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
+
+  const samplePaid = sortedPlans.find(p => p.price_monthly && p.price_yearly);
+  const discount = samplePaid ? Math.round((1 - (samplePaid.price_yearly / (samplePaid.price_monthly * 12))) * 100) : 0;
+
+  if (loading) return (
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBF8F2', fontFamily: WIX }}>
+      <div style={{ width: 20, height: 20, border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
-    <div style={{ background: BG, fontFamily: F, minHeight: '100vh' }}>
-      <FontLoader />
-      <Navbar onLogin={onLogin} onSignup={onSignup} />
+    <div style={{ fontFamily: WIX, background: '#FBF8F2', color: '#15130F', minHeight: '100vh', WebkitFontSmoothing: 'antialiased' }}>
+      <style>{`
+        .uw-pricing * { box-sizing: border-box; }
+        .uw-pricing .wrap { max-width: 1160px; margin: 0 auto; padding: 0 40px; }
+        .uw-pricing section { padding: 80px 0; }
+        .uw-pricing h1, .uw-pricing h2, .uw-pricing h3 { font-weight: 800; letter-spacing: -0.03em; }
+        .uw-pricing .serif { font-family: 'Fraunces', serif; font-weight: 500; }
+        .uw-pricing .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #C43E14; }
+        .uw-pricing .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #FF5A1F; }
+        .uw-pricing .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 100px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: transform .15s ease, background .15s ease; }
+        .uw-pricing .btn:active { transform: scale(0.97); }
+        .uw-pricing .btn-dark { background: #15130F; color: #FBF8F2; }
+        .uw-pricing .btn-dark:hover { background: #C43E14; }
+        .uw-pricing .btn-outline { background: transparent; color: #15130F; border: 1px solid rgba(21,19,15,0.14); }
+        .uw-pricing .btn-outline:hover { border-color: #15130F; }
+        .uw-pricing nav { position: sticky; top: 0; z-index: 20; background: rgba(251,248,242,0.82); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(21,19,15,0.10); }
+        .uw-pricing nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 74px; }
+        .uw-pricing .brand { display: flex; align-items: center; gap: 9px; cursor: pointer; }
+        .uw-pricing .brand .mark { width: 26px; height: 26px; border-radius: 7px; background: #FF5A1F; display: flex; align-items: center; justify-content: center; }
+        .uw-pricing .brand .mark svg { width: 13px; height: 13px; }
+        .uw-pricing .brand span { font-weight: 700; font-size: 15.5px; }
+        .uw-pricing .navlinks { display: flex; align-items: center; gap: 34px; font-size: 14px; font-weight: 500; color: #4A453B; }
+        .uw-pricing .navlinks button { background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; padding: 0; }
+        .uw-pricing .navlinks button:hover { color: #15130F; }
+        .uw-pricing .navlinks button.active { color: #15130F; }
+        .uw-pricing .navright { display: flex; align-items: center; gap: 12px; }
+        .uw-pricing .p-hero { text-align: center; padding: 72px 0 8px; }
+        .uw-pricing .p-hero h1 { font-size: 48px; margin-bottom: 14px; }
+        .uw-pricing .p-hero p { font-size: 15.5px; color: rgba(21,19,15,0.55); }
+        .uw-pricing .toggle { display: inline-flex; margin: 34px auto 0; padding: 4px; background: #F3EEE3; border-radius: 100px; }
+        .uw-pricing .toggle span { padding: 9px 20px; font-size: 13.5px; font-weight: 600; border-radius: 100px; cursor: pointer; color: rgba(21,19,15,0.55); display: flex; align-items: center; gap: 7px; border: none; background: none; font-family: inherit; }
+        .uw-pricing .toggle span.on { background: #15130F; color: #FBF8F2; }
+        .uw-pricing .toggle .save { font-size: 10.5px; font-weight: 700; color: #C43E14; background: #FFE7D6; padding: 2px 7px; border-radius: 100px; }
+        .uw-pricing .toggle-wrap { text-align: center; }
+        .uw-pricing .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 52px; align-items: start; }
+        .uw-pricing .trustbar { padding: 70px 0; text-align: center; }
+        .uw-pricing .trustlogos { display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; margin-top: 28px; }
+        .uw-pricing .tlogo { display: flex; align-items: center; gap: 8px; opacity: 0.75; }
+        .uw-pricing .tlogo .ic { width: 26px; height: 26px; border-radius: 7px; background: #15130F; color: #FBF8F2; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .uw-pricing .tlogo span { font-weight: 700; font-size: 14.5px; }
+        .uw-pricing .testi { display: flex; align-items: center; gap: 40px; }
+        .uw-pricing .testi .av { width: 88px; height: 88px; border-radius: 18px; background: #FFE7D6; flex-shrink: 0; }
+        .uw-pricing .testi blockquote { font-family: 'Fraunces', serif; font-weight: 500; font-size: 24px; line-height: 1.35; margin-bottom: 16px; max-width: 620px; }
+        .uw-pricing .testi cite { font-style: normal; font-size: 13.5px; color: rgba(21,19,15,0.55); }
+        .uw-pricing .cta-band { position: relative; overflow: hidden; border-radius: 26px; padding: 70px 40px; text-align: center; background: radial-gradient(70% 70% at 15% 20%, #FFD9BE 0%, transparent 55%), radial-gradient(70% 70% at 88% 85%, #FFB98F 0%, transparent 55%), linear-gradient(160deg, #FFF3E9 0%, #FFE0C7 100%); }
+        .uw-pricing .cta-band::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(196,62,20,0.09) 1px, transparent 1px); background-size: 24px 24px; mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, black 0%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, black 0%, transparent 70%); }
+        .uw-pricing .cta-band > * { position: relative; z-index: 2; }
+        .uw-pricing .cta-band h2 { font-size: 32px; max-width: 560px; margin: 0 auto 26px; line-height: 1.2; }
+        .uw-pricing .cta-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 18px; }
+        .uw-pricing .cta-band .noc { font-size: 12.5px; color: rgba(21,19,15,0.55); }
+        .uw-pricing .faq-wrap { max-width: 680px; margin: 0 auto; }
+        .uw-pricing .faq-wrap h2 { text-align: center; font-size: 28px; margin-bottom: 36px; }
+        .uw-pricing details { border-bottom: 1px solid rgba(21,19,15,0.10); padding: 20px 4px; }
+        .uw-pricing details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; font-weight: 600; }
+        .uw-pricing details summary::-webkit-details-marker { display: none; }
+        .uw-pricing details summary::after { content: '+'; font-size: 20px; font-weight: 400; color: rgba(21,19,15,0.55); }
+        .uw-pricing details[open] summary::after { content: '–'; }
+        .uw-pricing details p { font-size: 13.5px; color: rgba(21,19,15,0.55); line-height: 1.6; margin-top: 14px; }
+        .uw-pricing footer { padding: 80px 0 40px; }
+        .uw-pricing .foot-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 60px; }
+        .uw-pricing .foot-brand p { font-size: 13.5px; color: rgba(21,19,15,0.55); line-height: 1.6; margin: 16px 0 20px; max-width: 280px; }
+        .uw-pricing .foot-social { display: flex; gap: 10px; }
+        .uw-pricing .foot-social a { width: 32px; height: 32px; border-radius: 9px; background: #F3EEE3; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #4A453B; font-size: 13px; }
+        .uw-pricing .foot-col h5 { font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(21,19,15,0.55); margin-bottom: 16px; }
+        .uw-pricing .foot-col button { display: block; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13.5px; color: #4A453B; text-align: left; margin-bottom: 11px; padding: 0; }
+        .uw-pricing .foot-col button:hover { color: #15130F; }
+        .uw-pricing .foot-bottom { display: flex; justify-content: space-between; padding-top: 26px; border-top: 1px solid rgba(21,19,15,0.10); font-size: 12.5px; color: rgba(21,19,15,0.55); }
+        .uw-pricing .foot-bottom .fr { display: flex; align-items: center; gap: 6px; }
+        .uw-pricing .foot-bottom .fr .flag { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(90deg,#002395 33%,#fff 33%,#fff 66%,#ED2939 66%); }
+        @media (max-width: 900px) {
+          .uw-pricing .wrap { padding: 0 20px; }
+          .uw-pricing .navlinks { display: none; }
+          .uw-pricing .pricing-grid { grid-template-columns: 1fr; }
+          .uw-pricing .testi { flex-direction: column; text-align: center; }
+          .uw-pricing .foot-top { grid-template-columns: 1fr; }
+          .uw-pricing .p-hero h1 { font-size: 36px; }
+        }
+      `}</style>
 
-      {/* Hero */}
-      <section style={{ padding: '120px 80px 80px', fontFamily: F }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <h1 style={{ fontSize: 'clamp(2.4rem, 5vw, 4.5rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.0, margin: '0 0 64px' }}>
-            Pricing
-          </h1>
+      <div className="uw-pricing">
+        {/* NAV */}
+        <nav>
+          <div className="wrap">
+            <div className="brand" onClick={goHome}>
+              <div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div>
+              <span>UseWok</span>
+            </div>
+            <div className="navlinks">
+              <button onClick={goHome}>Produit</button>
+              <button onClick={goHome}>Cas d'usage</button>
+              <button className="active">Tarifs</button>
+              <button onClick={goBlog}>Ressources</button>
+            </div>
+            <div className="navright">
+              <button className="btn btn-outline" onClick={goLogin}>Se connecter</button>
+              <button className="btn btn-dark" onClick={goRegister}>Commencer</button>
+            </div>
+          </div>
+        </nav>
 
-          {/* Billing toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48 }}>
-            <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.06)', border: `1px solid ${BORDER}`, borderRadius: 8, padding: 3 }}>
-              {[['Monthly', false], ['Annually', true]].map(([label, val]) => (
-                <button key={label} onClick={() => setAnnual(val)} style={{
-                  fontFamily: F, fontSize: 13, fontWeight: 500,
-                  padding: '6px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                  background: annual === val ? 'rgba(255,255,255,0.12)' : 'transparent',
-                  color: annual === val ? '#fff' : 'rgba(255,255,255,0.4)',
-                  transition: 'all 200ms',
-                }}>
-                  {label}
-                </button>
+        {/* HERO */}
+        <section className="p-hero">
+          <div className="wrap">
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 16 }}><span className="dot"></span>Tarifs simples</span>
+            <h1>Des tarifs flexibles</h1>
+            <p>Commencez gratuitement. Changez de formule ou annulez à tout moment.</p>
+            <div className="toggle-wrap">
+              <div className="toggle">
+                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Mensuel</button>
+                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Annuel {discount > 0 && <span className="save">-{discount}%</span>}</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PRICING CARDS */}
+        <section style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <div className="pricing-grid">
+              {sortedPlans.map(plan => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  billing={billing}
+                  isCurrent={false}
+                  onCta={goRegister}
+                  ctaLabel={!plan.price_monthly || plan.price_monthly === 0 ? 'Commencer gratuitement' : `Choisir ${plan.name}`}
+                />
               ))}
             </div>
-            {annual && <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 500 }}>Save 20%</span>}
           </div>
+        </section>
 
-          {/* Plan cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>
-            {PLANS.map((plan, i) => (
-              <div key={i} style={{
-                padding: '32px 28px',
-                background: plan.name === 'Plus' ? 'rgba(90,90,240,0.06)' : 'rgba(255,255,255,0.02)',
-                borderRight: i < PLANS.length - 1 ? `1px solid ${BORDER}` : 'none',
-                position: 'relative',
-              }}>
-                {plan.badge && (
-                  <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: ACCENT, borderRadius: '0 0 6px 6px', padding: '2px 12px', fontSize: 11, fontWeight: 600, color: '#fff' }}>
-                    {plan.badge}
-                  </div>
-                )}
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>{plan.name}</h3>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: '0 0 20px', minHeight: 48 }}>{plan.desc}</p>
-
-                <div style={{ marginBottom: 20 }}>
-                  {plan.monthlyPrice === null ? (
-                    <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.03em' }}>Custom</span>
-                  ) : plan.monthlyPrice === 0 ? (
-                    <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.03em' }}>Free</span>
-                  ) : (
-                    <>
-                      <span style={{ fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.03em' }}>
-                        ${annual ? plan.annualPrice : plan.monthlyPrice}
-                      </span>
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginLeft: 6 }}>{plan.unit}</span>
-                    </>
-                  )}
-                </div>
-
-                <button onClick={onSignup} style={{
-                  fontFamily: F, fontSize: 13, fontWeight: 600, width: '100%',
-                  padding: '10px 0', borderRadius: 7, border: `1px solid`,
-                  borderColor: plan.ctaStyle === 'primary' ? 'transparent' : 'rgba(255,255,255,0.15)',
-                  background: plan.ctaStyle === 'primary' ? '#fff' : 'transparent',
-                  color: plan.ctaStyle === 'primary' ? '#000' : 'rgba(255,255,255,0.6)',
-                  cursor: 'pointer', transition: 'all 200ms', marginBottom: 8,
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Logo strip */}
-      <section style={{ padding: '48px 80px', borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
-          {LOGOS.map(l => (
-            <span key={l} style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.2)', letterSpacing: '-0.01em' }}>{l}</span>
-          ))}
-        </div>
-      </section>
-
-      {/* Full feature comparison table */}
-      <section style={{ padding: '80px 80px', fontFamily: F }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', margin: '0 0 48px' }}>Compare plans</h2>
-
-          {/* Sticky header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)', gap: 0, borderBottom: `1px solid ${BORDER}`, paddingBottom: 16, marginBottom: 8 }}>
-            <div />
-            {PLANS.map((p, i) => (
-              <div key={i} style={{ textAlign: 'center', paddingBottom: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{p.name}</span>
-              </div>
-            ))}
-          </div>
-
-          {FEATURE_GROUPS.map((group, gi) => (
-            <div key={gi} style={{ marginBottom: 0 }}>
-              {/* Group label */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)', paddingTop: 28, paddingBottom: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{group.label}</div>
-              </div>
-
-              {group.rows.map((row, ri) => (
-                <div key={ri} style={{
-                  display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)',
-                  padding: '11px 0',
-                  borderTop: `1px solid rgba(255,255,255,0.04)`,
-                }}>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)' }}>{row.label}</div>
-                  {PLANS.map((plan, pi) => (
-                    <div key={pi} style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <CellValue val={plan.features[row.key]} type={row.type} />
-                    </div>
-                  ))}
-                </div>
-              ))}
+        {/* TRUST BAR */}
+        <div className="trustbar">
+          <div className="wrap">
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>Ils suivent déjà leur visibilité IA</span>
+            <div className="trustlogos">
+              <div className="tlogo"><span className="ic">N</span><span>Norea</span></div>
+              <div className="tlogo"><span className="ic">K</span><span>Klarcy</span></div>
+              <div className="tlogo"><span className="ic">M</span><span>Mio One</span></div>
+              <div className="tlogo"><span className="ic">IB</span><span>Iberia Digital</span></div>
+              <div className="tlogo"><span className="ic">E</span><span>Embat</span></div>
+              <div className="tlogo"><span className="ic">P</span><span>Presqu'Île</span></div>
             </div>
-          ))}
-
-          {/* Bottom CTA row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(4, 160px)', gap: 0, marginTop: 48, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
-            <div />
-            {PLANS.map((plan, i) => (
-              <div key={i} style={{ textAlign: 'center', padding: '0 8px' }}>
-                <button onClick={onSignup} style={{
-                  fontFamily: F, fontSize: 13, fontWeight: 600, width: '100%',
-                  padding: '9px 0', borderRadius: 7, border: `1px solid`,
-                  borderColor: plan.ctaStyle === 'primary' ? 'transparent' : 'rgba(255,255,255,0.15)',
-                  background: plan.ctaStyle === 'primary' ? '#fff' : 'transparent',
-                  color: plan.ctaStyle === 'primary' ? '#000' : 'rgba(255,255,255,0.5)',
-                  cursor: 'pointer', transition: 'opacity 200ms',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
           </div>
         </div>
-      </section>
 
-      {/* Final CTA */}
-      <section style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '160px 80px', textAlign: 'center', fontFamily: F }}>
-        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.0, margin: '0 0 40px' }}>
-            Built for the future.<br />Available today.
-          </h2>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            <button onClick={onSignup} style={{
-              fontFamily: F, fontSize: 15, fontWeight: 500, color: '#000',
-              background: '#fff', border: 'none', borderRadius: 8,
-              padding: '12px 28px', cursor: 'pointer', transition: 'opacity 150ms',
-            }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              Get started
-            </button>
-            <button style={{
-              fontFamily: F, fontSize: 15, fontWeight: 500, color: 'rgba(255,255,255,0.6)',
-              background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8,
-              padding: '12px 28px', cursor: 'pointer', transition: 'all 200ms',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}>
-              Contact sales
-            </button>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{ background: BG, borderTop: `1px solid ${BORDER}`, padding: '60px 80px 40px', fontFamily: F }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(5, 1fr)', gap: 32, marginBottom: 48 }}>
-            <div>
-              <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
-                <path d="M0.705 14.443L3.557 17.295C3.837 17.575 4.258 17.638 4.607 17.435L0.565 13.393C0.362 13.742 0.425 14.163 0.705 14.443Z" fill="rgba(255,255,255,0.5)"/>
-                <path d="M0 11.338V12.106L5.894 18H6.662L0 11.338Z" fill="rgba(255,255,255,0.5)"/>
-                <path d="M9 0C4.029 0 0 4.029 0 9V10.272L7.728 18H9C13.971 18 18 13.971 18 9C18 4.029 13.971 0 9 0Z" fill="rgba(255,255,255,0.5)"/>
-              </svg>
+        {/* TESTIMONIAL */}
+        <section style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <div className="testi">
+              <div className="av"></div>
+              <div>
+                <blockquote>« UseWok ne nous a pas juste donné des données, ça nous a donné une direction. On sait exactement où on peut gagner et quoi prioriser. »</blockquote>
+                <cite>Responsable Marketing, PME digitale</cite>
+              </div>
             </div>
-            {[
-              { title: 'Product', links: ['Intake', 'Plan', 'Build', 'Diffs', 'Monitor', 'Pricing', 'Security'] },
-              { title: 'Features', links: ['Asks', 'Agents', 'Coding Sessions', 'Customer Requests', 'Insights', 'Mobile', 'Integrations'] },
-              { title: 'Company', links: ['About', 'Customers', 'Careers', 'Blog', 'Method', 'Quality', 'Brand'] },
-              { title: 'Resources', links: ['Switch', 'Download', 'Documentation', 'Developers', 'Status', 'Enterprise'] },
-              { title: 'Connect', links: ['Contact us', 'Community', 'X (Twitter)', 'GitHub', 'YouTube'] },
-            ].map((col, i) => (
-              <div key={i}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>{col.title}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {col.links.map(link => (
-                    <a key={link} href="#" style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
-                      {link}
-                    </a>
-                  ))}
+          </div>
+        </section>
+
+        {/* CTA BAND */}
+        <section>
+          <div className="wrap">
+            <div className="cta-band">
+              <h2 className="serif">10x votre visibilité IA sans devenir expert GEO</h2>
+              <div className="cta-btns">
+                <button className="btn btn-dark" onClick={goRegister}>Essai gratuit 14 jours</button>
+                <button className="btn btn-outline" style={{ background: '#fff' }} onClick={goHome}>Voir une démo</button>
+              </div>
+              <p className="noc">Sans carte bancaire · Gratuit 14 jours · Votre score en moins de 3 minutes</p>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section>
+          <div className="wrap">
+            <div className="faq-wrap">
+              <h2>Questions fréquentes</h2>
+              <details open>
+                <summary>Qu'est-ce que UseWok ?</summary>
+                <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini. UseWok va plus loin et vous montre comment agir sur vos données pour apparaître dans les futures réponses des IA.</p>
+              </details>
+              <details>
+                <summary>Quels moteurs IA puis-je suivre ?</summary>
+                <p>UseWok suit les principaux moteurs IA : ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot et Gemini.</p>
+              </details>
+              <details>
+                <summary>Puis-je changer de formule à tout moment ?</summary>
+                <p>Oui, vous pouvez changer de plan ou annuler à tout moment, sans engagement.</p>
+              </details>
+              <details>
+                <summary>Mes données sont-elles hébergées en France ?</summary>
+                <p>Oui — UseWok est conçu et hébergé en France, dans le respect du RGPD.</p>
+              </details>
+              <details>
+                <summary>Combien de temps pour voir des résultats en AEO ?</summary>
+                <p>Nous avons vu des résultats en AEO en 7 jours seulement avec nos clients. La visibilité IA peut être influencée beaucoup plus rapidement qu'avec le SEO traditionnel.</p>
+              </details>
+            </div>
+          </div>
+        </section>
+
+        {/* FOOTER */}
+        <footer>
+          <div className="wrap">
+            <div className="foot-top">
+              <div className="foot-brand">
+                <div className="brand" onClick={goHome}><div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div><span>UseWok</span></div>
+                <p>UseWok est la plateforme française qui mesure et améliore votre visibilité sur les moteurs IA.</p>
+                <div className="foot-social">
+                  <a href="https://x.com/usewok" target="_blank" rel="noopener noreferrer">𝕏</a>
+                  <a href="https://linkedin.com/company/usewok" target="_blank" rel="noopener noreferrer">in</a>
+                  <a href="https://instagram.com/usewok" target="_blank" rel="noopener noreferrer">◎</a>
                 </div>
               </div>
-            ))}
+              <div className="foot-col">
+                <h5>Produit</h5>
+                <button onClick={goHome}>Fonctionnalités</button>
+                <button onClick={() => {}}>Tarifs</button>
+                <button onClick={goHome}>Intégrations</button>
+              </div>
+              <div className="foot-col">
+                <h5>Ressources</h5>
+                <button onClick={goBlog}>Documentation</button>
+                <button onClick={goBlog}>Blog</button>
+                <button onClick={goBlog}>Communauté</button>
+              </div>
+              <div className="foot-col">
+                <h5>Légal</h5>
+                <button onClick={() => navigate('/privacy')}>Confidentialité</button>
+                <button onClick={() => navigate('/terms')}>Conditions</button>
+                <button onClick={() => navigate('/legal')}>Sécurité</button>
+              </div>
+            </div>
+            <div className="foot-bottom">
+              <span>© 2026 UseWok. Tous droits réservés.</span>
+              <span className="fr"><span className="flag"></span>Conçu en France</span>
+            </div>
           </div>
-          <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 24, display: 'flex', gap: 24 }}>
-            {['Privacy', 'Terms', 'DPA', 'AUP'].map(l => (
-              <a key={l} href="#" style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>{l}</a>
-            ))}
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
