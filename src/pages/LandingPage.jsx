@@ -1,93 +1,534 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import OnboardingQuizModal from '@/components/landing/OnboardingQuizModal';
-import LandingNavbar from '@/components/landing/LandingNavbar';
-import LandingHero from '@/components/landing/LandingHero';
-import HowItWorksSection from '@/components/landing/HowItWorksSection';
-import PricingSection from '@/components/landing/PricingSection';
-import WhyUseWokSection from '@/components/landing/WhyUseWokSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import FAQSection from '@/components/landing/FAQSection';
-import AboutSection from '@/components/landing/AboutSection';
-import LandingFooterSection from '@/components/landing/LandingFooterSection';
-
-const BG = '#0A0A0B';
-const F = "'Inter', -apple-system, system-ui, sans-serif";
 
 export default function LandingPage() {
-  useEffect(() => {
-    const prev = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = '#0A0A0B';
-    document.body.style.color = '#F0F0EE';
-    document.documentElement.style.backgroundColor = '#0A0A0B';
-    const style = document.createElement('style');
-    style.id = 'lp-dark-override';
-    style.textContent = `#root::before { display: none !important; } body { background-color: #0A0A0B !important; }`;
-    document.head.appendChild(style);
-    return () => {
-      document.body.style.backgroundColor = prev;
-      document.body.style.color = '';
-      document.documentElement.style.backgroundColor = '';
-      document.getElementById('lp-dark-override')?.remove();
-    };
-  }, []);
-
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
+  const featuresRef = useRef(null);
+  const howRef = useRef(null);
+  const stackRef = useRef(null);
 
   useEffect(() => {
+    document.body.style.backgroundColor = '#FBF8F2';
+    document.body.style.color = '#15130F';
     base44.auth.isAuthenticated()
       .then(a => { if (a) navigate('/app', { replace: true }); else setReady(true); })
       .catch(() => setReady(true));
+    return () => {
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
+    };
   }, [navigate]);
 
+  const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const goRegister = () => navigate('/register');
+  const goLogin = () => navigate('/login');
+  const goPricing = () => navigate('/tarifs');
+  const goBlog = () => navigate('/blog');
+
   if (!ready) return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBF8F2' }}>
+      <div style={{ width: 20, height: 20, border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.08)', borderTopColor: 'rgba(255,255,255,0.5)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
     </div>
   );
 
-  const onSignup = () => base44.auth.redirectToLogin('/app');
-  const onStartQuiz = () => setShowQuiz(true);
-  const onQuizComplete = (answers) => {
-    setShowQuiz(false);
-    const pendingUrl = localStorage.getItem('wok_pending_url');
-    if (pendingUrl) sessionStorage.setItem('wok_post_login_url', pendingUrl);
-    if (answers) sessionStorage.setItem('wok_post_login_quiz', JSON.stringify(answers));
-    base44.auth.redirectToLogin('/app');
-  };
-  const onQuizSkip = () => {
-    setShowQuiz(false);
-    const pendingUrl = localStorage.getItem('wok_pending_url');
-    if (pendingUrl) sessionStorage.setItem('wok_post_login_url', pendingUrl);
-    base44.auth.redirectToLogin('/app');
-  };
-
   return (
-    <div style={{ background: BG, fontFamily: F }}>
-      <AnimatePresence>
-        {showQuiz && <OnboardingQuizModal onComplete={onQuizComplete} onSkip={onQuizSkip} />}
-      </AnimatePresence>
+    <div className="uw-landing">
+      <style>{`
+        :root{
+          --cream:#FBF8F2; --cream-2:#F3EEE3; --ink:#15130F; --ink-soft:#4A453B;
+          --ink-faint:rgba(21,19,15,0.55); --orange:#FF5A1F; --orange-deep:#C43E14;
+          --orange-pale:#FFE7D6; --amber:#FFCB6B; --line:rgba(21,19,15,0.10);
+          --line-strong:rgba(21,19,15,0.14); --navy:#0E2A33;
+        }
+        .uw-landing *{box-sizing:border-box;}
+        .uw-landing{ font-family:'Inter',sans-serif; background:var(--cream); color:var(--ink); -webkit-font-smoothing:antialiased; }
+        .uw-landing .wrap{ max-width:1160px; margin:0 auto; padding:0 40px; }
+        .uw-landing section{ padding:96px 0; }
+        .uw-landing h1,.uw-landing h2,.uw-landing h3{ font-weight:800; letter-spacing:-0.03em; }
+        .uw-landing .serif{ font-family:'Fraunces', serif; font-weight:500; letter-spacing:-0.01em; }
+        .uw-landing .btn{
+          display:inline-flex; align-items:center; gap:8px; height:46px; padding:0 22px;
+          border-radius:100px; font-size:14px; font-weight:600; border:none; cursor:pointer;
+          font-family:inherit; transition:transform .15s ease, background .15s ease, opacity .15s ease;
+        }
+        .uw-landing .btn:active{ transform:scale(0.97); }
+        .uw-landing .btn-dark{ background:var(--ink); color:var(--cream); }
+        .uw-landing .btn-dark:hover{ background:var(--orange-deep); }
+        .uw-landing .btn-outline{ background:transparent; color:var(--ink); border:1px solid var(--line-strong); }
+        .uw-landing .btn-outline:hover{ border-color:var(--ink); }
+        .uw-landing .eyebrow{
+          display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:700;
+          letter-spacing:0.05em; text-transform:uppercase; color:var(--orange-deep);
+        }
+        .uw-landing .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--orange); }
+        .uw-landing nav{
+          position:sticky; top:0; z-index:20; background:rgba(251,248,242,0.82);
+          backdrop-filter:blur(14px); border-bottom:1px solid var(--line);
+        }
+        .uw-landing nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:74px; }
+        .uw-landing .brand{ display:flex; align-items:center; gap:9px; cursor:pointer; }
+        .uw-landing .brand .mark{ width:26px; height:26px; border-radius:7px; background:var(--orange); display:flex; align-items:center; justify-content:center; }
+        .uw-landing .brand .mark svg{ width:13px; height:13px; }
+        .uw-landing .brand span{ font-weight:700; font-size:15.5px; }
+        .uw-landing .navlinks{ display:flex; align-items:center; gap:34px; font-size:14px; font-weight:500; color:var(--ink-soft); }
+        .uw-landing .navlinks button{ background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit; font-weight:inherit; color:inherit; padding:0; }
+        .uw-landing .navlinks button:hover{ color:var(--ink); }
+        .uw-landing .navright{ display:flex; align-items:center; gap:18px; }
+        .uw-landing .hero{
+          position:relative; padding:120px 0 80px; text-align:center; overflow:hidden;
+          background: radial-gradient(70% 60% at 15% 10%, #FFD9BE 0%, transparent 55%),
+            radial-gradient(70% 60% at 88% 20%, #FFB98F 0%, transparent 55%),
+            linear-gradient(180deg, #FBF8F2 0%, #FFF3E9 100%);
+        }
+        .uw-landing .hero::before{
+          content:''; position:absolute; inset:0;
+          background-image:radial-gradient(rgba(196,62,20,0.08) 1px, transparent 1px);
+          background-size:26px 26px;
+          mask-image:radial-gradient(ellipse 60% 50% at 50% 20%, black 0%, transparent 70%);
+          -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 20%, black 0%, transparent 70%);
+        }
+        .uw-landing .hero-inner{ position:relative; z-index:2; }
+        .uw-landing .hero h1{ font-size:64px; line-height:1.06; max-width:820px; margin:22px auto 20px; }
+        .uw-landing .hero h1 .hi{ color:var(--orange-deep); font-style:italic; font-family:'Fraunces', serif; font-weight:500; }
+        .uw-landing .hero p{ font-size:17px; color:var(--ink-soft); max-width:480px; margin:0 auto 32px; }
+        .uw-landing .hero-ctas{ display:flex; justify-content:center; gap:12px; }
+        .uw-landing .hero-strip{ display:flex; justify-content:center; gap:10px; margin-top:56px; flex-wrap:wrap; }
+        .uw-landing .strip-pill{
+          display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600;
+          color:var(--ink-soft); background:#fff; border:1px solid var(--line);
+          padding:8px 15px; border-radius:100px;
+        }
+        .uw-landing .strip-pill b{ color:var(--ink); }
+        .uw-landing .panels{ display:grid; grid-template-columns:0.85fr 1.15fr; gap:20px; }
+        .uw-landing .panel{ border-radius:22px; padding:44px; min-height:420px; }
+        .uw-landing .panel-light{ background:var(--cream-2); }
+        .uw-landing .panel-light .k{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--orange-deep); margin-bottom:16px; }
+        .uw-landing .panel-light h3{ font-size:27px; margin-bottom:24px; max-width:280px; }
+        .uw-landing .feat{ margin-bottom:22px; }
+        .uw-landing .feat b{ display:block; font-size:14.5px; margin-bottom:5px; }
+        .uw-landing .feat p{ font-size:13.5px; color:var(--ink-faint); line-height:1.5; }
+        .uw-landing .panel-glow{
+          position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
+          background: radial-gradient(80% 70% at 15% 15%, #FFC79B 0%, transparent 60%),
+            radial-gradient(80% 70% at 90% 90%, #FF8A4C 0%, transparent 55%),
+            linear-gradient(160deg, #FFF3E9 0%, #FFE0C7 100%);
+        }
+        .uw-landing .prompt-card{
+          width:100%; max-width:420px; background:rgba(255,255,255,0.6);
+          border:1px solid rgba(255,255,255,0.75); border-radius:16px;
+          padding:20px 20px 14px; backdrop-filter:blur(14px);
+        }
+        .uw-landing .prompt-card p{ font-size:15.5px; color:var(--ink); line-height:1.4; margin-bottom:14px; }
+        .uw-landing .prompt-card .caret{ display:inline-block; width:1px; height:16px; background:var(--orange-deep); vertical-align:-3px; animation:uwblink 1s step-end infinite; }
+        @keyframes uwblink{ 50%{ opacity:0; } }
+        .uw-landing .prompt-actions{ display:flex; align-items:center; gap:14px; }
+        .uw-landing .prompt-actions .a{ font-size:12px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:5px; }
+        .uw-landing .prompt-actions .send{ margin-left:auto; width:32px; height:32px; border-radius:9px; background:var(--orange); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .uw-landing .prompt-actions .send svg{ width:14px; height:14px; }
+        .uw-landing .panels2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px; }
+        .uw-landing .panel-scores{
+          border-radius:22px; padding:44px; display:flex; flex-direction:column; justify-content:center; gap:14px;
+          background:linear-gradient(150deg, #FFE7D6 0%, #FBF8F2 60%, #F3EEE3 100%);
+        }
+        .uw-landing .score-row{ display:flex; align-items:center; gap:16px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 18px; }
+        .uw-landing .score-row .ic{ width:32px; height:32px; border-radius:9px; background:var(--ink); display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--cream); font-weight:700; flex-shrink:0; }
+        .uw-landing .score-row .name{ font-size:14px; font-weight:600; flex:1; }
+        .uw-landing .score-row .bar{ width:110px; height:6px; border-radius:100px; background:var(--line); overflow:hidden; }
+        .uw-landing .score-row .bar i{ display:block; height:100%; background:var(--orange); border-radius:100px; }
+        .uw-landing .score-row .val{ font-size:13px; font-weight:700; color:var(--orange-deep); width:28px; text-align:right; }
+        .uw-landing .panel-check{ background:#fff; border:1px solid var(--line); border-radius:22px; padding:44px; }
+        .uw-landing .panel-check h3{ font-size:24px; margin-bottom:12px; }
+        .uw-landing .panel-check > p{ font-size:14px; color:var(--ink-faint); margin-bottom:26px; line-height:1.5; }
+        .uw-landing .check-item{ display:flex; gap:12px; margin-bottom:18px; }
+        .uw-landing .check-item svg{ width:18px; height:18px; flex-shrink:0; margin-top:1px; color:var(--orange-deep); }
+        .uw-landing .check-item b{ font-size:13.5px; }
+        .uw-landing .check-item span{ display:block; font-size:13px; color:var(--ink-faint); line-height:1.45; margin-top:2px; }
+        .uw-landing .confidence-top{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:44px; gap:40px; }
+        .uw-landing .confidence-top h2{ font-size:38px; max-width:420px; }
+        .uw-landing .confidence-top p{ font-size:14.5px; color:var(--ink-faint); max-width:320px; line-height:1.55; margin-bottom:16px; }
+        .uw-landing .cards3{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+        .uw-landing .card3{ border-radius:18px; padding:28px; background:linear-gradient(165deg, #FFF3E9 0%, #FFE7D6 100%); min-height:200px; display:flex; flex-direction:column; justify-content:space-between; }
+        .uw-landing .card3 h4{ font-size:19px; font-weight:700; letter-spacing:-0.01em; line-height:1.2; }
+        .uw-landing .card3 p{ font-size:13px; color:var(--ink-faint); line-height:1.5; margin-top:16px; }
+        .uw-landing .stackband{ background:var(--ink); border-radius:26px; padding:80px 40px; text-align:center; color:var(--cream); }
+        .uw-landing .stackband h2{ font-size:42px; }
+        .uw-landing .stackband h2 .hi{ color:var(--amber); font-family:'Fraunces', serif; font-style:italic; font-weight:500; }
+        .uw-landing .stackband p{ font-size:14.5px; color:rgba(251,248,242,0.6); max-width:460px; margin:18px auto 48px; line-height:1.55; }
+        .uw-landing .logos{ display:flex; justify-content:center; gap:44px; flex-wrap:wrap; opacity:0.85; }
+        .uw-landing .logos .lg{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; color:rgba(251,248,242,0.9); }
+        .uw-landing .logos .lg .sw{ width:18px; height:18px; border-radius:5px; background:rgba(251,248,242,0.15); display:flex; align-items:center; justify-content:center; }
+        .uw-landing .finalcta{
+          position:relative; overflow:hidden; border-radius:26px; padding:100px 40px;
+          display:flex; align-items:center; justify-content:center;
+          background: radial-gradient(60% 80% at 10% 90%, #FFB98F 0%, transparent 60%),
+            radial-gradient(70% 90% at 90% 10%, #FF7A3D 0%, transparent 55%),
+            linear-gradient(155deg, #FF5A1F 0%, #C43E14 100%);
+        }
+        .uw-landing .finalcta::before{
+          content:''; position:absolute; inset:0;
+          background-image: linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+          background-size:46px 46px;
+          mask-image:radial-gradient(circle at 50% 50%, black 0%, transparent 75%);
+          -webkit-mask-image:radial-gradient(circle at 50% 50%, black 0%, transparent 75%);
+        }
+        .uw-landing .cta-card{ position:relative; z-index:2; background:var(--cream); border-radius:20px; padding:44px 48px; text-align:center; max-width:360px; }
+        .uw-landing .cta-card h3{ font-size:27px; line-height:1.15; margin-bottom:24px; }
+        .uw-landing footer{ padding:80px 0 40px; }
+        .uw-landing .foot-top{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; margin-bottom:60px; }
+        .uw-landing .foot-brand p{ font-size:13.5px; color:var(--ink-faint); line-height:1.6; margin:16px 0 20px; max-width:280px; }
+        .uw-landing .foot-social{ display:flex; gap:10px; }
+        .uw-landing .foot-social a{ width:32px; height:32px; border-radius:9px; background:var(--cream-2); display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--ink-soft); font-size:13px; }
+        .uw-landing .foot-social a:hover{ background:var(--orange-pale); color:var(--orange-deep); }
+        .uw-landing .foot-col h5{ font-size:11.5px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:16px; }
+        .uw-landing .foot-col button{ display:block; background:none; border:none; cursor:pointer; font-family:inherit; font-size:13.5px; color:var(--ink-soft); text-align:left; margin-bottom:11px; padding:0; }
+        .uw-landing .foot-col button:hover{ color:var(--ink); }
+        .uw-landing .foot-bottom{ display:flex; justify-content:space-between; padding-top:26px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-faint); }
+        .uw-landing .foot-bottom .fr{ display:flex; align-items:center; gap:6px; }
+        .uw-landing .foot-bottom .fr .flag{ width:12px; height:12px; border-radius:50%; background:linear-gradient(90deg,#002395 33%,#fff 33%,#fff 66%,#ED2939 66%); }
+        .uw-landing .trustbar{ padding:0 0 90px; text-align:center; }
+        .uw-landing .trustbar .eyebrow{ display:block; margin-bottom:26px; color:var(--ink-faint); }
+        .uw-landing .trustlogos{ display:flex; justify-content:center; align-items:center; gap:46px; flex-wrap:wrap; opacity:0.6; }
+        .uw-landing .trustlogos span{ font-weight:700; font-size:15px; color:var(--ink); letter-spacing:-0.01em; }
+        .uw-landing .explain-head{ text-align:center; max-width:620px; margin:0 auto 56px; }
+        .uw-landing .explain-head h2{ font-size:34px; line-height:1.15; }
+        .uw-landing .explain-grid{ display:grid; grid-template-columns:0.9fr 1.2fr 0.9fr; gap:0; align-items:center; }
+        .uw-landing .explain-col{ display:flex; flex-direction:column; gap:36px; }
+        .uw-landing .explain-col.right{ align-items:flex-end; text-align:right; }
+        .uw-landing .explain-item b{ display:block; font-size:15px; margin-bottom:6px; }
+        .uw-landing .explain-item p{ font-size:13.5px; color:var(--ink-faint); line-height:1.55; max-width:230px; }
+        .uw-landing .explain-item.right p{ margin-left:auto; }
+        .uw-landing .explain-center{ display:flex; justify-content:center; }
+        .uw-landing .stack-cards{ position:relative; width:210px; height:170px; }
+        .uw-landing .stack-cards .c{ position:absolute; width:120px; height:150px; border-radius:16px; top:10px; }
+        .uw-landing .stack-cards .c1{ background:var(--orange-pale); left:10px; transform:rotate(-9deg); }
+        .uw-landing .stack-cards .c2{ background:var(--amber); left:55px; transform:rotate(3deg); }
+        .uw-landing .stack-cards .c3{ background:var(--orange); left:95px; transform:rotate(13deg); }
+        .uw-landing .test-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+        .uw-landing .test-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:24px; }
+        .uw-landing .stars{ color:var(--orange); font-size:13px; letter-spacing:2px; margin-bottom:12px; }
+        .uw-landing .test-card p{ font-size:13.5px; line-height:1.55; margin-bottom:16px; color:var(--ink-soft); }
+        .uw-landing .test-who{ display:flex; align-items:center; gap:10px; }
+        .uw-landing .test-who .av{ width:30px; height:30px; border-radius:50%; background:var(--cream-2); flex-shrink:0; }
+        .uw-landing .test-who b{ display:block; font-size:12.5px; }
+        .uw-landing .test-who span{ font-size:11.5px; color:var(--ink-faint); }
+        .uw-landing .stat-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+        .uw-landing .stat-card{ border-radius:16px; padding:26px; display:flex; flex-direction:column; justify-content:flex-end; min-height:150px; }
+        .uw-landing .stat-card .big{ font-size:38px; font-weight:800; letter-spacing:-0.02em; }
+        .uw-landing .stat-card .lbl{ font-size:12.5px; font-weight:600; margin-top:4px; }
+        .uw-landing .stat-1{ background:var(--amber); color:var(--ink); }
+        .uw-landing .stat-2{ background:var(--ink); color:var(--cream); }
+        .uw-landing .stat-3{ background:var(--orange-pale); color:var(--orange-deep); }
+        .uw-landing .faq-wrap{ max-width:680px; margin:0 auto; }
+        .uw-landing .faq-wrap h2{ text-align:center; font-size:28px; margin-bottom:36px; }
+        .uw-landing details{ border-bottom:1px solid var(--line); padding:20px 4px; }
+        .uw-landing details summary{ cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; font-size:14.5px; font-weight:600; }
+        .uw-landing details summary::-webkit-details-marker{ display:none; }
+        .uw-landing details summary::after{ content:'+'; font-size:20px; font-weight:400; color:var(--ink-faint); transition:transform .2s ease; }
+        .uw-landing details[open] summary::after{ content:'–'; }
+        .uw-landing details p{ font-size:13.5px; color:var(--ink-faint); line-height:1.6; margin-top:14px; max-width:560px; }
+        .uw-landing .nav-login{ font-size:14px; font-weight:500; color:var(--ink-soft); background:none; border:none; cursor:pointer; font-family:inherit; }
+        .uw-landing .nav-login:hover{ color:var(--ink); }
+        @media (max-width:900px){
+          .uw-landing .explain-grid{ grid-template-columns:1fr; text-align:left; gap:32px; }
+          .uw-landing .explain-col.right{ align-items:flex-start; text-align:left; }
+          .uw-landing .explain-item.right p{ margin-left:0; }
+          .uw-landing .test-grid, .uw-landing .stat-grid{ grid-template-columns:1fr; }
+          .uw-landing .trustlogos{ gap:24px; }
+          .uw-landing .wrap{ padding:0 20px; }
+          .uw-landing .hero h1{ font-size:38px; }
+          .uw-landing .panels, .uw-landing .panels2, .uw-landing .cards3, .uw-landing .foot-top{ grid-template-columns:1fr; }
+          .uw-landing .navlinks{ display:none; }
+          .uw-landing .confidence-top{ flex-direction:column; align-items:flex-start; }
+        }
+      `}</style>
 
-      <div style={{
-        position: 'fixed', top: 58, left: 0, right: 0, zIndex: 299, height: 3,
-        background: 'linear-gradient(90deg, #1C3D6E 0%, #1C3D6E 33.33%, rgba(240,238,232,0.18) 33.33%, rgba(240,238,232,0.18) 66.66%, #7A2820 66.66%, #7A2820 100%)',
-        opacity: 0.85,
-      }} />
+      {/* NAV */}
+      <nav>
+        <div className="wrap">
+          <div className="brand" onClick={goRegister}>
+            <div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div>
+            <span>UseWok</span>
+          </div>
+          <div className="navlinks">
+            <button onClick={() => scrollTo(featuresRef)}>Produit</button>
+            <button onClick={() => scrollTo(howRef)}>Cas d'usage</button>
+            <button onClick={goBlog}>Ressources</button>
+            <button onClick={goPricing}>Tarifs</button>
+            <button onClick={() => scrollTo(stackRef)}>Entreprise</button>
+          </div>
+          <div className="navright">
+            <button className="nav-login" onClick={goLogin}>Se connecter</button>
+            <button className="btn btn-dark" onClick={goRegister}>Commencer</button>
+          </div>
+        </div>
+      </nav>
 
-      <LandingNavbar onSignup={onSignup} />
-      <LandingHero onStartQuiz={onStartQuiz} />
-      <HowItWorksSection />
-      <PricingSection onSignup={onSignup} />
-      <WhyUseWokSection />
-      <TestimonialsSection />
-      <FAQSection />
-      <AboutSection />
-      <LandingFooterSection />
+      {/* HERO */}
+      <section className="hero">
+        <div className="wrap hero-inner">
+          <span className="eyebrow"><span className="dot"></span>8 moteurs IA analysés</span>
+          <h1>Vos clients demandent à l'IA<br />qui <span className="hi">appeler.</span></h1>
+          <p>UseWok mesure votre visibilité sur ChatGPT, Claude et Gemini — et vous donne un plan d'action clair pour être trouvé.</p>
+          <div className="hero-ctas">
+            <button className="btn btn-dark" onClick={goRegister}>Analyser mon site →</button>
+            <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>Voir une démo</button>
+          </div>
+          <div className="hero-strip">
+            <div className="strip-pill"><b>2 400+</b> marques analysées</div>
+            <div className="strip-pill"><b>30 sec</b> pour votre premier score</div>
+            <div className="strip-pill"><b>🇫🇷</b> conçu et hébergé en France</div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUSTED BY */}
+      <div className="trustbar">
+        <div className="wrap">
+          <span className="eyebrow" style={{justifyContent:'center', display:'flex'}}>Ils suivent déjà leur visibilité IA</span>
+          <div className="trustlogos">
+            <span>Norea</span><span>Klarcy</span><span>Mio One</span><span>Iberia Digital</span><span>Embat</span><span>Presqu'Île</span>
+          </div>
+        </div>
+      </div>
+
+      {/* TWO PANEL + SCORES */}
+      <section ref={featuresRef}>
+        <div className="wrap">
+          <div className="panels">
+            <div className="panel panel-light">
+              <div className="k">Comprendre</div>
+              <h3>Sachez enfin ce que l'IA dit de vous</h3>
+              <div className="feat">
+                <b>Repérez les trous de visibilité</b>
+                <p>Découvrez les requêtes où vos concurrents sortent à votre place sur ChatGPT, Claude et Gemini.</p>
+              </div>
+              <div className="feat">
+                <b>Priorisez sans deviner</b>
+                <p>Un plan d'action clair, classé par impact, pour reprendre le terrain sur les moteurs IA.</p>
+              </div>
+            </div>
+            <div className="panel panel-glow">
+              <div className="prompt-card">
+                <p>Analysez la visibilité de <b>usewok.com</b> sur ChatGPT<span className="caret"></span></p>
+                <div className="prompt-actions">
+                  <span className="a">＋ Ajouter un domaine</span>
+                  <span className="a">✦ Comparer un concurrent</span>
+                  <div className="send" onClick={goRegister}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="panels2">
+            <div className="panel-scores">
+              <div className="score-row"><div className="ic">GPT</div><div className="name">ChatGPT</div><div className="bar"><i style={{width:'43%'}}></i></div><div className="val">43</div></div>
+              <div className="score-row"><div className="ic">✦</div><div className="name">Gemini</div><div className="bar"><i style={{width:'38%'}}></i></div><div className="val">38</div></div>
+              <div className="score-row"><div className="ic">C</div><div className="name">Claude</div><div className="bar"><i style={{width:'51%'}}></i></div><div className="val">51</div></div>
+            </div>
+            <div className="panel-check">
+              <h3>Fiabilité sans compromis</h3>
+              <p>Des données de visibilité vérifiées, mises à jour en continu, sur une infrastructure hébergée en France.</p>
+              <div className="check-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                <div><b>Analyse multi-moteurs</b><span>ChatGPT, Claude, Gemini et 5 autres moteurs suivis en continu.</span></div>
+              </div>
+              <div className="check-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                <div><b>Audit technique complet</b><span>Crawl, structure de données et signaux d'autorité de votre site.</span></div>
+              </div>
+              <div className="check-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                <div><b>Suivi de performance</b><span>Mesurez votre part de voix face à vos concurrents, semaine après semaine.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* EXPLAIN 3 */}
+      <section ref={howRef}>
+        <div className="wrap">
+          <div className="explain-head">
+            <span className="eyebrow" style={{justifyContent:'center', display:'flex', marginBottom:14}}><span className="dot"></span>Comment ça marche</span>
+            <h2>Transformez vos données de visibilité en plan d'action, sans être expert IA</h2>
+          </div>
+          <div className="explain-grid">
+            <div className="explain-col">
+              <div className="explain-item">
+                <b>UseWok trouve pourquoi vous êtes invisible</b>
+                <p>La raison pour laquelle l'IA cite une autre marque que vous se cache dans les données de citation. On la déterre pour vous.</p>
+              </div>
+              <div className="explain-item">
+                <b>Et construit votre plan d'action</b>
+                <p>Vous savez enfin sur quoi agir cette semaine — UseWok priorise les actions qui comptent vraiment.</p>
+              </div>
+            </div>
+            <div className="explain-center">
+              <div className="stack-cards"><div className="c c1"></div><div className="c c2"></div><div className="c c3"></div></div>
+            </div>
+            <div className="explain-col right">
+              <div className="explain-item right">
+                <b>Vous gardez la main</b>
+                <p>Vous validez chaque action avant publication — UseWok prépare, vous décidez.</p>
+              </div>
+              <div className="explain-item right">
+                <b>Et vous regardez votre score grimper</b>
+                <p>Chaque action est reliée à un impact mesurable sur votre part de voix IA.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONFIDENCE / FEATURES */}
+      <section>
+        <div className="wrap">
+          <div className="confidence-top">
+            <h2>Construisez votre autorité en toute confiance</h2>
+            <div>
+              <p>Suivez chaque progrès, partagez les résultats avec votre équipe et gardez une vision claire de votre trajectoire.</p>
+              <button className="btn btn-dark" onClick={goRegister}>Voir les fonctionnalités</button>
+            </div>
+          </div>
+          <div className="cards3">
+            <div className="card3"><h4>Historique complet du score</h4><p>Revenez sur chaque évolution et mesurez l'impact réel de vos actions.</p></div>
+            <div className="card3"><h4>Espaces d'équipe partagés</h4><p>Centralisez le suivi et gardez toute l'équipe alignée sur la même vision.</p></div>
+            <div className="card3"><h4>Plan d'action guidé</h4><p>Un chemin clair, étape par étape, du diagnostic jusqu'à la visibilité.</p></div>
+          </div>
+        </div>
+      </section>
+
+      {/* DARK STACK BAND */}
+      <section ref={stackRef}>
+        <div className="wrap">
+          <div className="stackband">
+            <h2>Pensé pour <span className="hi">vos outils</span></h2>
+            <p>UseWok se connecte à votre stack existante — Google Search Console, Analytics et vos outils d'équipe préférés.</p>
+            <div className="logos">
+              <div className="lg"><span className="sw">🔍</span>Search Console</div>
+              <div className="lg"><span className="sw">📊</span>Analytics</div>
+              <div className="lg"><span className="sw">💬</span>Slack</div>
+              <div className="lg"><span className="sw">⚡</span>Zapier</div>
+              <div className="lg"><span className="sw">📁</span>Notion</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS + STATS */}
+      <section>
+        <div className="wrap">
+          <div className="test-grid">
+            <div className="test-card">
+              <div className="stars">★★★★★</div>
+              <p>Un outil clair pour comprendre où on est cité par les IA, et où on ne l'est pas encore.</p>
+              <div className="test-who"><div className="av"></div><div><b>Camille Aubert</b><span>Responsable Marketing</span></div></div>
+            </div>
+            <div className="test-card">
+              <div className="stars">★★★★★</div>
+              <p>Le point de départ idéal pour prioriser nos actions de visibilité IA sans y passer des semaines.</p>
+              <div className="test-who"><div className="av"></div><div><b>Julien Roze</b><span>Growth Lead</span></div></div>
+            </div>
+            <div className="test-card">
+              <div className="stars">★★★★★</div>
+              <p>On a enfin une vision de notre part de voix face à nos concurrents sur ChatGPT et Claude.</p>
+              <div className="test-who"><div className="av"></div><div><b>Sarah Nizan</b><span>Stratégie & Ops</span></div></div>
+            </div>
+          </div>
+          <div className="stat-grid">
+            <div className="stat-card stat-1"><span className="big">+38%</span><span className="lbl">de trafic depuis la recherche IA</span></div>
+            <div className="stat-card stat-2"><span className="big">30 sec</span><span className="lbl">pour votre premier score</span></div>
+            <div className="stat-card stat-3"><span className="big">8</span><span className="lbl">moteurs IA suivis en continu</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section>
+        <div className="wrap">
+          <div className="faq-wrap">
+            <h2>Questions fréquentes</h2>
+            <details open>
+              <summary>Dois-je être expert en IA ou en marketing pour utiliser UseWok ?</summary>
+              <p>Non. C'est exactement l'objectif de UseWok : multiplier facilement votre visibilité IA, sans expertise technique ni équipe marketing. Vous suivez le plan d'action fourni, UseWok s'occupe du reste.</p>
+            </details>
+            <details>
+              <summary>Qu'est-ce que UseWok ?</summary>
+              <p>UseWok mesure votre visibilité sur les principaux moteurs IA (ChatGPT, Claude, Gemini...) et vous aide à comprendre pourquoi vous êtes cité — ou pas.</p>
+            </details>
+            <details>
+              <summary>Quels moteurs IA puis-je suivre ?</summary>
+              <p>ChatGPT, Claude, Gemini, Perplexity et les principaux moteurs utilisés par vos clients au quotidien.</p>
+            </details>
+            <details>
+              <summary>À quelle fréquence les données sont-elles mises à jour ?</summary>
+              <p>Votre score et vos citations sont actualisés en continu, pour suivre l'évolution réelle de votre visibilité.</p>
+            </details>
+            <details>
+              <summary>Mes données sont-elles hébergées en France ?</summary>
+              <p>Oui — UseWok est conçu et hébergé en France, dans le respect du RGPD.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section>
+        <div className="wrap">
+          <div className="finalcta">
+            <div className="cta-card">
+              <h3 className="serif">Alors, on analyse quoi ?</h3>
+              <button className="btn btn-dark" onClick={goRegister}>Commencer l'analyse →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <div className="wrap">
+          <div className="foot-top">
+            <div className="foot-brand">
+              <div className="brand" onClick={goRegister}><div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div><span>UseWok</span></div>
+              <p>UseWok est la plateforme française qui mesure et améliore votre visibilité sur les moteurs IA — ChatGPT, Claude, Gemini et bien d'autres.</p>
+              <div className="foot-social">
+                <a href="https://x.com/usewok" target="_blank" rel="noopener noreferrer">𝕏</a>
+                <a href="https://linkedin.com/company/usewok" target="_blank" rel="noopener noreferrer">in</a>
+                <a href="https://instagram.com/usewok" target="_blank" rel="noopener noreferrer">◎</a>
+              </div>
+            </div>
+            <div className="foot-col">
+              <h5>Produit</h5>
+              <button onClick={() => scrollTo(featuresRef)}>Fonctionnalités</button>
+              <button onClick={() => scrollTo(stackRef)}>Intégrations</button>
+              <button onClick={goPricing}>Tarifs</button>
+              <button onClick={goBlog}>Nouveautés</button>
+            </div>
+            <div className="foot-col">
+              <h5>Ressources</h5>
+              <button onClick={goBlog}>Documentation</button>
+              <button onClick={goBlog}>Communauté</button>
+              <button onClick={goBlog}>Blog</button>
+            </div>
+            <div className="foot-col">
+              <h5>Légal</h5>
+              <button onClick={() => navigate('/privacy')}>Confidentialité</button>
+              <button onClick={() => navigate('/terms')}>Conditions</button>
+              <button onClick={() => navigate('/legal')}>Sécurité</button>
+            </div>
+          </div>
+          <div className="foot-bottom">
+            <span>© 2026 UseWok. Tous droits réservés.</span>
+            <span className="fr"><span className="flag"></span>Conçu en France</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
