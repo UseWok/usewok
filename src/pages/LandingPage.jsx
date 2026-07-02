@@ -455,24 +455,32 @@ export default function LandingPage() {
           <div className="faq-wrap">
             <h2>Questions fréquentes</h2>
             <details open>
-              <summary>Dois-je être expert en IA ou en marketing pour utiliser UseWok ?</summary>
-              <p>Non. C'est exactement l'objectif de UseWok : multiplier facilement votre visibilité IA, sans expertise technique ni équipe marketing. Vous suivez le plan d'action fourni, UseWok s'occupe du reste.</p>
-            </details>
-            <details>
               <summary>Qu'est-ce que UseWok ?</summary>
-              <p>UseWok mesure votre visibilité sur les principaux moteurs IA (ChatGPT, Claude, Gemini...) et vous aide à comprendre pourquoi vous êtes cité — ou pas.</p>
+              <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini. Contrairement à la plupart des outils de visibilité IA, UseWok va plus loin et vous montre comment agir sur vos données pour apparaître dans les futures réponses des IA.</p>
             </details>
             <details>
-              <summary>Quels moteurs IA puis-je suivre ?</summary>
-              <p>ChatGPT, Claude, Gemini, Perplexity et les principaux moteurs utilisés par vos clients au quotidien.</p>
+              <summary>Quels moteurs IA puis-je suivre avec UseWok ?</summary>
+              <p>UseWok suit les principaux moteurs IA : ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot et Gemini.</p>
             </details>
             <details>
-              <summary>À quelle fréquence les données sont-elles mises à jour ?</summary>
-              <p>Votre score et vos citations sont actualisés en continu, pour suivre l'évolution réelle de votre visibilité.</p>
+              <summary>À quelle fréquence UseWok suit-il les prompts et rafraîchit les données ?</summary>
+              <p>UseWok suit les prompts toutes les 24 heures pour repérer les changements dans les IA au moment où ils se produisent. Nos clients voient des résultats en 7 jours seulement, et le suivi quotidien de UseWok vous offre des boucles de feedback rapides pour agir.</p>
             </details>
             <details>
-              <summary>Mes données sont-elles hébergées en France ?</summary>
-              <p>Oui — UseWok est conçu et hébergé en France, dans le respect du RGPD.</p>
+              <summary>Comment savoir si l'IA recommande mon produit ?</summary>
+              <p>UseWok exécute des prompts pour découvrir et vous montrer si votre marque est mentionnée dans les réponses des IA, y compris comment vous vous comparez à vos concurrents.</p>
+            </details>
+            <details>
+              <summary>Comment UseWok suit-il les mentions de marque dans les réponses IA ?</summary>
+              <p>UseWok imite le comportement réel des utilisateurs en exécutant des prompts que les gens tapent pour découvrir votre catégorie et votre produit.</p>
+            </details>
+            <details>
+              <summary>En quoi l'AEO diffère-t-il du SEO ?</summary>
+              <p>Le SEO optimise pour les clics depuis les résultats de recherche. L'AEO optimise pour les mentions et recommandations à l'intérieur des réponses des IA, souvent sans clic.</p>
+            </details>
+            <details>
+              <summary>Combien de temps pour voir des résultats en AEO ?</summary>
+              <p>Nous avons vu des résultats en AEO en 7 jours seulement avec nos clients. Contrairement au SEO qui prend souvent des mois, la visibilité IA peut être modifiée et influencée beaucoup plus rapidement avec UseWok.</p>
             </details>
           </div>
         </div>
