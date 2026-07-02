@@ -1,30 +1,75 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const CORAL = '#F95738';
-const BG = '#0A0A0B';
+const ORANGE = '#FF5A1F';
+const ORANGE_DEEP = '#C43E14';
+const ORANGE_PALE = '#FFE7D6';
+const AMBER = '#FFCB6B';
+const CREAM = '#FBF8F2';
+const CREAM_2 = '#F3EEE3';
+const INK = '#15130F';
+const INK_SOFT = '#4A453B';
 const F = "'Inter', -apple-system, system-ui, sans-serif";
+
+/* ---------- minimal icon set (replaces emoji) ---------- */
+const Icon = {
+  info: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><circle cx="12" cy="8" r="0.5" fill={ORANGE_DEEP} />
+    </svg>
+  ),
+  warning: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B4740E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l9 16H3l9-16z" /><path d="M12 10v4" /><circle cx="12" cy="17" r="0.5" fill="#B4740E" />
+    </svg>
+  ),
+  success: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E7A4C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.3 2.3L16 10" />
+    </svg>
+  ),
+  google: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><path d="M8 12h8M12 8v8" />
+    </svg>
+  ),
+  apple: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21C7 21 4 16 4 12a5 5 0 018-4 5 5 0 018 4c0 4-3 9-8 9z" />
+    </svg>
+  ),
+  pin: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={INK_SOFT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>,
+  mail: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>,
+  web: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" /></svg>,
+  phone: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={INK_SOFT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h4l2 5-2.5 1.5a11 11 0 005 5L14 13l5 2v4a2 2 0 01-2 2C9 21 3 15 3 6a2 2 0 011-2z" /></svg>,
+  access: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h10" /></svg>,
+  rectify: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>,
+  erase: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /></svg>,
+  block: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M5.5 5.5l13 13" /></svg>,
+  pause: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>,
+  portable: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={ORANGE_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><path d="M3.3 7L12 12l8.7-5M12 22V12" /></svg>,
+};
 
 function Section({ number, title, children }) {
   return (
     <section style={{ marginBottom: 72 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 28 }}>
         <span style={{
-          fontSize: 12, fontWeight: 700, color: CORAL,
+          fontSize: 12, fontWeight: 700, color: ORANGE_DEEP,
           letterSpacing: '0.08em', textTransform: 'uppercase',
-          background: 'rgba(249,87,56,0.10)', border: '1px solid rgba(249,87,56,0.2)',
+          background: ORANGE_PALE, border: '1px solid rgba(196,62,20,0.18)',
           borderRadius: 6, padding: '3px 9px', flexShrink: 0,
         }}>{number}</span>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0, lineHeight: 1.3 }}>{title}</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, lineHeight: 1.3, letterSpacing: '-0.01em' }}>{title}</h2>
       </div>
-      <div style={{ paddingLeft: 0 }}>{children}</div>
+      <div>{children}</div>
     </section>
   );
 }
 
 function P({ children, style = {} }) {
   return (
-    <p style={{ fontSize: 15, lineHeight: 1.85, color: '#374151', marginBottom: 16, ...style }}>
+    <p style={{ fontSize: 15, lineHeight: 1.85, color: INK_SOFT, marginBottom: 16, ...style }}>
       {children}
     </p>
   );
@@ -33,7 +78,7 @@ function P({ children, style = {} }) {
 function SubSection({ title, children }) {
   return (
     <div style={{ marginBottom: 28 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>{title}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: INK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>{title}</h3>
       {children}
     </div>
   );
@@ -42,12 +87,12 @@ function SubSection({ title, children }) {
 function InfoBox({ icon, children }) {
   return (
     <div style={{
-      background: 'rgba(249,87,56,0.04)', border: '1px solid rgba(249,87,56,0.15)',
+      background: ORANGE_PALE, border: '1px solid rgba(196,62,20,0.16)',
       borderRadius: 10, padding: '16px 20px', marginBottom: 16, marginTop: 8,
       display: 'flex', gap: 12, alignItems: 'flex-start',
     }}>
-      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
-      <div style={{ fontSize: 14, lineHeight: 1.75, color: '#374151' }}>{children}</div>
+      <span style={{ flexShrink: 0, marginTop: 2 }}>{icon}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.75, color: INK_SOFT }}>{children}</div>
     </div>
   );
 }
@@ -55,12 +100,12 @@ function InfoBox({ icon, children }) {
 function WarningBox({ icon, children }) {
   return (
     <div style={{
-      background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)',
+      background: '#FDF3E3', border: '1px solid rgba(180,116,14,0.22)',
       borderRadius: 10, padding: '16px 20px', marginBottom: 16, marginTop: 8,
       display: 'flex', gap: 12, alignItems: 'flex-start',
     }}>
-      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
-      <div style={{ fontSize: 14, lineHeight: 1.75, color: '#374151' }}>{children}</div>
+      <span style={{ flexShrink: 0, marginTop: 2 }}>{icon}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.75, color: INK_SOFT }}>{children}</div>
     </div>
   );
 }
@@ -68,27 +113,27 @@ function WarningBox({ icon, children }) {
 function SuccessBox({ icon, children }) {
   return (
     <div style={{
-      background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)',
+      background: '#EBF6F0', border: '1px solid rgba(30,122,76,0.2)',
       borderRadius: 10, padding: '16px 20px', marginBottom: 16, marginTop: 8,
       display: 'flex', gap: 12, alignItems: 'flex-start',
     }}>
-      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
-      <div style={{ fontSize: 14, lineHeight: 1.75, color: '#374151' }}>{children}</div>
+      <span style={{ flexShrink: 0, marginTop: 2 }}>{icon}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.75, color: INK_SOFT }}>{children}</div>
     </div>
   );
 }
 
 function Table({ headers, rows }) {
   return (
-    <div style={{ overflowX: 'auto', marginBottom: 20, marginTop: 8, borderRadius: 10, border: '1px solid #E5E7EB' }}>
+    <div style={{ overflowX: 'auto', marginBottom: 20, marginTop: 8, borderRadius: 10, border: `1px solid ${'rgba(21,19,15,0.10)'}` }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: F }}>
         <thead>
-          <tr style={{ background: '#F9FAFB' }}>
+          <tr style={{ background: CREAM_2 }}>
             {headers.map((h, i) => (
               <th key={i} style={{
-                padding: '12px 16px', textAlign: 'left', fontWeight: 600,
-                color: '#374151', borderBottom: '1px solid #E5E7EB',
-                fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em',
+                padding: '12px 16px', textAlign: 'left', fontWeight: 700,
+                color: INK, borderBottom: '1px solid rgba(21,19,15,0.10)',
+                fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em',
                 whiteSpace: 'nowrap',
               }}>{h}</th>
             ))}
@@ -96,12 +141,12 @@ function Table({ headers, rows }) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? '1px solid rgba(21,19,15,0.06)' : 'none' }}>
               {row.map((cell, j) => (
                 <td key={j} style={{
-                  padding: '13px 16px', color: '#374151', lineHeight: 1.6,
+                  padding: '13px 16px', color: INK_SOFT, lineHeight: 1.6,
                   verticalAlign: 'top',
-                  background: i % 2 === 0 ? 'white' : '#FAFAFA',
+                  background: i % 2 === 0 ? '#fff' : CREAM_2,
                 }}>{cell}</td>
               ))}
             </tr>
@@ -116,8 +161,8 @@ function BulletList({ items }) {
   return (
     <ul style={{ paddingLeft: 0, listStyle: 'none', marginBottom: 16 }}>
       {items.map((item, i) => (
-        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, fontSize: 15, lineHeight: 1.75, color: '#374151' }}>
-          <span style={{ color: CORAL, marginTop: 2, flexShrink: 0, fontSize: 10 }}>▶</span>
+        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, fontSize: 15, lineHeight: 1.75, color: INK_SOFT }}>
+          <span style={{ color: ORANGE, marginTop: 8, flexShrink: 0, width: 5, height: 5, borderRadius: '50%', background: ORANGE, display: 'inline-block' }} />
           <span>{item}</span>
         </li>
       ))}
@@ -128,16 +173,16 @@ function BulletList({ items }) {
 function RightCard({ icon, title, desc }) {
   return (
     <div style={{
-      background: 'white', border: '1px solid #E5E7EB', borderRadius: 12,
+      background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12,
       padding: '24px', marginBottom: 12, display: 'flex', gap: 16, alignItems: 'flex-start',
     }}>
       <div style={{
-        fontSize: 24, width: 44, height: 44, display: 'flex', alignItems: 'center',
-        justifyContent: 'center', background: '#F9FAFB', borderRadius: 10, flexShrink: 0,
+        width: 44, height: 44, display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: CREAM_2, borderRadius: 10, flexShrink: 0,
       }}>{icon}</div>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{title}</div>
-        <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.65 }}>{desc}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 6 }}>{title}</div>
+        <div style={{ fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>{desc}</div>
       </div>
     </div>
   );
@@ -160,68 +205,78 @@ const TOC = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <div style={{ background: '#F8F9FA', fontFamily: F, minHeight: '100vh' }}>
-      {/* Navbar minimal */}
+    <div style={{ background: CREAM, fontFamily: F, minHeight: '100vh' }}>
+      {/* Navbar */}
       <nav style={{
-        background: 'white', borderBottom: '1px solid #E5E7EB',
-        height: 58, display: 'flex', alignItems: 'center',
+        background: CREAM, borderBottom: '1px solid rgba(21,19,15,0.10)',
+        height: 62, display: 'flex', alignItems: 'center',
         padding: '0 clamp(20px, 5vw, 60px)', position: 'sticky', top: 0, zIndex: 100,
+        backdropFilter: 'blur(14px)',
       }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <div style={{ width: 26, height: 26, borderRadius: 7, background: CORAL, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 1L10.5 9H1.5L6 1Z" fill="white" />
+              <path d="M6 1L10.5 9H1.5L6 1Z" fill={CREAM} />
             </svg>
           </div>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>UseWok</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: INK, letterSpacing: '-0.02em' }}>UseWok</span>
         </Link>
         <div style={{ flex: 1 }} />
-        <Link to="/" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>← Retour au site</Link>
+        <Link to="/" style={{ fontSize: 13, color: INK_SOFT, textDecoration: 'none', fontWeight: 500 }}>&larr; Retour au site</Link>
       </nav>
 
       {/* Hero */}
       <div style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        position: 'relative', overflow: 'hidden',
+        background: `radial-gradient(70% 90% at 15% 10%, #FFD9BE 0%, transparent 55%),
+                     radial-gradient(70% 90% at 88% 15%, #FFB98F 0%, transparent 55%),
+                     linear-gradient(180deg, #FBF8F2 0%, #FFF3E9 100%)`,
         padding: 'clamp(48px, 8vw, 80px) clamp(20px, 5vw, 60px)',
         textAlign: 'center',
       }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'radial-gradient(rgba(196,62,20,0.08) 1px, transparent 1px)',
+          backgroundSize: '26px 26px',
+          maskImage: 'radial-gradient(ellipse 60% 70% at 50% 30%, black 0%, transparent 70%)',
+        }} />
+        <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.3)',
-            borderRadius: 20, padding: '4px 14px', marginBottom: 20,
+            background: '#fff', border: '1px solid rgba(196,62,20,0.2)',
+            borderRadius: 20, padding: '5px 14px', marginBottom: 22,
           }}>
-            <span style={{ fontSize: 11, color: CORAL, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Conformité RGPD</span>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: ORANGE, display: 'inline-block' }} />
+            <span style={{ fontSize: 11, color: ORANGE_DEEP, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Conformité RGPD</span>
           </div>
-          <h1 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 800, color: 'white', margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+          <h1 style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 800, color: INK, margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.08 }}>
             Politique de confidentialité
           </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
-            Dernière mise à jour : <strong style={{ color: 'rgba(255,255,255,0.8)' }}>28 juin 2026</strong>
-            <span style={{ margin: '0 8px', opacity: 0.3 }}>·</span>
-            Applicable à <strong style={{ color: 'rgba(255,255,255,0.8)' }}>usewok.com</strong>
+          <p style={{ fontSize: 15, color: INK_SOFT, margin: 0, lineHeight: 1.6 }}>
+            Dernière mise à jour : <strong style={{ color: INK }}>28 juin 2026</strong>
+            <span style={{ margin: '0 8px', opacity: 0.35 }}>·</span>
+            Applicable à <strong style={{ color: INK }}>usewok.com</strong>
           </p>
         </div>
       </div>
 
       {/* Main layout */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(32px, 5vw, 64px) clamp(20px, 3vw, 40px)', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 48, alignItems: 'start' }}>
-        {/* Content */}
         <main>
           <Section number="1" title="Introduction et mises à jour">
-            <P>La présente politique de confidentialité décrit la manière dont <strong>UseWok, Inc.</strong> et ses affiliés (ci-après « UseWok », « nous », « notre » ou « nos ») traitent les informations personnelles collectées via notre site web accessible à l'adresse <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a> (le « Site ») et notre plateforme de service en ligne (la « Plateforme »).</P>
+            <P>La présente politique de confidentialité décrit la manière dont <strong>UseWok, Inc.</strong> et ses affiliés (ci-après « UseWok », « nous », « notre » ou « nos ») traitent les informations personnelles collectées via notre site web accessible à l'adresse <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a> (le « Site ») et notre plateforme de service en ligne (la « Plateforme »).</P>
             <P>Cette politique a été rédigée conformément au Règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des données à caractère personnel (« RGPD ») et à la loi française n° 78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés (« Loi Informatique et Libertés »), telle que modifiée par la loi n° 2018-493 du 20 juin 2018.</P>
             <P>Nous pouvons mettre à jour la présente politique à tout moment en publiant une nouvelle version sur cette page et en modifiant la date de « Dernière mise à jour ». Nous vous recommandons de la consulter régulièrement. En cas de modification substantielle, nous vous en informerons par e-mail ou via une notification sur la Plateforme.</P>
           </Section>
 
           <Section number="2" title="Identité du responsable du traitement">
             <P>Le responsable du traitement de vos données personnelles, au sens du RGPD, est :</P>
-            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 16, color: '#111827', marginBottom: 12 }}>UseWok, Inc.</div>
-              <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
-                <div>📍 Libourne, Gironde, France</div>
-                <div>📧 <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a></div>
-                <div>🌐 <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a></div>
+            <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+              <div style={{ fontWeight: 700, fontSize: 16, color: INK, marginBottom: 12 }}>UseWok, Inc.</div>
+              <div style={{ fontSize: 14, color: INK_SOFT, lineHeight: 2.2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.pin} Libourne, Gironde, France</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.mail} <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.web} <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a></div>
               </div>
             </div>
             <P>Pour toute question relative à la présente politique ou à vos données personnelles, veuillez nous contacter à l'adresse e-mail indiquée ci-dessus. Nous nous engageons à répondre dans un délai raisonnable.</P>
@@ -240,7 +295,7 @@ export default function PrivacyPolicyPage() {
             </SubSection>
 
             <SubSection title="3.2 Données Google – Clause spécifique (Exigence Google OAuth)">
-              <InfoBox icon="🔵">
+              <InfoBox icon={Icon.google}>
                 <strong>Authentification via « Continuer avec Google »</strong><br />
                 Lorsque vous choisissez de vous connecter ou de créer un compte via le bouton « Continuer avec Google », UseWok accède aux données suivantes de votre compte Google, dans le cadre des permissions (scopes) limitées que vous autorisez :
               </InfoBox>
@@ -250,11 +305,11 @@ export default function PrivacyPolicyPage() {
                 <><strong>Stockage :</strong> Votre nom et votre adresse e-mail sont conservés dans notre base de données sécurisée. Votre photo de profil Google n'est pas stockée sur nos serveurs : elle est chargée dynamiquement depuis les serveurs de Google au moment de son affichage dans l'interface.</>,
                 <><strong>Partage :</strong> Nous ne transférons pas, ne vendons pas et ne partageons pas vos données Google avec des tiers, à l'exception des sous-traitants techniques listés à l'article 6, dans le cadre strict de la fourniture du service et de leurs obligations contractuelles.</>,
               ]} />
-              <P style={{ fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>UseWok ne demande aucun accès à vos services Google (Drive, Gmail, Calendar, Contacts, etc.). Seules les informations de profil de base sont sollicitées, conformément au principe du moindre privilège.</P>
+              <P style={{ fontSize: 13, color: INK_SOFT, fontStyle: 'italic' }}>UseWok ne demande aucun accès à vos services Google (Drive, Gmail, Calendar, Contacts, etc.). Seules les informations de profil de base sont sollicitées, conformément au principe du moindre privilège.</P>
             </SubSection>
 
             <SubSection title="3.3 Données Apple – Clause spécifique">
-              <InfoBox icon="🍎">
+              <InfoBox icon={Icon.apple}>
                 <strong>Authentification via « Continuer avec Apple »</strong>
               </InfoBox>
               <BulletList items={[
@@ -284,10 +339,10 @@ export default function PrivacyPolicyPage() {
                 ['Authentification (Google, Apple, email)', 'Exécution du contrat – Art. 6.1.b'],
                 ['Traitement des abonnements et paiements (Stripe)', 'Exécution du contrat – Art. 6.1.b'],
                 ['Prévention des fraudes, sécurité, journalisation', 'Intérêt légitime – Art. 6.1.f'],
-                ['Analyse d\'audience et amélioration du service', 'Intérêt légitime / Consentement (cookies) – Art. 6.1.a & f'],
+                ["Analyse d'audience et amélioration du service", 'Intérêt légitime / Consentement (cookies) – Art. 6.1.a & f'],
                 ['Support client', 'Exécution du contrat / Intérêt légitime – Art. 6.1.b & f'],
                 ['Communications marketing et newsletters', 'Consentement explicite – Art. 6.1.a'],
-                ['Conservation des données de facturation', 'Obligation légale (comptabilité) – Art. 6.1.c'],
+                ['Conservation des données de facturation', 'Obligation légale (comptabilité) – Art. L123-22 Code de commerce français'],
                 ['Réponse aux autorités compétentes', 'Obligation légale – Art. 6.1.c'],
               ]}
             />
@@ -313,10 +368,10 @@ export default function PrivacyPolicyPage() {
             <Table
               headers={['Prestataire', 'Rôle', 'Données transmises', 'Localisation']}
               rows={[
-                ['IONOS SE', 'Hébergement / Infrastructure', 'Données de compte, journaux serveur', '🇩🇪 Allemagne (Union européenne)'],
-                ['Stripe, Inc.', 'Traitement sécurisé des paiements', 'Adresse e-mail, historique de paiement. Les coordonnées bancaires sont traitées directement par Stripe, jamais stockées par UseWok.', '🇺🇸 États-Unis (CCT en vigueur)'],
-                ['Google LLC (Analytics)', 'Analyse d\'audience', 'Données de navigation anonymisées, adresse IP tronquée', '🇺🇸 États-Unis (CCT en vigueur)'],
-                ['Base44, Inc.', 'Analyse applicative et comportementale', 'Données comportementales pseudonymisées (clics, pages)', '🇺🇸 États-Unis (CCT en vigueur)'],
+                ['IONOS SE', 'Hébergement / Infrastructure', 'Données de compte, journaux serveur', 'Allemagne (Union européenne)'],
+                ['Stripe, Inc.', 'Traitement sécurisé des paiements', "Adresse e-mail, historique de paiement. Les coordonnées bancaires sont traitées directement par Stripe, jamais stockées par UseWok.", 'États-Unis (CCT en vigueur)'],
+                ['Google LLC (Analytics)', "Analyse d'audience", 'Données de navigation anonymisées, adresse IP tronquée', 'États-Unis (CCT en vigueur)'],
+                ['Base44, Inc.', 'Analyse applicative et comportementale', 'Données comportementales pseudonymisées (clics, pages)', 'États-Unis (CCT en vigueur)'],
                 ['Futur prestataire emailing', 'Envoi de communications (avec consentement)', 'Adresse e-mail uniquement', 'À préciser lors de la mise en service'],
               ]}
             />
@@ -328,9 +383,9 @@ export default function PrivacyPolicyPage() {
             <P>Notre infrastructure principale est hébergée chez IONOS SE, société de droit allemand dont les centres de données sont situés au sein de l'Union européenne. Vos données sont donc hébergées, en priorité, sur le territoire européen.</P>
             <P>Cependant, certains de nos prestataires de services sont établis aux États-Unis (Stripe, Inc. ; Google LLC ; Base44, Inc.). Des transferts de données personnelles hors de l'Espace Économique Européen (EEE) sont donc susceptibles d'intervenir dans le cadre de l'utilisation de ces services.</P>
             <P>Ces transferts sont encadrés par les garanties appropriées prévues par le RGPD, et notamment par les Clauses Contractuelles Types (CCT) issues de la décision d'exécution de la Commission européenne du 4 juin 2021, qui imposent contractuellement à ces prestataires un niveau de protection des données équivalent à celui exigé au sein de l'EEE.</P>
-            <InfoBox icon="ℹ️">
+            <InfoBox icon={Icon.info}>
               <strong>Votre droit à l'information</strong><br />
-              Vous pouvez obtenir des informations supplémentaires sur les garanties encadrant ces transferts en nous contactant à <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a>.
+              Vous pouvez obtenir des informations supplémentaires sur les garanties encadrant ces transferts en nous contactant à <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>.
             </InfoBox>
           </Section>
 
@@ -340,7 +395,7 @@ export default function PrivacyPolicyPage() {
               headers={['Catégorie de données', 'Durée de conservation', 'Justification']}
               rows={[
                 ['Données de compte actif (nom, email)', "Pendant toute la durée d'activité du compte, puis 12 mois après la dernière connexion", 'Fourniture du service'],
-                ["Données d'un compte supprimé par l'utilisateur", 'Suppression immédiate et irréversible à la demande', 'Droit à l\'effacement – Art. 17 RGPD'],
+                ["Données d'un compte supprimé par l'utilisateur", 'Suppression immédiate et irréversible à la demande', "Droit à l'effacement – Art. 17 RGPD"],
                 ['Journaux de connexion et sécurité (logs)', '12 mois à compter de leur génération', 'Sécurité, prévention des fraudes, intérêt légitime'],
                 ["Données de facturation et d'abonnement (via Stripe)", '10 ans à compter de la date de la transaction', 'Obligation légale comptable – Art. L123-22 Code de commerce français'],
                 ['Conversations du support client', '3 ans à compter de la clôture du ticket', 'Intérêt légitime (gestion des litiges) – prescription triennale'],
@@ -348,7 +403,7 @@ export default function PrivacyPolicyPage() {
                 ['Données analytiques comportementales (Base44)', '12 mois maximum', 'Amélioration du service'],
               ]}
             />
-            <SuccessBox icon="✅">
+            <SuccessBox icon={Icon.success}>
               <strong>Suppression de compte en quelques clics</strong><br />
               Vous pouvez supprimer votre compte à tout moment depuis votre espace personnel, sans condition. La suppression est immédiate et définitive. Seules les données soumises à une obligation légale de conservation (données de facturation) sont conservées pour la durée légale applicable, dans une base isolée du service actif.
             </SuccessBox>
@@ -363,7 +418,7 @@ export default function PrivacyPolicyPage() {
               <><strong>Contrôle d'accès strict :</strong> L'accès aux données personnelles est limité au personnel de UseWok dont les fonctions l'exigent, et uniquement dans la mesure nécessaire à l'accomplissement de ces fonctions.</>,
               <><strong>Authentification sécurisée :</strong> Les connexions via Google et Apple reposent sur le protocole OAuth 2.0, standard industriel de délégation d'authentification sécurisée.</>,
             ]} />
-            <WarningBox icon="⚠️">
+            <WarningBox icon={Icon.warning}>
               <strong>Aucune sécurité n'est infaillible</strong><br />
               Bien que UseWok mette tout en œuvre pour protéger vos données, aucun système de transmission ou de stockage électronique ne peut garantir une sécurité absolue. Nous vous recommandons d'utiliser un mot de passe fort et unique pour votre compte.
               <br /><br />
@@ -373,7 +428,7 @@ export default function PrivacyPolicyPage() {
 
           <Section number="10" title="Cookies et technologies de suivi">
             <P>UseWok utilise des cookies et des technologies de suivi similaires pour assurer le fonctionnement du service, analyser l'audience et améliorer votre expérience utilisateur.</P>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 12 }}>Types de cookies utilisés</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: INK, marginBottom: 12 }}>Types de cookies utilisés</h3>
             <Table
               headers={['Catégorie', 'Outil', 'Finalité', 'Base légale', 'Durée']}
               rows={[
@@ -384,42 +439,42 @@ export default function PrivacyPolicyPage() {
             />
             <P>Conformément aux recommandations de la CNIL, nous recueillons votre consentement avant de déposer tout cookie non strictement nécessaire au fonctionnement du service. Vous pouvez retirer votre consentement à tout moment via notre gestionnaire de préférences cookies accessible depuis chaque page du site.</P>
             <P>Vous pouvez également désactiver les cookies depuis les paramètres de votre navigateur. La désactivation des cookies analytiques n'affectera pas les fonctionnalités essentielles de la Plateforme.</P>
-            <P style={{ fontSize: 13, color: '#6B7280' }}>Pour en savoir plus sur les cookies : <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>www.allaboutcookies.org</a></P>
+            <P style={{ fontSize: 13, color: INK_SOFT }}>Pour en savoir plus sur les cookies : <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" style={{ color: ORANGE_DEEP }}>www.allaboutcookies.org</a></P>
           </Section>
 
           <Section number="11" title="Vos droits en matière de données personnelles">
             <P>Conformément au RGPD (articles 15 à 22), vous disposez des droits suivants concernant les données personnelles que UseWok traite vous concernant :</P>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12, marginBottom: 28 }}>
               {[
-                { icon: '📋', title: 'Droit d\'accès', desc: 'Obtenir confirmation que des données vous concernant sont traitées, et recevoir une copie de ces données ainsi que toutes les informations relatives à leur traitement. (Art. 15 RGPD)' },
-                { icon: '✏️', title: 'Droit de rectification', desc: 'Demander la correction de toute donnée inexacte, incomplète ou obsolète vous concernant. (Art. 16 RGPD)' },
-                { icon: '🗑️', title: 'Droit à l\'effacement', desc: 'Demander la suppression de vos données personnelles (« droit à l\'oubli »), sous réserve des obligations légales de conservation qui s\'imposent à UseWok. (Art. 17 RGPD)' },
-                { icon: '⛔', title: 'Droit d\'opposition', desc: 'Vous opposer, à tout moment, au traitement de vos données à des fins de marketing direct, ou lorsque le traitement repose sur l\'intérêt légitime de UseWok. (Art. 21 RGPD)' },
-                { icon: '⏸️', title: 'Droit à la limitation', desc: 'Demander la suspension temporaire du traitement de vos données dans les cas prévus par la réglementation (ex. : contestation de l\'exactitude des données). (Art. 18 RGPD)' },
-                { icon: '📦', title: 'Droit à la portabilité', desc: 'Recevoir vos données dans un format structuré, couramment utilisé et lisible par machine, ou les faire transmettre directement à un autre responsable de traitement. (Art. 20 RGPD)' },
+                { icon: Icon.access, title: "Droit d'accès", desc: "Obtenir confirmation que des données vous concernant sont traitées, et recevoir une copie de ces données ainsi que toutes les informations relatives à leur traitement. (Art. 15 RGPD)" },
+                { icon: Icon.rectify, title: 'Droit de rectification', desc: "Demander la correction de toute donnée inexacte, incomplète ou obsolète vous concernant. (Art. 16 RGPD)" },
+                { icon: Icon.erase, title: "Droit à l'effacement", desc: "Demander la suppression de vos données personnelles (« droit à l'oubli »), sous réserve des obligations légales de conservation qui s'imposent à UseWok. (Art. 17 RGPD)" },
+                { icon: Icon.block, title: "Droit d'opposition", desc: "Vous opposer, à tout moment, au traitement de vos données à des fins de marketing direct, ou lorsque le traitement repose sur l'intérêt légitime de UseWok. (Art. 21 RGPD)" },
+                { icon: Icon.pause, title: 'Droit à la limitation', desc: "Demander la suspension temporaire du traitement de vos données dans les cas prévus par la réglementation (ex. : contestation de l'exactitude des données). (Art. 18 RGPD)" },
+                { icon: Icon.portable, title: 'Droit à la portabilité', desc: "Recevoir vos données dans un format structuré, couramment utilisé et lisible par machine, ou les faire transmettre directement à un autre responsable de traitement. (Art. 20 RGPD)" },
               ].map((r, i) => <RightCard key={i} {...r} />)}
             </div>
-            <P>Pour exercer l'un de ces droits, veuillez nous adresser votre demande par e-mail à <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a>, en précisant clairement le droit que vous souhaitez exercer. Nous pourrons vous demander de justifier de votre identité pour traiter votre demande. Nous nous engageons à répondre dans un délai d'un (1) mois à compter de la réception de votre demande. Ce délai peut être prolongé de deux mois supplémentaires en cas de demande complexe ou de nombre élevé de demandes, auquel cas nous vous en informerons.</P>
+            <P>Pour exercer l'un de ces droits, veuillez nous adresser votre demande par e-mail à <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>, en précisant clairement le droit que vous souhaitez exercer. Nous pourrons vous demander de justifier de votre identité pour traiter votre demande. Nous nous engageons à répondre dans un délai d'un (1) mois à compter de la réception de votre demande. Ce délai peut être prolongé de deux mois supplémentaires en cas de demande complexe ou de nombre élevé de demandes, auquel cas nous vous en informerons.</P>
             <P>Ces droits ne sont pas absolus et peuvent être soumis aux conditions et limitations prévues par la réglementation applicable, notamment pour respecter nos obligations légales ou protéger les droits et intérêts légitimes de UseWok ou de tiers.</P>
           </Section>
 
           <Section number="12" title="Contact et réclamations">
             <P>Pour toute question relative à la présente politique ou à l'exercice de vos droits, veuillez contacter notre service dédié à la protection des données :</P>
-            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px', marginBottom: 24 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', marginBottom: 12 }}>UseWok, Inc. — Protection des données personnelles</div>
-              <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
-                <div>📧 <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a></div>
-                <div>🌐 <a href="https://usewok.com" style={{ color: CORAL }}>https://usewok.com</a></div>
-                <div>📍 Libourne, Gironde, France</div>
+            <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 24 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: INK, marginBottom: 12 }}>UseWok, Inc. — Protection des données personnelles</div>
+              <div style={{ fontSize: 14, color: INK_SOFT, lineHeight: 2.2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.mail} <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.web} <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.pin} Libourne, Gironde, France</div>
               </div>
             </div>
             <P>Si vous estimez, après nous avoir contactés, que le traitement de vos données personnelles par UseWok n'est pas conforme à la réglementation applicable en matière de protection des données, vous avez le droit de déposer une plainte auprès de l'autorité de contrôle compétente. En France, il s'agit de la :</P>
-            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px' }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', marginBottom: 12 }}>CNIL – Commission Nationale de l'Informatique et des Libertés</div>
-              <div style={{ fontSize: 14, color: '#374151', lineHeight: 2 }}>
-                <div>📍 3 Place de Fontenoy – TSA 80715 – 75334 PARIS CEDEX 07</div>
-                <div>📞 +33 (0)1 53 73 22 22</div>
-                <div>🌐 <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>www.cnil.fr</a></div>
+            <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px' }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: INK, marginBottom: 12 }}>CNIL – Commission Nationale de l'Informatique et des Libertés</div>
+              <div style={{ fontSize: 14, color: INK_SOFT, lineHeight: 2.2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.pin} 3 Place de Fontenoy – TSA 80715 – 75334 PARIS CEDEX 07</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.phone} +33 (0)1 53 73 22 22</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.web} <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: ORANGE_DEEP }}>www.cnil.fr</a></div>
               </div>
             </div>
           </Section>
@@ -427,35 +482,34 @@ export default function PrivacyPolicyPage() {
 
         {/* Sidebar TOC */}
         <aside style={{ position: 'sticky', top: 80 }}>
-          <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '20px', marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Sommaire</div>
+          <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '20px', marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: INK_SOFT, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Sommaire</div>
             <nav>
               {TOC.map(([num, label]) => (
                 <div key={num} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: CORAL, flexShrink: 0, marginTop: 2 }}>{num}.</span>
-                  <span style={{ fontSize: 12, color: '#374151', lineHeight: 1.4 }}>{label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: ORANGE_DEEP, flexShrink: 0, marginTop: 2 }}>{num}.</span>
+                  <span style={{ fontSize: 12, color: INK_SOFT, lineHeight: 1.4 }}>{label}</span>
                 </div>
               ))}
             </nav>
           </div>
-          <div style={{ background: 'rgba(249,87,56,0.06)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 12, padding: '16px', fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
-            <div style={{ fontWeight: 700, color: '#111827', marginBottom: 6 }}>Questions ?</div>
-            <a href="mailto:compliance@usewok.com" style={{ color: CORAL, fontWeight: 500 }}>compliance@usewok.com</a>
+          <div style={{ background: ORANGE_PALE, border: '1px solid rgba(196,62,20,0.16)', borderRadius: 12, padding: '16px', fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>
+            <div style={{ fontWeight: 700, color: INK, marginBottom: 6 }}>Questions ?</div>
+            <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP, fontWeight: 600 }}>compliance@usewok.com</a>
           </div>
         </aside>
       </div>
 
       {/* Footer */}
-      <footer style={{ background: 'white', borderTop: '1px solid #E5E7EB', padding: '24px clamp(20px, 5vw, 60px)', textAlign: 'center' }}>
-        <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
+      <footer style={{ background: '#fff', borderTop: '1px solid rgba(21,19,15,0.10)', padding: '24px clamp(20px, 5vw, 60px)', textAlign: 'center' }}>
+        <p style={{ fontSize: 12, color: INK_SOFT, margin: 0 }}>
           © 2026 UseWok — L'outil français de visibilité IA ·{' '}
-          <Link to="/terms" style={{ color: '#6B7280', textDecoration: 'none' }}>CGU</Link>
+          <Link to="/terms" style={{ color: INK_SOFT, textDecoration: 'none' }}>CGU</Link>
           {' '}·{' '}
-          <Link to="/" style={{ color: '#6B7280', textDecoration: 'none' }}>Accueil</Link>
+          <Link to="/" style={{ color: INK_SOFT, textDecoration: 'none' }}>Accueil</Link>
         </p>
       </footer>
 
-      {/* Responsive sidebar hide */}
       <style>{`
         @media (max-width: 768px) {
           aside { display: none !important; }
