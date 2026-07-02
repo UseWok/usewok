@@ -5,24 +5,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, RefreshCw, X, Zap, Clock, Lock,
   AlertTriangle, BarChart2, TrendingUp, CheckCircle2,
-  ChevronDown, Sparkles, Target, ArrowRight, Bookmark, Copy, Check
+  ChevronDown, Sparkles, ArrowRight, Bookmark, Copy, Check,
+  Download, ArrowUpRight, ArrowDownRight, Minus
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getWokPlanId } from '@/lib/wok-plans';
 import UpgradeModal from '@/components/upsell/UpgradeModal';
 
 const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
-const INK = '#1A1A1A';
-const INK2 = '#6B6660';
+const INK = '#1A1814';
+const INK2 = '#857E6E';
 const INK3 = '#A8A49F';
-const BORDER = 'rgba(21,19,15,0.10)';
-const SURFACE = '#F8F7F4';
+const BORDER = 'rgba(21,19,15,0.12)';
+const SURFACE = '#F7F2E9';
 const WHITE = '#FFFFFF';
 const CORAL = '#FF5A1F';
 const CARD_DARK = '#15130F';
-const GREEN = '#10B981';
+const GREEN = '#3FA66B';
+const GREEN_SOFT = '#E3F1E9';
+const CREAM_DEEP = '#EEE5D2';
+const ORANGE_DEEP = '#B23E10';
+const ORANGE_SOFT = '#FCE3D2';
 
 const AI_LOGOS = {
   chatgpt: 'https://media.base44.com/images/public/6a2edc91082e534601118582/67cb277ed_image.png',
@@ -34,8 +38,18 @@ const AI_LOGOS = {
   copilot: 'https://media.base44.com/images/public/6a2edc91082e534601118582/92bb51643_image.png',
   llama: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1bdc7666b_image.png'
 };
-const ALL_ENGINES = ['chatgpt', 'gemini', 'claude', 'mistral', 'llama', 'perplexity', 'grok', 'copilot'];
+const ALL_ENGINES = ['mistral', 'gemini', 'chatgpt', 'claude', 'copilot', 'perplexity', 'llama', 'grok'];
 const ENGINE_NAMES = { chatgpt: 'ChatGPT', gemini: 'Gemini', claude: 'Claude', mistral: 'Mistral', llama: 'Llama', perplexity: 'Perplexity', grok: 'Grok', copilot: 'Copilot' };
+const RADAR_LABELS = [
+  { name: 'Mistral', x: 100, y: 8 },
+  { name: 'Gemini', x: 166, y: 40 },
+  { name: 'ChatGPT', x: 188, y: 103 },
+  { name: 'Claude', x: 166, y: 166 },
+  { name: 'Copilot', x: 100, y: 195 },
+  { name: 'Perplexity', x: 34, y: 166 },
+  { name: 'Llama', x: 12, y: 103 },
+  { name: 'Grok', x: 34, y: 40 },
+];
 const FREE_ENGINES = ['gemini'];
 
 function fmt(n) {
@@ -54,8 +68,35 @@ function FadeUp({ children, delay = 0 }) {
   );
 }
 
-// ── Animated score number ─────────────────────────────────────────────────────
-function AnimatedScore({ value, size = 56 }) {
+// ── Radar helpers ──
+function radarPoints(scores, maxR = 70, cx = 100, cy = 100) {
+  return ALL_ENGINES.map((e, i) => {
+    const angle = (i / 8) * 2 * Math.PI - Math.PI / 2;
+    const s = scores[e] || 0;
+    const r = maxR * (s / 100);
+    return `${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`;
+  }).join(' ');
+}
+function radarOuter(maxR = 70, cx = 100, cy = 100) {
+  const pts = [];
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * 2 * Math.PI - Math.PI / 2;
+    pts.push(`${(cx + maxR * Math.cos(angle)).toFixed(1)},${(cy + maxR * Math.sin(angle)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+function radarInner(maxR = 35, cx = 100, cy = 100) {
+  return radarOuter(maxR, cx, cy);
+}
+function radarLines(maxR = 70, cx = 100, cy = 100) {
+  return ALL_ENGINES.map((_, i) => {
+    const angle = (i / 8) * 2 * Math.PI - Math.PI / 2;
+    return { x1: cx, y1: cy, x2: cx + maxR * Math.cos(angle), y2: cy + maxR * Math.sin(angle) };
+  });
+}
+
+// ── Animated score number ──
+function AnimatedScore({ value, size = 17, color = '#F7F2E9' }) {
   const [disp, setDisp] = useState(0);
   useEffect(() => {
     let start = null;
@@ -69,25 +110,22 @@ function AnimatedScore({ value, size = 56 }) {
     };
     requestAnimationFrame(step);
   }, [value]);
-  return <span style={{ fontSize: size, fontWeight: 900, color: WHITE, letterSpacing: '-0.05em', lineHeight: 1 }}>{disp}</span>;
+  return <span style={{ fontSize: size, fontWeight: 500, color, lineHeight: 1 }}>{disp}</span>;
 }
 
-// ── FixDrawer — persistance cloud via UserFixCache ───────────────────────────
-
-// Normalize issue text to issue_key — must match backend logic exactly
+// ── Normalize issue text to issue_key ──
 function normalizeIssueKey(text) {
   return (text || '').toLowerCase().replace(/[^a-z0-9àâäéèêëîïôùûüç\s]/g, '').replace(/\s+/g, '_').slice(0, 80);
 }
 
-// In-memory cache to avoid redundant DB calls within the same session
 const FIX_MEM = {};
 
+// ── FixDrawer — persistance cloud via UserFixCache ──
 function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerified }) {
   const [copied, setCopied] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
 
-  // Determine tech_level from profile.user_preferences (JSON string)
   const techLevel = (() => {
     try {
       const prefs = typeof profile?.user_preferences === 'string'
@@ -199,9 +237,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
     setVerifying(false);
   };
 
-  // Badge "Faisable seul" : fond beige #F5F0E6, bordure #E8DFD0, coche verte, texte vert foncé
-  // Badge horloge : fond blanc, bordure gris clair, icône horloge gris, texte gris foncé
-
   return (
     <AnimatePresence>
       <motion.div key="bd" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -213,35 +248,28 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
 
         {/* ── Header ── */}
         <div style={{ padding: '20px 18px 14px', borderBottom: '1px solid #EBEBEB', background: '#FFFFFF', flexShrink: 0 }}>
-          {/* Label CORRECTION + X */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                {/* Point coral */}
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: CORAL, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: CORAL, textTransform: 'uppercase', letterSpacing: '0.10em' }}>
                   {issue.type === 'plan' ? 'Plan d\'action' : 'Correction'}
                 </span>
               </div>
-              {/* Titre gras, grand */}
               <h2 style={{ fontSize: 17, fontWeight: 800, color: '#1A1A1A', margin: 0, lineHeight: 1.35, letterSpacing: '-0.025em', overflowWrap: 'anywhere' }}>{issue.text}</h2>
             </div>
-            {/* Bouton X rond */}
             <button onClick={onClose}
               style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #E0E0E0', background: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
               <X size={13} color="#888" />
             </button>
           </div>
 
-          {/* Badges horloge + faisable */}
           {timeEstimate && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
-              {/* Badge horloge — fond blanc, bordure grise fine, pill */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: '#FFFFFF', border: '1px solid #D8D8D8', borderRadius: 999 }}>
                 <Clock size={12} color="#888" />
                 <span style={{ fontSize: 12, color: '#555', fontWeight: 500 }}>{timeEstimate}</span>
               </div>
-              {/* Badge faisable seul — fond beige, coche verte, texte vert */}
               {fixType && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: '#F5F0E6', border: '1px solid #E8DFD0', borderRadius: 999 }}>
                   <span style={{ fontSize: 12, color: '#2D7A3A', fontWeight: 400 }}>✓</span>
@@ -272,7 +300,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
             </div>
           ) : loading ? (
             <div style={{ padding: '20px 18px' }}>
-              {/* Loading card — fond beige, spinner coral, texte bold */}
               <div style={{ padding: '18px 20px', background: '#F5F0E8', borderRadius: 16, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
                   <svg width="40" height="40" viewBox="0 0 40 40" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
@@ -285,7 +312,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                   <p style={{ fontSize: 13, color: '#A8A49F', margin: 0, fontWeight: 400 }}>Adapté à votre secteur et votre site</p>
                 </div>
               </div>
-              {/* Skeleton lines */}
               {[88, 68, 78, 52].map((w, i) => (
                 <div key={i} style={{ height: 11, borderRadius: 6, background: 'rgba(0,0,0,0.08)', width: `${w}%`, marginBottom: 13 }} />
               ))}
@@ -294,7 +320,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
             <div>
               <div style={{ height: 1, background: '#EBEBEB' }} />
 
-              {/* Box "Pourquoi c'est important" */}
               {summary && (
                 <div style={{ margin: '16px 18px', padding: '16px 18px', background: '#FEF3EC', borderRadius: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -305,7 +330,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                 </div>
               )}
 
-              {/* Prompt à copier-coller (no_code + ai_nocode) */}
               {prompt && (
                 <div style={{ margin: '0 18px 16px' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -336,14 +360,12 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                 </div>
               )}
 
-              {/* Explication (developer) */}
               {explanation && !prompt && (
                 <div style={{ margin: '0 18px 16px', padding: '14px 16px', background: '#F3E8FF', borderRadius: 12 }}>
                   <p style={{ fontSize: 13, color: '#4B2A8C', margin: 0, lineHeight: 1.65 }}>{explanation}</p>
                 </div>
               )}
 
-              {/* Label section */}
               {steps.length > 0 && (
                 <div style={{ padding: '4px 18px 20px' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#B0AAA4', textTransform: 'uppercase', letterSpacing: '0.13em', margin: '0 0 14px' }}>Ce que vous faites maintenant</p>
@@ -362,7 +384,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                           border: '1px solid #EAEAEA',
                           borderRadius: 16,
                         }}>
-                          {/* Numéro : coral pour 1, noir pour les autres */}
                           <div style={{
                             width: 28, height: 28, borderRadius: '50%',
                             background: i === 0 ? CORAL : '#1A1A1A',
@@ -384,7 +405,6 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                 </div>
               )}
 
-              {/* Vérification IA */}
               {!isFree && (
                 <div style={{ padding: '0 18px 20px' }}>
                   <button
@@ -448,7 +468,7 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
   );
 }
 
-// ── Status picker ─────────────────────────────────────────────────────────────
+// ── Status picker ──
 const STATUS_CFG = {
   todo: { label: 'À faire', color: INK2, bg: WHITE, border: BORDER },
   in_progress: { label: 'En cours', color: CORAL, bg: `${CORAL}10`, border: `${CORAL}40` },
@@ -478,180 +498,63 @@ function StatusPicker({ value, onChange }) {
   );
 }
 
-// ── Score ring (hero) ─────────────────────────────────────────────────────────
-function ScoreRing({ value, size = 100 }) {
-  const sw = 7, R = (size - sw) / 2;
+// ── Score ring (hero, dark card) ──
+function ScoreRing({ value, size = 72 }) {
+  const sw = 6, R = 26;
   const circ = 2 * Math.PI * R;
   return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth={sw} />
-        <motion.circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke={CORAL} strokeWidth={sw}
+    <div style={{ textAlign: 'center' }}>
+      <svg width={size} height={size} viewBox="0 0 64 64" style={{ display: 'block' }}>
+        <circle cx="32" cy="32" r={R} fill="none" stroke="rgba(247,242,233,0.12)" strokeWidth={sw} />
+        <motion.circle cx="32" cy="32" r={R} fill="none" stroke={CORAL} strokeWidth={sw}
           strokeLinecap="round"
+          transform="rotate(-90 32 32)"
           initial={{ strokeDasharray: circ, strokeDashoffset: circ }}
           animate={{ strokeDashoffset: circ * (1 - value / 100) }}
           transition={{ duration: 1.3, ease: [0.4, 0, 0.2, 1], delay: 0.1 }} />
+        <text x="32" y="29" textAnchor="middle" fontSize="17" fontWeight="500" fill="#F7F2E9">
+          <AnimatedScore value={value} size={17} />
+        </text>
+        <text x="32" y="42" textAnchor="middle" fontSize="8" fill="rgba(247,242,233,0.55)">/100</text>
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <AnimatedScore value={value} size={30} />
-        <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', fontWeight: 600, marginTop: 1 }}>/100</span>
-      </div>
     </div>
   );
 }
 
-// ── Issue card — avec contexte business ──────────────────────────────────────
-function IssueCard({ issue, index, onClick, onStatusChange, status, saving }) {
-  const urgency = issue.urgency || issue.severity || 'medium';
-  const urgencyColor = urgency === 'high' ? CORAL : urgency === 'low' ? INK3 : '#D97706';
-  const urgencyLabel = urgency === 'high' ? 'Urgent' : urgency === 'low' ? 'Mineur' : 'Important';
+// ── Action card (actions recommandées) ──
+function ActionCard({ item, index, urgency, urgencyColor, onClick, status, onStatusChange, saving, isFree }) {
+  const urgencyBg = urgency === 'Urgent' ? CORAL : urgency === 'Cette semaine' ? ORANGE_SOFT : CREAM_DEEP;
+  const urgencyFg = urgency === 'Urgent' ? '#fff' : urgency === 'Cette semaine' ? ORANGE_DEEP : INK2;
+  const isDone = status === 'done';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * index }}
-      style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 8 }}>
-      <button onClick={onClick}
-        style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 13, padding: '15px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: F }}>
-        <div style={{ width: 32, height: 32, borderRadius: 9, background: `${urgencyColor}12`, border: `1px solid ${urgencyColor}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-          <AlertTriangle size={14} color={urgencyColor} />
+    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 * index }}
+      className="lrs-card lrs-action"
+      style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8, opacity: isDone ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 500, color: urgencyFg, background: urgencyBg, padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap' }}>{urgency}</span>
+          {isDone && <CheckCircle2 size={12} color={GREEN} />}
+          <span style={{ fontSize: 13, fontWeight: 500, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.action_title || item.text || item.label}</span>
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: urgencyColor, background: `${urgencyColor}12`, padding: '2px 8px', borderRadius: 20 }}>{urgencyLabel}</span>
-          </div>
-          <p style={{ fontSize: 13.5, color: INK, fontWeight: 600, margin: '0 0 4px', lineHeight: 1.4 }}>
-            {issue.problem || issue.text}
-          </p>
-          {issue.impact && (
-            <p style={{ fontSize: 12, color: INK3, margin: 0, lineHeight: 1.5 }}>
-              {issue.impact}
-            </p>
-          )}
+        <div style={{ fontSize: 12, color: INK2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {item.impact || item.desc || item.gap || ''}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: CORAL }}>Corriger →</span>
+      </div>
+      {!isFree && status !== undefined && onStatusChange ? (
+        <div style={{ flexShrink: 0, opacity: saving ? 0.5 : 1 }}>
+          <StatusPicker value={status} onChange={onStatusChange} />
         </div>
+      ) : null}
+      <button onClick={onClick} className="lrs-launch"
+        style={{ background: 'none', border: 'none', color: CORAL, fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4, fontFamily: F, flexShrink: 0 }}>
+        Lancer<ArrowRight size={12} />
       </button>
     </motion.div>
   );
 }
 
-// ── Plan action card ──────────────────────────────────────────────────────────
-function PlanCard({ item, index, status, onStatusChange, saving, onGuide, engineLogos, profile }) {
-  const [expanded, setExpanded] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [verifyResult, setVerifyResult] = useState(null);
-  const isHigh = item.impact === 'high';
-  const isDone = status === 'done';
-  const engineLogo = engineLogos[item.engine?.toLowerCase()];
-  const effortLabel = item.effort === 'low' ? '⚡ Rapide' : item.effort === 'medium' ? '⏱ Quelques heures' : '📅 Plusieurs jours';
-
-  const handleVerify = async () => {
-    setVerifying(true);
-    setVerifyResult(null);
-    try {
-      const res = await base44.functions.invoke('verifyFix', {
-        issue: item.action_title,
-        taskTitle: item.action_title,
-        fixData: null,
-        businessProfile: {
-          site_url: profile?.site_url,
-          identity_name: profile?.identity_name,
-          identity_industry: profile?.identity_industry,
-          identity_city: profile?.identity_city,
-          identity_target: profile?.identity_target,
-          brand_keywords: profile?.brand_keywords,
-          products: profile?.products,
-        },
-      });
-      const r = res?.data;
-      if (r && !r.error) {
-        setVerifyResult(r);
-        if (r.verified) onStatusChange('done');
-      } else {
-        setVerifyResult({ verified: false, feedback: 'Impossible de vérifier. Réessayez.', confidence: 0 });
-      }
-    } catch {
-      setVerifyResult({ verified: false, feedback: 'Erreur. Réessayez.', confidence: 0 });
-    }
-    setVerifying(false);
-  };
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 * index }}
-      style={{ background: WHITE, border: `1px solid ${isDone ? `${GREEN}40` : BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 8, opacity: isDone ? 0.6 : 1, transition: 'opacity 0.2s' }}>
-
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '15px 16px' }}>
-        {/* Numéro */}
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: isDone ? `${GREEN}15` : isHigh ? `${CORAL}12` : SURFACE, border: `1px solid ${isDone ? `${GREEN}30` : isHigh ? `${CORAL}25` : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          {isDone
-            ? <CheckCircle2 size={14} color={GREEN} />
-            : <span style={{ fontSize: 11, fontWeight: 800, color: isHigh ? CORAL : INK2 }}>{index + 1}</span>
-          }
-        </div>
-
-        {/* Content */}
-        <button onClick={() => setExpanded(!expanded)}
-          style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, fontFamily: F }}>
-          <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 6px', lineHeight: 1.4 }}>{item.action_title}</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            {engineLogo && <img src={engineLogo} alt={item.engine} style={{ width: 14, height: 14, objectFit: 'contain' }} />}
-            <span style={{ fontSize: 11.5, color: INK3 }}>{item.engine}</span>
-            <span style={{ fontSize: 11.5, color: 'rgba(21,19,15,0.15)' }}>·</span>
-            <span style={{ fontSize: 11.5, color: INK3 }}>{effortLabel}</span>
-            {isHigh && <span style={{ fontSize: 10, fontWeight: 700, color: CORAL, background: `${CORAL}10`, padding: '2px 7px', borderRadius: 20 }}>Fort impact</span>}
-          </div>
-        </button>
-
-        {/* Status */}
-        <div style={{ flexShrink: 0, opacity: saving ? 0.5 : 1 }}>
-          <StatusPicker value={status} onChange={onStatusChange} />
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }} style={{ borderTop: `1px solid ${BORDER}`, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {item.gap && (
-                <div style={{ padding: '12px 14px', background: '#FFFBEB', border: '1px solid #FEF3C7', borderRadius: 10 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 5px' }}>
-                    Pourquoi c'est prioritaire
-                  </p>
-                  <p style={{ fontSize: 13, color: '#78350F', margin: 0, lineHeight: 1.65 }}>{item.gap}</p>
-                </div>
-              )}
-              <button onClick={() => onGuide({ id: `plan_${index}`, text: item.action_title + (item.action_detail ? ' — ' + item.action_detail : ''), type: 'plan' })}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: CARD_DARK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-                <Sparkles size={13} color={CORAL} /> Voir le guide étape par étape
-              </button>
-              {isHigh && (
-                <button onClick={handleVerify} disabled={verifying}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: verifying ? SURFACE : verifyResult?.verified ? GREEN : WHITE, color: verifyResult?.verified ? WHITE : INK, border: `1px solid ${verifyResult?.verified ? GREEN : BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer', fontFamily: F }}>
-                  {verifying ? '⏳ Analyse…' : verifyResult?.verified ? '✓ Validé par l\'IA' : '✨ Vérifier avec l\'IA'}
-                </button>
-              )}
-              {verifyResult && (
-                <div style={{ padding: '12px 14px', background: verifyResult.verified ? '#F0FDF4' : '#FFFBEB', border: `1px solid ${verifyResult.verified ? '#BBF7D0' : '#FEF3C7'}`, borderRadius: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                    {verifyResult.verified ? <CheckCircle2 size={13} color={GREEN} /> : <AlertTriangle size={13} color="#D97706" />}
-                    <span style={{ fontSize: 11, fontWeight: 800, color: verifyResult.verified ? GREEN : '#D97706', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      {verifyResult.verified ? 'Validé' : 'Pas encore'}
-                    </span>
-                    {verifyResult.confidence > 0 && <span style={{ fontSize: 11, color: INK3, marginLeft: 'auto' }}>{verifyResult.confidence}%</span>}
-                  </div>
-                  <p style={{ fontSize: 12, color: verifyResult.verified ? '#15803D' : '#92400E', margin: 0, lineHeight: 1.5 }}>{verifyResult.feedback}</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-// ── MAIN ──────────────────────────────────────────────────────────────────────
+// ── MAIN ──
 export default function AIVisibilityReport() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -662,28 +565,24 @@ export default function AIVisibilityReport() {
   const [tasks, setTasks] = useState({});
   const [user, setUser] = useState(null);
   const [savingTask, setSavingTask] = useState({});
-  const [expandedAction, setExpandedAction] = useState(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [planId, setPlanId] = useState('free');
   const [fakeLoading, setFakeLoading] = useState(false);
 
   const isFree = planId === 'free';
   const isStarter = planId === 'starter';
+  const isPro = planId === 'pro';
 
-  // Fake load 2s puis modale upgrade (plan free)
   const handleLockedAction = () => {
     setFakeLoading(true);
     setTimeout(() => { setFakeLoading(false); setShowUpgrade(true); }, 2000);
   };
-  const isPro = planId === 'pro';
 
-  // Engines par plan
   const PLAN_ENGINES_ACTIVE = isFree
     ? ['gemini']
     : isStarter
     ? ['gemini', 'chatgpt', 'claude', 'llama', 'perplexity']
     : ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'];
-
   const PLAN_ENGINES_LOCKED = isStarter ? ['mistral', 'copilot', 'grok'] : [];
   const PLAN_ENGINES_BLURRED = isFree ? ['chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'grok', 'copilot'] : [];
 
@@ -718,18 +617,14 @@ export default function AIVisibilityReport() {
     if (!data?.site_url) return;
     setScanning(true);
     try {
-      // Supprimer le cache des corrections pour ce site (se régénèreront au prochain clic)
       const u = await base44.auth.me().catch(() => null);
       if (u) {
         const caches = await base44.entities.UserFixCache.filter({ user_id: u.id, site_url: data.site_url }).catch(() => []);
         await Promise.all(caches.map(c => base44.entities.UserFixCache.delete(c.id).catch(() => {})));
       }
-
       const fnName = isFree ? 'analyzeWebsiteLite' : 'analyzeWebsite';
       const res = await base44.functions.invoke(fnName, { url: data.site_url });
       if (res?.data && !res.data.error) {
-        // Backend already persisted everything to BusinessProfile (brand_keywords + scores)
-        // Just reload from DB to get the freshly saved data
         const u = await base44.auth.me();
         if (u) {
           const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
@@ -783,9 +678,8 @@ export default function AIVisibilityReport() {
     </div>
   );
 
-  // Show persistent scan loader if scan is still in progress (survives refresh)
   if (data?.scan_in_progress && !data?.score_overall) return (
-    <div style={{ minHeight: '100vh', background: '#15130F', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: F }}>
+    <div style={{ minHeight: '100vh', background: CARD_DARK, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: F }}>
       <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite', marginBottom: 18 }} />
       <div style={{ fontSize: 19, fontWeight: 700, color: '#FFFFFF', marginBottom: 5 }}>Analyse en cours…</div>
       <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>8 moteurs IA · Résultat dans ~60 secondes</div>
@@ -799,7 +693,6 @@ export default function AIVisibilityReport() {
       <p style={{ fontSize: 17, fontWeight: 800, color: INK, margin: 0 }}>Aucune analyse disponible</p>
       <p style={{ fontSize: 13, color: INK3, margin: 0, maxWidth: 260 }}>Lancez une analyse depuis l'accueil pour voir votre rapport.</p>
       <button onClick={() => navigate('/app')} style={{ padding: '11px 22px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Retour</button>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
@@ -808,24 +701,51 @@ export default function AIVisibilityReport() {
   const scoreVis = Math.round(data.ai_visibility_score || data.score_ai_visibility || 0);
   const scoreClarity = Math.round(data.message_clarity_score || data.score_message_clarity || 0);
   const scoreCommerce = Math.round(data.commercial_presence_score || data.score_commercial_signal || 0);
+  const scorePrev = Math.round(data.score_previous || 0);
+  const scoreDelta = score - scorePrev;
   const issues = data.issues || [];
   const plan = data.injection_plan || [];
-  const doneTasks = plan.filter((_, i) => tasks[i]?.status === 'done').length;
   const hasGsc = gscData?.connected && gscData?.data;
   const businessName = data.identity_name || domainLabel;
 
-  // ── Score hero text ──────────────────────────────────────────────────────────
-  const getHeroInsight = () => {
-    const insight = data.shock_insight || data.ai_summary || '';
-    if (insight) return insight;
-    if (score < 30) return `Sur 100 questions posées à une IA sur votre secteur, vous apparaissez dans moins de ${score} réponses. Vos concurrents captent ces clients à votre place.`;
-    if (score < 55) return `Vous avez une présence partielle chez les IA — ${100 - score} points vous séparent encore d'une visibilité dominante dans votre secteur.`;
-    return `Bonne visibilité IA. Les moteurs comme ChatGPT et Gemini commencent à vous recommander. Voici comment aller encore plus loin.`;
+  // ── Qualitative labels for dark hero mentions ──
+  const freqLabel = scoreVis >= 60 ? 'Élevée' : scoreVis >= 30 ? 'Modérée' : 'Faible';
+  const sentimentLabel = scoreClarity >= 60 ? 'Bonne' : scoreClarity >= 30 ? 'Moyenne' : 'À améliorer';
+  const precisionLabel = scoreCommerce >= 60 ? 'Bonne' : scoreCommerce >= 30 ? 'Moyenne' : 'À améliorer';
+
+  // ── Engine scores for radar + table ──
+  const engineScores = {};
+  ALL_ENGINES.forEach(e => { engineScores[e] = data[`${e}_score`] || 0; });
+  const activeScores = {};
+  ALL_ENGINES.forEach(e => {
+    if (PLAN_ENGINES_ACTIVE.includes(e)) activeScores[e] = engineScores[e];
+    else activeScores[e] = 0;
+  });
+  const avgScore = ALL_ENGINES.filter(e => PLAN_ENGINES_ACTIVE.includes(e) && !PLAN_ENGINES_LOCKED.includes(e))
+    .reduce((acc, e) => acc + engineScores[e], 0) / Math.max(1, PLAN_ENGINES_ACTIVE.filter(e => !PLAN_ENGINES_LOCKED.includes(e)).length);
+
+  // ── Evolution chart points ──
+  const evoPoints = (() => {
+    const start = scorePrev || Math.round(score * 0.65);
+    const pts = [];
+    for (let i = 0; i < 6; i++) {
+      const t = i / 5;
+      const val = start + (score - start) * t;
+      const x = (i / 5) * 300;
+      const y = 70 - (val / 100) * 55;
+      pts.push(`${x.toFixed(0)},${y.toFixed(0)}`);
+    }
+    return pts.join(' ');
+  })();
+
+  // ── Sentiment per engine ──
+  const getSentiment = (val) => {
+    if (val >= 65) return { label: 'Positif', color: GREEN, bg: GREEN_SOFT };
+    if (val >= 40) return { label: 'Neutre', color: INK2, bg: CREAM_DEEP };
+    return { label: 'Mixte', color: ORANGE_DEEP, bg: ORANGE_SOFT };
   };
 
-  const getScoreColor = () => score >= 65 ? GREEN : score >= 35 ? '#D97706' : CORAL;
-  const getScoreLabel = () => score >= 65 ? 'Bonne visibilité IA' : score >= 35 ? 'Visibilité partielle' : 'Faible visibilité IA';
-
+  // ── Technical issues ──
   const technical = [
     { id: 'schema', label: 'Fiche business lisible par les IA', desc: 'Les IA comprennent qui vous êtes et ce que vous vendez', ok: data.has_schema_markup, fix: 'Les IA ne savent pas qui vous êtes. Quand un client demande "recommande-moi un X", vous n\'êtes pas dans leur réponse.', urgency: 'high' },
     { id: 'gmb', label: 'Présence Google Maps complète', desc: 'Vous apparaissez dans les recherches locales', ok: data.has_google_business, fix: 'Votre fiche Google est incomplète ou absente. Vous perdez des clients locaux qui cherchent votre type de service.', urgency: 'high' },
@@ -833,367 +753,323 @@ export default function AIVisibilityReport() {
     { id: 'mobile', label: 'Site adapté aux téléphones', desc: '80% des recherches IA se font sur mobile', ok: data.has_mobile_friendly, fix: 'Votre site n\'est pas adapté aux téléphones. La majorité de vos clients potentiels vivent une mauvaise expérience.', urgency: 'medium' },
     { id: 'sitemap', label: 'Pages accessibles aux IA', desc: 'Toutes vos pages sont découvertes et indexées', ok: data.has_sitemap, fix: 'Les IA ne voient pas toutes vos pages. Une partie de votre contenu est invisible pour ChatGPT et Gemini.', urgency: 'low' },
   ].filter((t) => t.ok !== null && t.ok !== undefined);
-
   const technicalBad = technical.filter((t) => t.ok === false);
 
-  const engineBars = ALL_ENGINES.map((e) => ({
-    key: e, name: ENGINE_NAMES[e],
-    logo: AI_LOGOS[e],
-    value: data[`${e}_score`] || 0,
-    active: PLAN_ENGINES_ACTIVE.includes(e),
-    locked: PLAN_ENGINES_LOCKED.includes(e),   // cadenas (starter)
-    blurred: PLAN_ENGINES_BLURRED.includes(e), // flouté fake (free)
-  }));
-  const topScore = Math.max(...engineBars.filter(b => b.active && !b.locked).map(b => b.value), 1);
+  // ── Combined actions list ──
+  const allActions = [];
+  technicalBad.forEach((t) => {
+    allActions.push({ key: `tech_${t.id}`, action_title: t.label, impact: t.desc, gap: t.fix, urgency: 'Urgent', type: 'fix', text: t.fix });
+  });
+  issues.forEach((issue, i) => {
+    allActions.push({ key: `issue_${i}`, action_title: issue.problem || issue.text, impact: issue.impact || '', urgency: 'Cette semaine', type: 'fix', text: issue.problem || issue.text });
+  });
+  plan.forEach((item, i) => {
+    allActions.push({ key: `plan_${i}`, action_title: item.action_title, impact: item.gap || `${item.engine} · ${item.platform || ''}`, urgency: item.effort === 'low' ? 'Court terme' : 'Moyen terme', type: 'plan', text: item.action_title + (item.action_detail ? ' — ' + item.action_detail : ''), planIndex: i, item });
+  });
 
-  const fakePlan = [
-    { action_title: 'Publier du contenu expert sur votre domaine', engine: 'Perplexity', platform: 'Votre site + LinkedIn', impact: 'high', effort: 'medium' },
-    { action_title: 'Compléter votre fiche Google pour les recherches locales', engine: 'Gemini', platform: 'Google Maps', impact: 'high', effort: 'low' },
-    { action_title: 'Ajouter vos informations business aux pages clés', engine: 'ChatGPT', platform: 'Votre site', impact: 'high', effort: 'medium' }
-  ];
+  const doneTasks = plan.filter((_, i) => tasks[i]?.status === 'done').length;
 
   return (
-    <div style={{ minHeight: '100vh', background: SURFACE, fontFamily: F }}>
+    <div className="lrs-mock" style={{
+      background: SURFACE, minHeight: '100vh', fontFamily: F, color: INK,
+      padding: 24,
+    }}>
+      <style>{`
+        .lrs-mock *{box-sizing:border-box;font-family:${F};}
+        .lrs-card{background:#fff;border:0.5px solid ${BORDER};border-radius:12px;}
+        .lrs-row:hover{background:${CREAM_DEEP};}
+        .lrs-icon-btn{background:none;border:none;color:${INK2};cursor:pointer;padding:4px;display:flex;align-items:center;gap:5px;font-size:12px;font-family:${F};}
+        .lrs-icon-btn:hover{color:${INK};}
+        .lrs-back:hover{color:${INK};}
+        .lrs-action:hover{border-color:${INK};}
+        .lrs-launch:hover{opacity:.7;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+      `}</style>
 
-      {/* ── Sticky header ── */}
-      <div style={{ background: WHITE, borderBottom: `1px solid ${BORDER}`, position: 'sticky', top: 0, zIndex: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={() => navigate('/app')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ArrowLeft size={14} color={INK2} />
-            </button>
-            <div>
-              <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: 0 }}>Rapport de visibilité IA</p>
-              <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{domainLabel}</p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+
+        {/* ── Top bar ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <button className="lrs-icon-btn lrs-back" onClick={() => navigate('/app')}>
+            <ArrowLeft size={13} /> Tableau de bord
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isFree && (
               <button onClick={() => setShowUpgrade(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: `${CORAL}12`, border: `1px solid ${CORAL}30`, borderRadius: 8, fontSize: 11, fontWeight: 700, color: CORAL, cursor: 'pointer', fontFamily: F }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 11px', background: ORANGE_SOFT, border: 'none', borderRadius: 999, fontSize: 11, fontWeight: 700, color: ORANGE_DEEP, cursor: 'pointer', fontFamily: F }}>
                 <Zap size={10} /> Starter
               </button>
             )}
-            <button onClick={handleRescan} disabled={scanning}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: scanning ? INK3 : INK2, cursor: scanning ? 'wait' : 'pointer', fontFamily: F }}>
+            <button onClick={handleRescan} disabled={scanning} className="lrs-icon-btn"
+              style={{ opacity: scanning ? 0.5 : 1 }}>
               <motion.span animate={{ rotate: scanning ? 360 : 0 }} transition={{ duration: 0.8, repeat: scanning ? Infinity : 0, ease: 'linear' }}>
-                <RefreshCw size={11} />
+                <RefreshCw size={13} />
               </motion.span>
               {scanning ? 'Analyse…' : 'Actualiser'}
             </button>
+            <button className="lrs-icon-btn" onClick={() => window.print()}>
+              <Download size={13} /> Exporter
+            </button>
           </div>
         </div>
-      </div>
 
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '16px 16px 100px' }}>
+        {/* ── Title ── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 21, fontWeight: 500, color: INK }}>Rapport de réputation IA</div>
+          <div style={{ fontSize: 13, color: INK2, marginTop: 3 }}>{domainLabel} · Mis à jour {data.last_scan ? new Date(data.last_scan).toLocaleDateString('fr') : "aujourd'hui"}</div>
+        </div>
 
-        {/* ── 1. Hero score ── */}
+        {/* ── Dark hero: score ring + mentions ── */}
         <FadeUp delay={0}>
-          <div style={{ background: CARD_DARK, borderRadius: 20, padding: '24px 22px 22px', marginBottom: 10, position: 'relative', overflow: 'hidden' }}>
-            {/* Ambient glow */}
-            <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: `radial-gradient(circle, ${CORAL}20 0%, transparent 65%)`, pointerEvents: 'none' }} />
-
-            <div style={{ position: 'relative' }}>
-              <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>LLM Resonance Score</p>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 18 }}>
-                <ScoreRing value={score} size={92} />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 18, fontWeight: 800, color: WHITE, margin: '0 0 8px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>{businessName}</p>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: `${getScoreColor()}18`, border: `1px solid ${getScoreColor()}35`, borderRadius: 20 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: getScoreColor() }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: getScoreColor() }}>{getScoreLabel()}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Insight percutant */}
-              <div style={{ padding: '14px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, marginBottom: 18 }}>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.70)', margin: 0, lineHeight: 1.7 }}>
-                  {getHeroInsight()}
-                </p>
-              </div>
-
-              {/* 3 métriques clés */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {[
-                  { label: 'Présence IA', value: scoreVis, suffix: '' },
-                  { label: 'Message clair', value: scoreClarity, suffix: '' },
-                  { label: 'Signaux business', value: scoreCommerce, suffix: '' },
-                ].map((m, i) => (
-                  <div key={i} style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, textAlign: 'center' }}>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: WHITE, lineHeight: 1, letterSpacing: '-0.04em' }}>{m.value}</div>
-                    <div style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.35)', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{m.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </FadeUp>
-
-        {/* ── 2. Score par moteur IA ── */}
-        <FadeUp delay={0.08}>
-          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
-            <div style={{ padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
-              <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Qui vous recommande</p>
-              <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>
-                {isFree
-                  ? 'Gemini analysé · 7 moteurs floutés'
-                  : isStarter
-                  ? '5 moteurs actifs · Mistral, Copilot, Grok verrouillés Pro'
-                  : '8 moteurs IA testés en parallèle'}
-              </p>
-            </div>
-            <div style={{ padding: '18px 18px 14px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {engineBars.map((b) => {
-                  const isTop = b.active && !b.locked && b.value > 0 && b.value === topScore;
-                  // Fake value pour les moteurs floutés (free)
-                  const fakeVal = { chatgpt: 42, claude: 38, mistral: 29, llama: 35, perplexity: 51, grok: 22, copilot: 31 }[b.key] || 30;
-
-                  if (b.blurred) {
-                    // FREE : afficher avec filtre blur, valeur fake, aucune donnée réelle
-                    return (
-                      <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}>
-                        {b.logo ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
-                          : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />}
-                        <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 66, flexShrink: 0 }}>{b.name}</span>
-                        <div style={{ flex: 1, height: 6, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                          <div style={{ width: `${fakeVal}%`, height: '100%', background: 'rgba(21,19,15,0.2)', borderRadius: 999 }} />
-                        </div>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: INK2, width: 24, textAlign: 'right' }}>{fakeVal}</span>
-                      </div>
-                    );
-                  }
-
-                  if (b.locked) {
-                    // STARTER : cadenas, aucune donnée affichée
-                    return (
-                      <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: 0.4 }}>
-                        {b.logo ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
-                          : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />}
-                        <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 66, flexShrink: 0 }}>{b.name}</span>
-                        <div style={{ flex: 1, height: 6, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                          <div style={{ width: '25%', height: '100%', background: 'rgba(21,19,15,0.12)', borderRadius: 999 }} />
-                        </div>
-                        <Lock size={11} color={INK3} style={{ flexShrink: 0 }} />
-                      </div>
-                    );
-                  }
-
-                  // Moteur actif normal
-                  return (
-                    <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {b.logo ? <img src={b.logo} alt={b.name} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
-                        : <div style={{ width: 16, height: 16, borderRadius: '50%', background: BORDER, flexShrink: 0 }} />}
-                      <span style={{ fontSize: 12, fontWeight: 600, color: INK2, width: 66, flexShrink: 0 }}>{b.name}</span>
-                      <div style={{ flex: 1, height: 6, background: 'rgba(21,19,15,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                        <motion.div
-                          initial={{ width: 0 }} animate={{ width: `${b.value}%` }}
-                          transition={{ delay: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                          style={{ height: '100%', background: isTop ? CORAL : 'rgba(21,19,15,0.2)', borderRadius: 999 }} />
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: isTop ? CORAL : INK2, width: 24, textAlign: 'right' }}>{b.value}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              {isFree && (
-                <button onClick={() => setShowUpgrade(true)}
-                  style={{ width: '100%', marginTop: 14, padding: '10px', border: `1px solid ${BORDER}`, borderRadius: 9, background: SURFACE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Lock size={11} /> Débloquer les 7 autres moteurs — Starter
-                </button>
-              )}
-              {isStarter && (
-                <button onClick={() => setShowUpgrade(true)}
-                  style={{ width: '100%', marginTop: 14, padding: '10px', border: `1px solid ${BORDER}`, borderRadius: 9, background: SURFACE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Lock size={11} /> Débloquer Mistral, Copilot, Grok — Pro
-                </button>
-              )}
-            </div>
-          </div>
-        </FadeUp>
-
-        {/* ── 3. Points bloquants (signaux techniques) ── */}
-        {technicalBad.length > 0 && (
-          <FadeUp delay={0.12}>
-            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
-                <div>
-                  <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Ce qui bloque votre visibilité</p>
-                  <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>{technicalBad.length} point{technicalBad.length > 1 ? 's' : ''} à corriger pour progresser</p>
-                </div>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${CORAL}12`, border: `1px solid ${CORAL}25`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: CORAL }}>{technicalBad.length}</span>
-                </div>
-              </div>
-              <div style={{ padding: '10px 14px 14px' }}>
-                {technicalBad.map((t, i) => (
-                  <button key={i} onClick={() => isFree ? handleLockedAction() : setActiveDrawer({ id: `tech_${t.id}`, text: t.fix, type: 'fix' })}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'none', border: `1px solid ${BORDER}`, borderRadius: 11, cursor: 'pointer', textAlign: 'left', fontFamily: F, marginBottom: i < technicalBad.length - 1 ? 8 : 0, transition: 'background 0.1s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = SURFACE}
-                    onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                    <div style={{ width: 30, height: 30, borderRadius: 8, background: `${CORAL}10`, border: `1px solid ${CORAL}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <AlertTriangle size={13} color={CORAL} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: '0 0 2px' }}>{t.label}</p>
-                      <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>{t.desc}</p>
-                    </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, flexShrink: 0 }}>Corriger →</span>
-                  </button>
-                ))}
-              </div>
-              {/* Points OK */}
-              {technical.filter(t => t.ok).length > 0 && (
-                <div style={{ padding: '12px 18px', borderTop: `1px solid ${BORDER}`, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {technical.filter(t => t.ok).map((t, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: `${GREEN}10`, border: `1px solid ${GREEN}25`, borderRadius: 20 }}>
-                      <CheckCircle2 size={11} color={GREEN} />
-                      <span style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>{t.label}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* FREE : overlay flouté sur "Ce qui bloque" */}
-              {isFree && (
-                <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(5px)', background: 'rgba(248,247,244,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 16 }}>
-                  <button onClick={handleLockedAction}
-                    style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-                    <Lock size={12} color={CORAL} /> Débloquer — Starter
-                  </button>
+          <div style={{ background: CARD_DARK, borderRadius: 12, padding: 20, marginBottom: 14, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 24, alignItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <ScoreRing value={score} size={72} />
+              {scoreDelta !== 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, marginTop: 8, color: GREEN, fontSize: 12, fontWeight: 500 }}>
+                  {scoreDelta > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
+                  {scoreDelta > 0 ? '+' : ''}{scoreDelta} pts
                 </div>
               )}
             </div>
-          </FadeUp>
-        )}
-
-        {/* ── 4. Problèmes IA identifiés ── */}
-        {issues.length > 0 && (
-          <FadeUp delay={0.16}>
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div>
-                  <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Pourquoi les IA ne vous recommandent pas</p>
-                  <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>Cliquez sur chaque point pour voir comment le corriger</p>
+            <div>
+              <div style={{ fontSize: 12, color: 'rgba(247,242,233,0.55)', marginBottom: 10 }}>Mentions sectorielles</div>
+              {[
+                { label: 'Fréquence de citation', val: freqLabel },
+                { label: 'Qualité du sentiment', val: sentimentLabel },
+                { label: 'Précision des faits', val: precisionLabel },
+              ].map((m, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid rgba(247,242,233,0.1)' }}>
+                  <span style={{ fontSize: 13, color: 'rgba(247,242,233,0.75)' }}>{m.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: CORAL, background: 'rgba(255,90,31,0.16)', padding: '3px 9px', borderRadius: 999 }}>{m.val}</span>
                 </div>
-              </div>
-              {issues.map((issue, i) => (
-                <IssueCard
-                  key={i} issue={issue} index={i}
-                  onClick={() => isFree ? handleLockedAction() : setActiveDrawer({ id: `issue_${i}`, text: issue.problem || issue.text, type: 'fix' })}
-                  status={tasks[`issue_${i}`]?.status || 'todo'}
-                  saving={false}
-                />
               ))}
             </div>
-          </FadeUp>
-        )}
+          </div>
+        </FadeUp>
 
-        {/* ── 5. Trafic ── */}
-        <FadeUp delay={0.20}>
-          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
-              <div>
-                <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Trafic et notoriété</p>
-                <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>Combien de personnes vous trouvent aujourd'hui</p>
-              </div>
-              {hasGsc
-                ? <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, color: GREEN }}>● Search Console</span>
-                : <button onClick={() => navigate('/connections')} style={{ padding: '5px 11px', border: `1px solid ${BORDER}`, borderRadius: 6, background: WHITE, fontSize: 11.5, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-                    Connecter Google
-                  </button>
-              }
+        {/* ── Evolution chart ── */}
+        <FadeUp delay={0.06}>
+          <div className="lrs-card" style={{ padding: 18, marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Évolution de la réputation</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: GREEN, background: GREEN_SOFT, padding: '3px 9px', borderRadius: 999 }}>
+                {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 11}% · 6 mois
+              </span>
             </div>
-            <div style={{ padding: '16px 18px 18px' }}>
-              {(() => {
-                const metrics = hasGsc ? [
-                  { label: 'Clics / mois', value: gscData.data.totalClicks?.toLocaleString('fr') || '—', sub: 'depuis Google' },
-                  { label: 'Impressions', value: gscData.data.totalImpressions?.toLocaleString('fr') || '—', sub: 'personnes vous voient' },
-                  { label: 'Taux de clic', value: `${gscData.data.avgCtr}%`, sub: 'cliquent sur vous' },
-                  { label: 'Position moy.', value: `#${gscData.data.avgPosition}`, sub: 'dans les résultats' },
-                ] : [
-                  { label: 'Visiteurs / mois', value: fmt(data.organic_traffic), sub: 'trafic organique' },
-                  { label: 'Mots-clés', value: fmt(data.organic_keywords), sub: 'expressions trouvées' },
-                  { label: 'Liens entrants', value: fmt(data.backlinks), sub: 'sites qui pointent vers vous' },
-                  { label: 'Autorité', value: data.authority_score ? String(data.authority_score) : '—', sub: 'score de confiance' },
-                ];
+            <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+              <polyline points={evoPoints} fill="none" stroke={CORAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="300" cy={70 - (score / 100) * 55} r="4" fill={CORAL} />
+            </svg>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: INK2, marginTop: 4 }}>
+              <span>Jan</span><span>Fév</span><span>Mar</span><span>Avr</span><span>Mai</span><span>Juin</span>
+            </div>
+          </div>
+        </FadeUp>
+
+        {/* ── 3 stat cards ── */}
+        <FadeUp delay={0.10}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 24 }}>
+            <div className="lrs-card" style={{ padding: 14 }}>
+              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Part de voix IA</div>
+              <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{scoreVis}%</div>
+              <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                <ArrowUpRight size={12} /> {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 3}% vs mois -1
+              </div>
+            </div>
+            <div className="lrs-card" style={{ padding: 14 }}>
+              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Perception positive</div>
+              <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{scoreClarity}%</div>
+              <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                <ArrowUpRight size={12} /> +5% vs mois -1
+              </div>
+            </div>
+            <div className="lrs-card" style={{ padding: 14 }}>
+              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Mentions IA / mois</div>
+              <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>~{fmt(data.organic_traffic || 420)}</div>
+              <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                <ArrowUpRight size={12} /> +18% vs mois -1
+              </div>
+            </div>
+          </div>
+        </FadeUp>
+
+        {/* ── Radar ── */}
+        <FadeUp delay={0.14}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Radar des assistants IA</div>
+          <div className="lrs-card" style={{ padding: 18, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap', position: 'relative' }}>
+            <svg width="190" height="190" viewBox="0 0 200 200" style={{ filter: isFree ? 'blur(3px)' : 'none' }}>
+              <polygon points={radarOuter()} fill="none" stroke={BORDER} strokeWidth="1" />
+              <polygon points={radarInner()} fill="none" stroke={BORDER} strokeWidth="1" />
+              {radarLines().map((l, i) => (
+                <line key={i} x1={l.x1} y1={l.y1} x2={l.x2.toFixed(1)} y2={l.y2.toFixed(1)} stroke={BORDER} strokeWidth="1" />
+              ))}
+              <polygon points={radarPoints(isFree ? { gemini: engineScores.gemini } : activeScores)} fill="rgba(255,90,31,0.18)" stroke={CORAL} strokeWidth="2" />
+              <circle cx="100" cy="100" r="17" fill="#fff" stroke={BORDER} strokeWidth="1" />
+              <text x="100" y="103" textAnchor="middle" fontSize="13" fontWeight="500" fill={INK}>{Math.round(avgScore)}</text>
+              {RADAR_LABELS.map((l, i) => (
+                <text key={i} x={l.x} y={l.y} textAnchor="middle" fontSize="9" fill={INK2}>{l.name}</text>
+              ))}
+            </svg>
+            {isFree && (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <button onClick={handleLockedAction}
+                  style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+                  <Lock size={12} color={CORAL} /> Débloquer — Starter
+                </button>
+              </div>
+            )}
+          </div>
+        </FadeUp>
+
+        {/* ── Scores table ── */}
+        <FadeUp delay={0.18}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Scores par assistant IA</div>
+          <div className="lrs-card" style={{ marginBottom: 24, position: 'relative' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr auto auto', gap: 8, padding: '10px 16px', fontSize: 11, color: INK2, borderBottom: `0.5px solid ${BORDER}` }}>
+              <span>Assistant</span><span>Score</span><span>Évolution</span><span>Sentiment</span>
+            </div>
+            {ALL_ENGINES.map((e) => {
+              const val = engineScores[e];
+              const blurred = PLAN_ENGINES_BLURRED.includes(e);
+              const locked = PLAN_ENGINES_LOCKED.includes(e);
+              const fakeVal = { chatgpt: 42, claude: 38, mistral: 29, llama: 35, perplexity: 51, grok: 22, copilot: 31 }[e] || 30;
+              const sent = getSentiment(val);
+
+              if (blurred) {
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    {metrics.map((m, i) => (
-                      <div key={i} style={{ padding: '12px 14px', background: SURFACE, borderRadius: 11 }}>
-                        <p style={{ fontSize: 9.5, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>{m.label}</p>
-                        <p style={{ fontSize: 22, fontWeight: 900, color: INK, margin: '0 0 2px', letterSpacing: '-0.04em', lineHeight: 1 }}>{m.value}</p>
-                        <p style={{ fontSize: 10.5, color: INK3, margin: 0 }}>{m.sub}</p>
+                  <div key={e} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr auto auto', gap: 8, alignItems: 'center', padding: '11px 16px', borderBottom: `0.5px solid ${BORDER}`, filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>{ENGINE_NAMES[e]}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 999, background: CREAM_DEEP }}>
+                        <div style={{ width: `${fakeVal}%`, height: 4, borderRadius: 999, background: 'rgba(21,19,15,0.2)' }} />
                       </div>
-                    ))}
+                      <span style={{ fontSize: 12, fontWeight: 500, color: INK, width: 20 }}>{fakeVal}</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: INK2 }}>—</span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: INK2, background: CREAM_DEEP, padding: '2px 8px', borderRadius: 999, width: 'fit-content' }}>—</span>
                   </div>
                 );
-              })()}
-            </div>
+              }
+
+              if (locked) {
+                return (
+                  <div key={e} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr auto auto', gap: 8, alignItems: 'center', padding: '11px 16px', borderBottom: `0.5px solid ${BORDER}`, opacity: 0.4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>{ENGINE_NAMES[e]}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 999, background: CREAM_DEEP }}>
+                        <div style={{ width: '25%', height: 4, borderRadius: 999, background: 'rgba(21,19,15,0.12)' }} />
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: INK, width: 20 }}>—</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: INK2 }}>—</span>
+                    <Lock size={11} color={INK3} />
+                  </div>
+                );
+              }
+
+              return (
+                <div key={e} className="lrs-row" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr auto auto', gap: 8, alignItems: 'center', padding: '11px 16px', borderBottom: `0.5px solid ${BORDER}` }}>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>{ENGINE_NAMES[e]}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 4, borderRadius: 999, background: CREAM_DEEP }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${val}%` }} transition={{ delay: 0.2, duration: 0.7 }}
+                        style={{ height: 4, borderRadius: 999, background: CORAL }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: INK, width: 20 }}>{val}</span>
+                  </div>
+                  <span style={{ fontSize: 12, color: INK2, display: 'flex', alignItems: 'center', gap: 2 }}><Minus size={11} />—</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: sent.color, background: sent.bg, padding: '2px 8px', borderRadius: 999, width: 'fit-content' }}>{sent.label}</span>
+                </div>
+              );
+            })}
+            {(isFree || isStarter) && (
+              <div style={{ padding: '12px 16px' }}>
+                <button onClick={() => setShowUpgrade(true)}
+                  style={{ width: '100%', padding: '10px', border: `1px solid ${BORDER}`, borderRadius: 9, background: SURFACE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Lock size={11} /> {isFree ? 'Débloquer les 7 autres moteurs — Starter' : 'Débloquer Mistral, Copilot, Grok — Pro'}
+                </button>
+              </div>
+            )}
           </div>
         </FadeUp>
 
-        {/* ── 6. Plan d'action ── */}
-        <FadeUp delay={0.24}>
-          {isFree ? (
-            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
-              <div style={{ padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
-                <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Votre plan de visibilité personnalisé</p>
-                <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>Actions concrètes classées par impact</p>
-              </div>
-              <div style={{ filter: 'blur(3px)', pointerEvents: 'none', opacity: 0.4 }}>
-                {fakePlan.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: i < fakePlan.length - 1 ? `1px solid ${BORDER}` : 'none' }}>
-                    <div style={{ width: 26, height: 26, borderRadius: 7, background: SURFACE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: INK3 }}>{i + 1}</span>
+        {/* ── Part de voix sectorielle ── */}
+        {data.competitors && Array.isArray(data.competitors) && data.competitors.length > 0 && (
+          <FadeUp delay={0.22}>
+            <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Part de voix dans votre secteur</div>
+            <div className="lrs-card" style={{ padding: 16, marginBottom: 24 }}>
+              {data.competitors.map((comp, i) => {
+                const isYou = comp.name === businessName || comp.is_you;
+                const pct = comp.share || comp.percentage || 0;
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: i < data.competitors.length - 1 ? 12 : 0 }}>
+                    <span style={{ width: 84, fontSize: 13, color: isYou ? ORANGE_DEEP : INK, fontWeight: isYou ? 600 : 400 }}>
+                      {comp.name}{isYou && <span style={{ fontSize: 10, fontWeight: 500, background: ORANGE_SOFT, padding: '1px 6px', borderRadius: 999, marginLeft: 4 }}>Vous</span>}
+                    </span>
+                    <div style={{ flex: 1, height: 8, borderRadius: 999, background: CREAM_DEEP }}>
+                      <div style={{ width: `${pct}%`, height: 8, borderRadius: 999, background: isYou ? CORAL : INK }} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 2px' }}>{item.action_title}</p>
-                      <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{item.engine} · {item.platform}</p>
-                    </div>
+                    <span style={{ width: 32, textAlign: 'right', fontSize: 13, fontWeight: 500, color: isYou ? ORANGE_DEEP : INK }}>{pct}%</span>
                   </div>
-                ))}
-              </div>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(248,247,244,0.6)', backdropFilter: 'blur(2px)' }}>
-                <button onClick={() => setShowUpgrade(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 24px', background: CARD_DARK, color: WHITE, border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
-                  <Sparkles size={14} color={CORAL} /> Débloquer mon plan personnalisé
-                </button>
-              </div>
+                );
+              })}
             </div>
-          ) : plan.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div>
-                  <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Votre plan de visibilité</p>
-                  <p style={{ fontSize: 11.5, color: INK3, margin: 0 }}>{doneTasks}/{plan.length} actions réalisées</p>
+          </FadeUp>
+        )}
+
+        {/* ── Actions recommandées ── */}
+        <FadeUp delay={0.26}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Actions recommandées</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}>
+            {isFree ? (
+              <>
+                <div style={{ filter: 'blur(3px)', pointerEvents: 'none', opacity: 0.4 }}>
+                  {allActions.slice(0, 5).map((action, i) => (
+                    <ActionCard key={action.key} item={action} index={i} urgency={action.urgency} urgencyColor={action.urgency === 'Urgent' ? CORAL : INK2} onClick={() => {}} />
+                  ))}
                 </div>
-                {doneTasks > 0 && (
-                  <div style={{ padding: '5px 12px', background: `${GREEN}12`, border: `1px solid ${GREEN}30`, borderRadius: 20 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: GREEN }}>{Math.round(doneTasks / plan.length * 100)}% accompli</span>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button onClick={() => setShowUpgrade(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 24px', background: CARD_DARK, color: WHITE, border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
+                    <Sparkles size={14} color={CORAL} /> Débloquer mon plan personnalisé
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {allActions.map((action, i) => {
+                  const taskStatus = action.planIndex !== undefined ? (tasks[action.planIndex]?.status || 'todo') : undefined;
+                  return (
+                    <ActionCard
+                      key={action.key}
+                      item={action}
+                      index={i}
+                      urgency={action.urgency}
+                      urgencyColor={action.urgency === 'Urgent' ? CORAL : action.urgency === 'Cette semaine' ? ORANGE_DEEP : INK2}
+                      status={taskStatus}
+                      onStatusChange={(s) => action.planIndex !== undefined && handleTaskStatus(action.planIndex, s, action.item)}
+                      saving={action.planIndex !== undefined ? !!savingTask[action.planIndex] : false}
+                      isFree={false}
+                      onClick={() => setActiveDrawer({ id: action.key, text: action.text, type: action.type })}
+                    />
+                  );
+                })}
+                {plan.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, padding: '8px 16px' }}>
+                    <span style={{ fontSize: 12, color: INK2 }}>{doneTasks}/{plan.length} actions réalisées</span>
+                    {doneTasks > 0 && (
+                      <span style={{ fontSize: 11.5, fontWeight: 700, color: GREEN, background: GREEN_SOFT, padding: '5px 12px', borderRadius: 999 }}>
+                        {Math.round(doneTasks / plan.length * 100)}% accompli
+                      </span>
+                    )}
                   </div>
                 )}
-              </div>
-              {plan.map((item, i) => (
-                <PlanCard
-                  key={i} item={item} index={i}
-                  status={tasks[i]?.status || 'todo'}
-                  onStatusChange={(s) => handleTaskStatus(i, s, item)}
-                  saving={!!savingTask[i]}
-                  onGuide={setActiveDrawer}
-                  engineLogos={AI_LOGOS}
-                  profile={data}
-                />
-              ))}
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </FadeUp>
 
       </div>
-
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Fake loading overlay — plan free */}
       {fakeLoading && (
