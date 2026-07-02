@@ -244,46 +244,44 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
         style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)' }} />
       <motion.div key="dr" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
         transition={{ type: 'spring', stiffness: 340, damping: 36 }}
-        style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 101, width: '100%', maxWidth: 420, background: '#FFFFFF', boxShadow: '-8px 0 40px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', fontFamily: F }}>
+        style={{ position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 101, width: '100%', maxWidth: 420, background: WHITE, boxShadow: '-8px 0 40px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', fontFamily: F }}>
 
         {/* ── Header ── */}
-        <div style={{ padding: '20px 18px 14px', borderBottom: '1px solid #EBEBEB', background: '#FFFFFF', flexShrink: 0 }}>
+        <div style={{ padding: '18px', borderBottom: `0.5px solid ${BORDER}`, background: WHITE, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: CORAL, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: CORAL, textTransform: 'uppercase', letterSpacing: '0.10em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: CORAL, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                   {issue.type === 'plan' ? 'Plan d\'action' : 'Correction'}
                 </span>
               </div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, color: '#1A1A1A', margin: 0, lineHeight: 1.35, letterSpacing: '-0.025em', overflowWrap: 'anywhere' }}>{issue.text}</h2>
+              <p style={{ fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.4, margin: 0, overflowWrap: 'anywhere' }}>{issue.text}</p>
             </div>
-            <button onClick={onClose}
-              style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #E0E0E0', background: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-              <X size={13} color="#888" />
+            <button onClick={onClose} className="lrsm-close"
+              style={{ width: 26, height: 26, borderRadius: '50%', border: `0.5px solid ${BORDER}`, background: 'none', color: INK2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+              <X size={13} />
             </button>
           </div>
 
-          {timeEstimate && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: '#FFFFFF', border: '1px solid #D8D8D8', borderRadius: 999 }}>
-                <Clock size={12} color="#888" />
-                <span style={{ fontSize: 12, color: '#555', fontWeight: 500 }}>{timeEstimate}</span>
-              </div>
+          {(timeEstimate || fixType) && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {timeEstimate && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: INK2, border: `0.5px solid ${BORDER}`, borderRadius: 999, padding: '5px 11px' }}>
+                  <Clock size={12} /> {timeEstimate}
+                </span>
+              )}
               {fixType && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', background: '#F5F0E6', border: '1px solid #E8DFD0', borderRadius: 999 }}>
-                  <span style={{ fontSize: 12, color: '#2D7A3A', fontWeight: 400 }}>✓</span>
-                  <span style={{ fontSize: 12, color: '#2D7A3A', fontWeight: 600 }}>
-                    {fixType === 'seul' ? 'Faisable seul' : 'Avec aide'}
-                  </span>
-                </div>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 500, color: ORANGE_DEEP, background: ORANGE_SOFT, borderRadius: 999, padding: '5px 11px' }}>
+                  <Check size={12} /> {fixType === 'seul' ? 'Faisable seul' : 'Avec aide'}
+                </span>
               )}
             </div>
           )}
         </div>
 
         {/* ── Body ── */}
-        <div style={{ flex: 1, overflowY: 'auto', background: '#FFFFFF' }}>
+        <div style={{ flex: 1, overflowY: 'auto', background: WHITE }}>
           {isFree ? (
             <div style={{ textAlign: 'center', padding: '48px 24px' }}>
               <div style={{ width: 56, height: 56, borderRadius: 16, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -299,77 +297,65 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
               </button>
             </div>
           ) : loading ? (
-            <div style={{ padding: '20px 18px' }}>
-              <div style={{ padding: '18px 20px', background: '#F5F0E8', borderRadius: 16, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
-                  <svg width="40" height="40" viewBox="0 0 40 40" style={{ animation: 'spin 0.9s linear infinite', display: 'block' }}>
-                    <circle cx="20" cy="20" r="16" fill="none" stroke="#E2D9CF" strokeWidth="3.5" />
-                    <circle cx="20" cy="20" r="16" fill="none" stroke={CORAL} strokeWidth="3.5" strokeLinecap="round" strokeDasharray="40 60" />
-                  </svg>
-                </div>
+            <div style={{ padding: '18px' }}>
+              <div style={{ background: CREAM_DEEP, borderRadius: 10, padding: 13, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <svg width="30" height="30" viewBox="0 0 64 64" style={{ flexShrink: 0, animation: 'lrsmSpin .9s linear infinite', transformOrigin: '32px 32px' }}>
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(21,19,15,0.12)" strokeWidth="7" />
+                  <circle cx="32" cy="32" r="26" fill="none" stroke={CORAL} strokeWidth="7" strokeLinecap="round" strokeDasharray="40 123" />
+                </svg>
                 <div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A', margin: '0 0 4px', lineHeight: 1.3, letterSpacing: '-0.01em' }}>L'IA prépare votre guide personnalisé…</p>
-                  <p style={{ fontSize: 13, color: '#A8A49F', margin: 0, fontWeight: 400 }}>Adapté à votre secteur et votre site</p>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: INK }}>L'IA prépare votre guide personnalisé…</div>
+                  <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>Adapté à votre secteur et votre site</div>
                 </div>
               </div>
-              {[88, 68, 78, 52].map((w, i) => (
-                <div key={i} style={{ height: 11, borderRadius: 6, background: 'rgba(0,0,0,0.08)', width: `${w}%`, marginBottom: 13 }} />
-              ))}
+              <div className="lrsm-skel" style={{ height: 8, borderRadius: 4, background: CREAM_DEEP, width: '94%', marginBottom: 8 }} />
+              <div className="lrsm-skel" style={{ height: 8, borderRadius: 4, background: CREAM_DEEP, width: '78%', marginBottom: 8, animationDelay: '.15s' }} />
+              <div className="lrsm-skel" style={{ height: 8, borderRadius: 4, background: CREAM_DEEP, width: '68%', marginBottom: 8, animationDelay: '.3s' }} />
+              <div className="lrsm-skel" style={{ height: 8, borderRadius: 4, background: CREAM_DEEP, width: '50%', animationDelay: '.45s' }} />
             </div>
           ) : content ? (
-            <div>
-              <div style={{ height: 1, background: '#EBEBEB' }} />
+            <div style={{ padding: '18px' }}>
+              <div style={{ height: '0.5px', background: BORDER, margin: '-18px -18px 14px' }} />
 
+              {/* ── Pourquoi c'est important ── */}
               {summary && (
-                <div style={{ margin: '16px 18px', padding: '16px 18px', background: '#FEF3EC', borderRadius: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-                    <span style={{ fontSize: 15 }}>💡</span>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: '#C45000', textTransform: 'uppercase', letterSpacing: '0.09em' }}>Pourquoi c'est important</span>
+                <div style={{ background: ORANGE_SOFT, borderRadius: 10, padding: 13, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    <Sparkles size={13} color={ORANGE_DEEP} />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: ORANGE_DEEP, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Pourquoi c'est important</span>
                   </div>
-                  <p style={{ fontSize: 14, color: '#7C3A10', margin: 0, lineHeight: 1.7, fontWeight: 400 }}>{summary}</p>
+                  <p style={{ fontSize: 12.5, lineHeight: 1.6, color: INK, margin: 0 }}>{summary}</p>
                 </div>
               )}
 
+              {/* ── Prompt à copier ── */}
               {prompt && (
-                <div style={{ margin: '0 18px 16px' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ marginBottom: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     ➡️ Copie ceci dans ChatGPT ou Claude:
                   </p>
-                  <div style={{
-                    background: '#F8F7F4', border: '1px solid #E8E6E1',
-                    borderRadius: 12, padding: '14px 16px',
-                    fontSize: 12.5, color: '#1A1A1A', lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap', fontFamily: 'monospace',
-                    maxHeight: 240, overflowY: 'auto',
-                  }}>
+                  <div style={{ background: SURFACE, border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: 13, fontSize: 12.5, color: INK, lineHeight: 1.6, whiteSpace: 'pre-wrap', fontFamily: 'monospace', maxHeight: 240, overflowY: 'auto' }}>
                     {prompt}
                   </div>
-                  <button
-                    onClick={handleCopy}
-                    style={{
-                      marginTop: 10, width: '100%', padding: '12px',
-                      background: copied ? '#059669' : '#7C3AED',
-                      color: '#fff', border: 'none', borderRadius: 10,
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      transition: 'background 0.2s',
-                    }}
-                  >
+                  <button onClick={handleCopy}
+                    style={{ marginTop: 10, width: '100%', padding: 12, background: copied ? GREEN : '#7C3AED', color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.2s' }}>
                     {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le prompt</>}
                   </button>
                 </div>
               )}
 
+              {/* ── Explication (developer) ── */}
               {explanation && !prompt && (
-                <div style={{ margin: '0 18px 16px', padding: '14px 16px', background: '#F3E8FF', borderRadius: 12 }}>
+                <div style={{ marginBottom: 16, padding: 13, background: '#F3E8FF', borderRadius: 10 }}>
                   <p style={{ fontSize: 13, color: '#4B2A8C', margin: 0, lineHeight: 1.65 }}>{explanation}</p>
                 </div>
               )}
 
+              {/* ── Étapes ── */}
               {steps.length > 0 && (
-                <div style={{ padding: '4px 18px 20px' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#B0AAA4', textTransform: 'uppercase', letterSpacing: '0.13em', margin: '0 0 14px' }}>Ce que vous faites maintenant</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: INK2, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>Ce que vous faites maintenant</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {steps.map((step, i) => {
                       const stepText = typeof step === 'string' ? step : step.description || step.text || '';
                       const arrowIdx = stepText.indexOf('→');
@@ -377,25 +363,17 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                       const result = arrowIdx >= 0 ? stepText.slice(arrowIdx + 1).trim() : (step.result || step.expected_result || null);
 
                       return (
-                        <div key={i} style={{
-                          display: 'flex', gap: 14,
-                          padding: '16px 16px',
-                          background: '#FFFFFF',
-                          border: '1px solid #EAEAEA',
-                          borderRadius: 16,
-                        }}>
-                          <div style={{
-                            width: 28, height: 28, borderRadius: '50%',
-                            background: i === 0 ? CORAL : '#1A1A1A',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0, marginTop: 2,
-                          }}>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1 }}>{i + 1}</span>
+                        <div key={i} className="lrsm-step" style={{ border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: 12, display: 'flex', gap: 10, transition: 'border-color .15s ease' }}>
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: i === 0 ? CORAL : CARD_DARK, color: i === 0 ? '#fff' : SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                            {i + 1}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 14.5, color: '#1A1A1A', margin: result ? '0 0 8px' : 0, lineHeight: 1.55, fontWeight: 500, overflowWrap: 'anywhere' }}>{action}</p>
+                            <div style={{ fontSize: 12.5, color: INK, lineHeight: 1.5, overflowWrap: 'anywhere' }}>{action}</div>
                             {result && (
-                              <p style={{ fontSize: 13, color: CORAL, margin: 0, fontWeight: 500, lineHeight: 1.5, overflowWrap: 'anywhere' }}>→ {result}</p>
+                              <div style={{ fontSize: 11.5, color: GREEN, marginTop: 5, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                                <ArrowRight size={12} style={{ marginTop: 1, flexShrink: 0 }} />
+                                <span>Résultat attendu : {result}</span>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -405,22 +383,13 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                 </div>
               )}
 
+              {/* ── Vérification IA ── */}
               {!isFree && (
-                <div style={{ padding: '0 18px 20px' }}>
-                  <button
-                    onClick={handleVerify}
-                    disabled={verifying}
-                    style={{
-                      width: '100%', padding: '13px',
-                      background: verifying ? SURFACE : verifyResult?.verified ? GREEN : CARD_DARK,
-                      color: WHITE, border: 'none', borderRadius: 12,
-                      fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      fontFamily: F, transition: 'background 0.2s',
-                    }}
-                  >
+                <div style={{ marginTop: 16 }}>
+                  <button onClick={handleVerify} disabled={verifying}
+                    style={{ width: '100%', padding: 13, background: verifying ? SURFACE : verifyResult?.verified ? GREEN : CARD_DARK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: F, transition: 'background 0.2s' }}>
                     {verifying ? (
-                      <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyse de votre site…</>
+                      <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, borderRadius: '50%', animation: 'lrsmSpin 0.7s linear infinite' }} /> Analyse de votre site…</>
                     ) : verifyResult?.verified ? (
                       <><CheckCircle2 size={14} /> Tâche validée par l'IA ✓</>
                     ) : (
@@ -428,29 +397,22 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
                     )}
                   </button>
                   {verifyResult && (
-                    <div style={{
-                      marginTop: 10, padding: '14px 16px',
-                      background: verifyResult.verified ? '#F0FDF4' : '#FFFBEB',
-                      border: `1px solid ${verifyResult.verified ? '#BBF7D0' : '#FEF3C7'}`,
-                      borderRadius: 12,
-                    }}>
+                    <div style={{ marginTop: 10, padding: 13, background: verifyResult.verified ? GREEN_SOFT : '#FFFBEB', border: `0.5px solid ${verifyResult.verified ? `${GREEN}40` : '#FEF3C7'}`, borderRadius: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                        {verifyResult.verified
-                          ? <CheckCircle2 size={14} color={GREEN} />
-                          : <AlertTriangle size={14} color="#D97706" />}
-                        <span style={{ fontSize: 11, fontWeight: 800, color: verifyResult.verified ? GREEN : '#D97706', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        {verifyResult.verified ? <CheckCircle2 size={14} color={GREEN} /> : <AlertTriangle size={14} color="#D97706" />}
+                        <span style={{ fontSize: 11, fontWeight: 600, color: verifyResult.verified ? GREEN : '#D97706', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                           {verifyResult.verified ? 'Correction validée' : 'Pas encore validé'}
                         </span>
                         {verifyResult.confidence > 0 && (
-                          <span style={{ fontSize: 11, color: INK3, marginLeft: 'auto' }}>{verifyResult.confidence}% confiance</span>
+                          <span style={{ fontSize: 11, color: INK2, marginLeft: 'auto' }}>{verifyResult.confidence}% confiance</span>
                         )}
                       </div>
-                      <p style={{ fontSize: 13, color: verifyResult.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{verifyResult.feedback}</p>
+                      <p style={{ fontSize: 12.5, color: verifyResult.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{verifyResult.feedback}</p>
                       {verifyResult.what_was_found && (
-                        <p style={{ fontSize: 12, color: INK3, margin: '0 0 6px', lineHeight: 1.5 }}><strong>Trouvé:</strong> {verifyResult.what_was_found}</p>
+                        <p style={{ fontSize: 12, color: INK2, margin: '0 0 6px', lineHeight: 1.5 }}><strong>Trouvé:</strong> {verifyResult.what_was_found}</p>
                       )}
                       {verifyResult.what_is_missing && !verifyResult.verified && (
-                        <p style={{ fontSize: 12, color: INK3, margin: 0, lineHeight: 1.5 }}><strong>Manquant:</strong> {verifyResult.what_is_missing}</p>
+                        <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.5 }}><strong>Manquant:</strong> {verifyResult.what_is_missing}</p>
                       )}
                     </div>
                   )}
@@ -459,7 +421,7 @@ function FixDrawer({ issue, profile, user, isFree, onClose, onUpgrade, onVerifie
             </div>
           ) : (
             <div style={{ padding: '40px 18px', textAlign: 'center' }}>
-              <p style={{ fontSize: 13, color: '#A8A49F' }}>Une erreur est survenue. Réessayez dans quelques secondes.</p>
+              <p style={{ fontSize: 13, color: INK2 }}>Une erreur est survenue. Réessayez dans quelques secondes.</p>
             </div>
           )}
         </div>
@@ -784,6 +746,11 @@ export default function AIVisibilityReport() {
         .lrs-action:hover{border-color:${INK};}
         .lrs-launch:hover{opacity:.7;}
         @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes lrsmSpin{to{transform:rotate(360deg);}}
+        @keyframes lrsmPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+        .lrsm-skel{animation:lrsmPulse 1.4s ease-in-out infinite;}
+        .lrsm-close:hover{background:${CREAM_DEEP};}
+        .lrsm-step:hover{border-color:${INK};}
       `}</style>
 
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
