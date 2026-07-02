@@ -6,7 +6,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { Check, ArrowRight, X } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
 
-const WIX = "'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const WIX = "'Inter', 'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const SERIF = "'Fraunces', 'Helvetica Neue', serif";
 
 // ── Contact Modal ──
 const ContactModal = ({ onClose }) => {
@@ -18,36 +19,40 @@ const ContactModal = ({ onClose }) => {
     try { await base44.entities.ContactLead.create({ ...form, status: 'new' }); } catch {}
     setSubmitted(true);
   };
-  const inp = { width: '100%', background: '#fff', border: '1px solid rgba(21,19,15,0.14)', borderRadius: 8, padding: '9px 12px', fontSize: 13, color: '#15130F', outline: 'none', boxSizing: 'border-box', fontFamily: WIX };
+  const inp = { width: '100%', background: '#fff', border: '1px solid rgba(21,19,15,0.14)', borderRadius: 10, padding: '10px 13px', fontSize: 13, color: '#15130F', outline: 'none', boxSizing: 'border-box', fontFamily: WIX };
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, backdropFilter: 'blur(8px)' }}
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(21,19,15,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, backdropFilter: 'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 18, padding: 30, width: '100%', maxWidth: 400, position: 'relative', fontFamily: WIX }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 7, border: '1px solid rgba(21,19,15,0.10)', background: '#fff', cursor: 'pointer' }}><X size={12} color="#888" /></button>
+      <div style={{ background: '#FBF8F2', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 20, padding: 30, width: '100%', maxWidth: 400, position: 'relative', fontFamily: WIX, boxShadow: '0 24px 60px rgba(21,19,15,0.18)' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 9, border: '1px solid rgba(21,19,15,0.12)', background: '#fff', cursor: 'pointer' }}><X size={12} color="#4A453B" /></button>
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-              <Check size={22} color="#10B981" />
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#EBF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+              <Check size={22} color="#1E7A4C" />
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#15130F', marginBottom: 8 }}>Message reçu</h3>
-            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6 }}>Notre équipe vous répondra sous 24h.</p>
-            <button onClick={onClose} style={{ marginTop: 18, padding: '9px 24px', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: WIX }}>Fermer</button>
+            <p style={{ fontSize: 13, color: '#4A453B', lineHeight: 1.6 }}>Notre équipe vous répondra sous 24h.</p>
+            <button onClick={onClose} style={{ marginTop: 18, padding: '10px 24px', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: WIX }}>Fermer</button>
           </div>
         ) : (
           <>
-            <h2 style={{ fontSize: 17, fontWeight: 800, color: '#15130F', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Nous contacter</h2>
-            <p style={{ fontSize: 13, color: '#888', margin: '0 0 18px' }}>Réponse garantie sous 24h.</p>
+            <h2 style={{ fontFamily: SERIF, fontWeight: 500, fontSize: 20, color: '#15130F', margin: '0 0 4px', letterSpacing: '-0.01em' }}>Nous contacter</h2>
+            <p style={{ fontSize: 13, color: '#4A453B', margin: '0 0 18px' }}>Réponse garantie sous 24h.</p>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
                 {[['first_name', 'Prénom'], ['last_name', 'Nom']].map(([k, l]) => (
-                  <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required value={form[k]} onChange={set(k)} style={inp} /></div>
+                  <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required value={form[k]} onChange={set(k)} style={inp} /></div>
                 ))}
               </div>
               {[['email', 'Email', 'email'], ['website', 'Site web', 'text'], ['role', 'Votre rôle', 'text']].map(([k, l, t]) => (
-                <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required type={t} value={form[k]} onChange={set(k)} style={inp} /></div>
+                <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required type={t} value={form[k]} onChange={set(k)} style={inp} /></div>
               ))}
-              <div><label style={{ display: 'block', fontSize: 11, color: '#888', marginBottom: 3, fontWeight: 600 }}>Message</label><textarea required value={form.message} onChange={set('message')} rows={3} style={{ ...inp, resize: 'none' }} /></div>
-              <button type="submit" style={{ padding: '10px 0', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 2, fontFamily: WIX }}>Envoyer</button>
+              <div><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>Message</label><textarea required value={form.message} onChange={set('message')} rows={3} style={{ ...inp, resize: 'none' }} /></div>
+              <button type="submit" style={{ padding: '11px 0', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, fontFamily: WIX }}
+                onMouseEnter={e => e.currentTarget.style.background = '#C43E14'}
+                onMouseLeave={e => e.currentTarget.style.background = '#15130F'}>
+                Envoyer
+              </button>
             </form>
           </>
         )}
@@ -110,7 +115,7 @@ export default function PricingPage() {
 
   if (loading) return (
     <div style={{ minHeight: '100%', background: '#FBF8F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
-      <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2.5px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -118,33 +123,68 @@ export default function PricingPage() {
   return (
     <div style={{ minHeight: '100%', background: '#FBF8F2', fontFamily: WIX, color: '#15130F' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+
         .uw-app-pricing * { box-sizing: border-box; }
         .uw-app-pricing .wrap { max-width: 1160px; margin: 0 auto; padding: 0 40px; }
-        .uw-app-pricing section { padding: 60px 0; }
+        .uw-app-pricing section { padding: 56px 0; }
         .uw-app-pricing h1, .uw-app-pricing h2 { font-weight: 800; letter-spacing: -0.03em; }
+        .uw-app-pricing .serif { font-family: ${SERIF}; font-weight: 500; letter-spacing: -0.01em; }
         .uw-app-pricing .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #C43E14; }
         .uw-app-pricing .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #FF5A1F; }
-        .uw-app-pricing .p-hero { text-align: center; padding: 40px 0 8px; }
+
+        /* HERO */
+        .uw-app-pricing .p-hero { position: relative; text-align: center; padding: 56px 0 8px; overflow: hidden; }
+        .uw-app-pricing .p-hero::before {
+          content: ''; position: absolute; inset: -40px 0 0; z-index: 0;
+          background:
+            radial-gradient(55% 140% at 15% 0%, #FFE0C7 0%, transparent 60%),
+            radial-gradient(55% 140% at 88% 0%, #FFD2AE 0%, transparent 60%);
+          pointer-events: none;
+        }
+        .uw-app-pricing .p-hero > * { position: relative; z-index: 1; }
         .uw-app-pricing .p-hero h1 { font-size: 38px; margin-bottom: 12px; }
         .uw-app-pricing .p-hero p { font-size: 14.5px; color: rgba(21,19,15,0.55); }
-        .uw-app-pricing .toggle { display: inline-flex; margin: 28px auto 0; padding: 4px; background: #F3EEE3; border-radius: 100px; }
-        .uw-app-pricing .toggle button { padding: 8px 18px; font-size: 13px; font-weight: 600; border-radius: 100px; cursor: pointer; color: rgba(21,19,15,0.55); display: flex; align-items: center; gap: 7px; border: none; background: none; font-family: inherit; }
+
+        /* TOGGLE */
+        .uw-app-pricing .toggle { display: inline-flex; margin: 28px auto 0; padding: 4px; background: #F3EEE3; border-radius: 100px; border: 1px solid rgba(21,19,15,0.08); }
+        .uw-app-pricing .toggle button { padding: 9px 20px; font-size: 13px; font-weight: 600; border-radius: 100px; cursor: pointer; color: rgba(21,19,15,0.55); display: flex; align-items: center; gap: 7px; border: none; background: none; font-family: inherit; transition: background .15s ease, color .15s ease; }
         .uw-app-pricing .toggle button.on { background: #15130F; color: #FBF8F2; }
         .uw-app-pricing .toggle .save { font-size: 10.5px; font-weight: 700; color: #C43E14; background: #FFE7D6; padding: 2px 7px; border-radius: 100px; }
         .uw-app-pricing .toggle-wrap { text-align: center; }
+
+        /* PRICING GRID */
         .uw-app-pricing .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; align-items: start; }
+
+        /* ENTERPRISE STRIP */
+        .uw-app-pricing .ent-strip {
+          padding: 26px 30px; background: #fff; border: 1px solid rgba(21,19,15,0.10);
+          border-radius: 18px; display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 16px;
+        }
+        .uw-app-pricing .ent-btn {
+          padding: 10px 22px; border: 1px solid rgba(21,19,15,0.14); border-radius: 100px;
+          background: #fff; color: #15130F; font-size: 13px; font-weight: 600; cursor: pointer;
+          font-family: inherit; display: flex; align-items: center; gap: 7px;
+          transition: border-color .15s ease, background .15s ease;
+        }
+        .uw-app-pricing .ent-btn:hover { border-color: #15130F; background: #F3EEE3; }
+
+        /* FAQ */
         .uw-app-pricing .faq-wrap { max-width: 680px; margin: 0 auto; }
-        .uw-app-pricing .faq-wrap h2 { text-align: center; font-size: 26px; margin-bottom: 32px; }
-        .uw-app-pricing details { border-bottom: 1px solid rgba(21,19,15,0.10); padding: 18px 4px; }
-        .uw-app-pricing details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
+        .uw-app-pricing .faq-wrap h2 { text-align: center; font-size: 27px; margin-bottom: 34px; }
+        .uw-app-pricing details { border-bottom: 1px solid rgba(21,19,15,0.10); padding: 19px 4px; }
+        .uw-app-pricing details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; font-weight: 600; }
         .uw-app-pricing details summary::-webkit-details-marker { display: none; }
-        .uw-app-pricing details summary::after { content: '+'; font-size: 20px; font-weight: 400; color: rgba(21,19,15,0.55); }
+        .uw-app-pricing details summary::after { content: '+'; font-size: 20px; font-weight: 400; color: rgba(21,19,15,0.5); }
         .uw-app-pricing details[open] summary::after { content: '–'; }
         .uw-app-pricing details p { font-size: 13.5px; color: rgba(21,19,15,0.55); line-height: 1.6; margin-top: 12px; }
+
         @media (max-width: 900px) {
           .uw-app-pricing .wrap { padding: 0 20px; }
           .uw-app-pricing .pricing-grid { grid-template-columns: 1fr; }
           .uw-app-pricing .p-hero h1 { font-size: 30px; }
+          .uw-app-pricing .ent-strip { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
 
@@ -192,13 +232,12 @@ export default function PricingPage() {
         {/* ENTERPRISE STRIP */}
         <section style={{ paddingTop: 0 }}>
           <div className="wrap">
-            <div style={{ padding: '24px 28px', background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+            <div className="ent-strip">
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#15130F', marginBottom: 4 }}>Besoin d'un plan sur mesure ?</div>
                 <div style={{ fontSize: 13, color: 'rgba(21,19,15,0.55)' }}>Pour les agences, grandes équipes ou contrats personnalisés.</div>
               </div>
-              <button onClick={() => setShowContact(true)}
-                style={{ padding: '9px 20px', border: '1px solid rgba(21,19,15,0.14)', borderRadius: 100, background: '#fff', color: '#15130F', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: WIX, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={() => setShowContact(true)} className="ent-btn">
                 Contacter l'équipe <ArrowRight size={13} />
               </button>
             </div>
