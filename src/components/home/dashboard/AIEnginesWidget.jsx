@@ -53,10 +53,10 @@ function EngineAvatar({ name }) {
 
 export default function AIEnginesWidget({ data }) {
   const engines = [
-    { name: 'ChatGPT', score: data.chatgpt_score || 0, mentions: Math.round((data.chatgpt_score || 0) * 0.4), delta: (data.chatgpt_score || 0) > 30 ? +3 : -2 },
-    { name: 'Perplexity', score: data.perplexity_score || 0, mentions: Math.round((data.perplexity_score || 0) * 0.3), delta: 0 },
-    { name: 'Google AI Overview', score: data.google_ai_score || 0, mentions: Math.round((data.google_ai_score || 0) * 0.5), delta: (data.google_ai_score || 0) > 40 ? +5 : -1 },
-    { name: 'Gemini', score: Math.round((data.google_ai_score || 0) * 0.85), mentions: Math.round((data.google_ai_score || 0) * 0.25), delta: 0 },
+    { name: 'ChatGPT', score: data.chatgpt_score || 0, mentions: null, delta: null },
+    { name: 'Perplexity', score: data.perplexity_score || 0, mentions: null, delta: null },
+    { name: 'Google AI Overview', score: data.google_ai_score || 0, mentions: null, delta: null },
+    { name: 'Gemini', score: data.gemini_score || 0, mentions: null, delta: null },
   ];
 
   return (
@@ -79,8 +79,9 @@ export default function AIEnginesWidget({ data }) {
       {/* Rows */}
       {engines.map((e, i) => {
         const c = e.score < 35 ? '#EF4444' : e.score < 65 ? '#F59E0B' : '#22C55E';
-        const up = e.delta > 0;
-        const zero = e.delta === 0;
+        const hasDelta = e.delta != null;
+        const up = hasDelta && e.delta > 0;
+        const zero = !hasDelta || e.delta === 0;
         return (
           <div key={e.name} style={{
             display: 'grid', gridTemplateColumns: '1fr 72px 72px 64px', gap: 8,
@@ -95,7 +96,7 @@ export default function AIEnginesWidget({ data }) {
               <MiniDonut score={e.score} size={34} color={c} />
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: T1 }}>{e.mentions}</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: T1 }}>{e.mentions ?? '—'}</span>
             </div>
             <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3 }}>
               {!zero && (up ? <TrendingUp size={11} color="#16A34A" /> : <TrendingDown size={11} color="#DC2626" />)}

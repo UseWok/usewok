@@ -17,9 +17,6 @@ const ENGINE_LABELS = {
   claude: 'Claude', copilot: 'Copilot', perplexity: 'Perplexity',
   llama: 'Llama', grok: 'Grok',
 };
-// Demo evolutions matching the image
-const DEMO_EVO = { mistral: 4, gemini: 2, chatgpt: 1, claude: 3, copilot: -1, perplexity: 0, llama: -2, grok: -3 };
-
 function SentimentBadge({ sentiment, score }) {
   let text, color, bg;
   if (sentiment === 'positive' || (!sentiment && score >= 65)) {
@@ -37,6 +34,7 @@ function SentimentBadge({ sentiment, score }) {
 }
 
 function EvoLabel({ val }) {
+  if (val == null) return <span style={{ fontSize: 11, fontWeight: 600, color: INK3 }}>—</span>;
   if (val > 0) return <span style={{ fontSize: 11, fontWeight: 600, color: GREEN }}>↗ +{val}</span>;
   if (val < 0) return <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>↘ {val}</span>;
   return <span style={{ fontSize: 11, fontWeight: 600, color: INK3 }}>— 0</span>;
@@ -46,7 +44,7 @@ export default function EngineScoreGrid({ d }) {
   const engines = ENGINE_ORDER.map(key => ({
     key, label: ENGINE_LABELS[key],
     score: d[`${key}_score`] || 0,
-    evolution: d[`${key}_evolution`] ?? DEMO_EVO[key] ?? 0,
+    evolution: d[`${key}_evolution`] ?? null,
     sentiment: d[`${key}_sentiment`] || null,
   })).sort((a, b) => b.score - a.score);
 

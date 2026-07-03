@@ -20,10 +20,10 @@ function MetricBadge({ score }) {
 
 export default function LRSHero({ d }) {
   const lrs = Math.round(d?.lrs_score || d?.score_overall || d?.overall_score || 0);
-  const citation = Math.round(d?.lrs_citation_score || d?.score_ai_visibility || 72);
-  const sentiment = Math.round(d?.lrs_sentiment_score || d?.score_message_clarity || 68);
-  const accuracy = Math.round(d?.lrs_accuracy_score || d?.score_commercial_signal || 65);
-  const vsIndustry = d?.lrs_vs_industry || 11;
+  const citation = Math.round(d?.lrs_citation_score || d?.score_ai_visibility || 0);
+  const sentiment = Math.round(d?.lrs_sentiment_score || d?.score_message_clarity || 0);
+  const accuracy = Math.round(d?.lrs_accuracy_score || d?.score_commercial_signal || 0);
+  const vsIndustry = d?.lrs_vs_industry || 0;
   const domain = (d?.site_url || '').replace(/https?:\/\//, '').split('/')[0];
 
   // Ring params
@@ -38,8 +38,8 @@ export default function LRSHero({ d }) {
           AI Reputation Report
           </h1>
           <p style={{ fontSize: 12, color: '#9B9BA8', margin: '3px 0 0' }}>
-          {domain} · Updated today
-        </p>
+           {domain} · {d?.last_scan ? new Date(d.last_scan).toLocaleDateString('en-US') : 'No scan yet'}
+          </p>
       </div>
 
       {/* Dark card */}
@@ -73,12 +73,14 @@ export default function LRSHero({ d }) {
               </div>
             </div>
             {/* +pts */}
+            {vsIndustry > 0 && (
             <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
               <svg width={10} height={10} viewBox="0 0 10 10">
                 <path d="M2 8 L5 2 L8 8" stroke={CORAL} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span style={{ fontSize: 12, fontWeight: 700, color: CORAL }}>+{vsIndustry} pts</span>
             </div>
+            )}
           </div>
 
           {/* Right: mentions sectorielles */}

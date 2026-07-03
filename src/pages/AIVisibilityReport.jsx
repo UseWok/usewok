@@ -166,18 +166,10 @@ export default function AIVisibilityReport() {
   const avgScore = ALL_ENGINES.filter(e => PLAN_ENGINES_ACTIVE.includes(e) && !PLAN_ENGINES_LOCKED.includes(e))
     .reduce((acc, e) => acc + engineScores[e], 0) / Math.max(1, PLAN_ENGINES_ACTIVE.filter(e => !PLAN_ENGINES_LOCKED.includes(e)).length);
 
-  const evoPoints = (() => {
-    const start = scorePrev || Math.round(score * 0.65);
-    const pts = [];
-    for (let i = 0; i < 6; i++) {
-      const t = i / 5;
-      const val = start + (score - start) * t;
-      const x = (i / 5) * 300;
-      const y = 70 - (val / 100) * 55;
-      pts.push(`${x.toFixed(0)},${y.toFixed(0)}`);
-    }
-    return pts.join(' ');
-  })();
+  const hasTrend = scorePrev > 0;
+  const evoPoints = hasTrend
+    ? `0,${(70 - (scorePrev / 100) * 55).toFixed(0)} 300,${(70 - (score / 100) * 55).toFixed(0)}`
+    : '';
 
   const technical = [
     { id: 'schema', label: 'Business profile readable by AI', desc: 'AI understands who you are and what you sell', ok: data.has_schema_markup, fix: 'AI doesn\'t know who you are. When a customer asks "recommend a X", you\'re not in their response.', urgency: 'high' },
@@ -285,17 +277,22 @@ export default function AIVisibilityReport() {
           <div className="lrs-card" style={{ padding: 18, marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Reputation trend</span>
-              <span style={{ fontSize: 12, fontWeight: 500, color: GREEN, background: GREEN_SOFT, padding: '3px 9px', borderRadius: 999 }}>
-                {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 11}% · 6 months
-              </span>
+              {hasTrend && (
+                <span style={{ fontSize: 12, fontWeight: 500, color: GREEN, background: GREEN_SOFT, padding: '3px 9px', borderRadius: 999 }}>
+                  {scoreDelta >= 0 ? '+' : ''}{scoreDelta} pts
+                </span>
+              )}
             </div>
-            <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
-              <polyline points={evoPoints} fill="none" stroke={CORAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="300" cy={70 - (score / 100) * 55} r="4" fill={CORAL} />
-            </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: INK2, marginTop: 4 }}>
-              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-            </div>
+            {hasTrend ? (
+              <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+                <polyline points={evoPoints} fill="none" stroke={CORAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="300" cy={70 - (score / 100) * 55} r="4" fill={CORAL} />
+              </svg>
+            ) : (
+              <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: 12, color: INK3 }}>No trend data yet — run another scan to track your progress.</span>
+              </div>
+            )}
           </div>
         </FadeUp>
 
@@ -305,22 +302,22 @@ export default function AIVisibilityReport() {
             <div className="lrs-card" style={{ padding: 14 }}>
               <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>AI share of voice</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{scoreVis}%</div>
-              <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <ArrowUpRight size={12} /> {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 3}% vs last month
+              <div style={{ fontSize: 11, color: hasTrend ? GREEN : INK3, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                {hasTrend ? <ArrowUpRight size={12} /> : null} {hasTrend ? `${scoreDelta >= 0 ? '+' : ''}${scoreDelta} pts vs last scan` : 'No previous scan'}
               </div>
             </div>
             <div className="lrs-card" style={{ padding: 14 }}>
               <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Positive perception</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{scoreClarity}%</div>
-              <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <ArrowUpRight size={12} /> +5% vs last month
+              <div style={{ fontSize: 11, color: hasTrend ? GREEN : INK3, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                {hasTrend ? `${scoreDelta >= 0 ? '+' : ''}${scoreDelta} pts vs last scan` : 'No previous scan'}
               </div>
             </div>
             <div className="lrs-card" style={{ padding: 14 }}>
               <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>AI mentions / month</div>
-              <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>~{fmt(data.organic_traffic || 420)}</div>
-              <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <ArrowUpRight size={12} /> +18% vs last month
+              <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{data.organic_traffic ? `~${fmt(data.organic_traffic)}` : '—'}</div>
+              <div style={{ fontSize: 11, color: hasTrend ? GREEN : INK3, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                {hasTrend ? `${scoreDelta >= 0 ? '+' : ''}${scoreDelta} pts vs last scan` : 'No previous scan'}
               </div>
             </div>
           </div>
@@ -365,7 +362,6 @@ export default function AIVisibilityReport() {
               const val = engineScores[e];
               const blurred = PLAN_ENGINES_BLURRED.includes(e);
               const locked = PLAN_ENGINES_LOCKED.includes(e);
-              const fakeVal = { chatgpt: 42, claude: 38, mistral: 29, llama: 35, perplexity: 51, grok: 22, copilot: 31 }[e] || 30;
               const sent = getSentiment(val);
 
               if (blurred) {
@@ -374,9 +370,9 @@ export default function AIVisibilityReport() {
                     <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>{ENGINE_NAMES[e]}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ flex: 1, height: 4, borderRadius: 999, background: CREAM_DEEP }}>
-                        <div style={{ width: `${fakeVal}%`, height: 4, borderRadius: 999, background: 'rgba(21,19,15,0.2)' }} />
+                        <div style={{ width: '0%', height: 4, borderRadius: 999, background: 'rgba(21,19,15,0.2)' }} />
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: INK, width: 20 }}>{fakeVal}</span>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: INK, width: 20 }}>—</span>
                     </div>
                     <span style={{ fontSize: 12, color: INK2 }}>—</span>
                     <span style={{ fontSize: 11, fontWeight: 500, color: INK2, background: CREAM_DEEP, padding: '2px 8px', borderRadius: 999, width: 'fit-content' }}>—</span>

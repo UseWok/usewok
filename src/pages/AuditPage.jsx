@@ -47,7 +47,7 @@ function ThinkingState({ url }) {
     'Reading robots.txt and sitemap.xml…',
     'Analyzing SEO tags and structure…',
     'Detecting technical issues…',
-    'Simulating AI crawl…',
+    'Analyzing AI crawl…',
     'Generating full report…',
   ];
   useEffect(() => {

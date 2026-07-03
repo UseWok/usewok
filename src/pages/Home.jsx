@@ -11,7 +11,6 @@ import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
 import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
-import { DEMO_PROFILE, DEMO_SITE_URL } from '@/lib/demo-data';
 
 // ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
 const F       = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -353,7 +352,7 @@ function ModuleCard({ label, sub, Icon, onClick }) {
 // ── Scan loader ────────────────────────────────────────────────────────────────
 function ScanLoader({ url }) {
   const [step, setStep] = useState(0);
-  const steps = ['Fetching site…', 'AI simulation in progress…', 'Calculating LRS…', 'Generating report…'];
+  const steps = ['Fetching site…', 'Querying AI engines…', 'Calculating LRS…', 'Generating report…'];
   useEffect(() => {
     const iv = setInterval(() => setStep(s => Math.min(s + 1, steps.length - 1)), 8000);
     return () => clearInterval(iv);
@@ -642,19 +641,6 @@ export default function Home() {
     setConfirmSite(null);
     startScan(url);
     setSearchQuery('');
-  };
-
-  const loadDemoData = () => {
-    setSearchQuery('');
-    // Inject demo profile into state as if a real scan completed
-    const demoP = { ...DEMO_PROFILE, _demo: true };
-    setProfiles(prev => {
-      const without = prev.filter(p => p.site_url !== DEMO_SITE_URL);
-      return [demoP, ...without];
-    });
-    setActiveUrl(DEMO_SITE_URL);
-    setActiveDomain({ url: DEMO_SITE_URL, name: 'UseWok' });
-    // Demo profile is in-memory only — profile._demo flag handles sub-page reads
   };
 
   const handleSubmitSearch = async () => {

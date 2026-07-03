@@ -2,7 +2,6 @@ import { base44 } from '@/api/base44Client';
 
 export async function getProfileData(profile) {
   if (!profile) return {};
-  if (profile._demo) return profile;
   if (!profile.brand_keywords) return {};
   if (profile.brand_keywords.startsWith('http')) {
     try {

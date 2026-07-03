@@ -13,7 +13,7 @@ export default function SOVChart({ sov }) {
   const competitors = sov?.competitors || [];
   if (!your && !competitors.length) return null;
 
-  const yourName = your?.name || 'UseWok';
+  const yourName = your?.name || 'Your brand';
   const yourSov = your?.voice_share_pct || 0;
 
   const compEntries = competitors

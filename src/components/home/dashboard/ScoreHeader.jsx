@@ -52,13 +52,11 @@ export default function ScoreHeader({ data, url, onRescan }) {
   const overallBg = overall < 35 ? '#FEF2F2' : overall < 65 ? '#FFFBEB' : '#F0FDF4';
   const overallLabel = overall < 35 ? 'Critical — Nearly Invisible to AI' : overall < 65 ? 'Weak — Partially Visible' : 'Strong — Well Indexed';
 
-  const totalMentions = Math.round(overall * 0.4);
-  const citedPages = Math.round(overall * 0.3);
   const kpis = [
-    { label: 'AI Score', val: overall, delta: overall > 40 ? +4 : -3, unit: '/100' },
-    { label: 'Mentions', val: totalMentions, delta: totalMentions > 5 ? +2 : -1, unit: '' },
-    { label: 'Cited Pages', val: citedPages, delta: 0, unit: '' },
-    { label: 'Competitors', val: 5, delta: 0, unit: '' },
+    { label: 'AI Score', val: overall, delta: null, unit: '/100' },
+    { label: 'Mentions', val: '—', delta: null, unit: '' },
+    { label: 'Cited Pages', val: '—', delta: null, unit: '' },
+    { label: 'Competitors', val: '—', delta: null, unit: '' },
   ];
 
   return (
