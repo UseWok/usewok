@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
 import PlanCard from '@/components/pricing/PlanCard';
+import BrandLogos from '@/components/pricing/BrandLogos';
 
 const WIX = "'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
@@ -83,12 +84,10 @@ export default function LandingPricingPage() {
         .uw-pricing .testi .av { width: 88px; height: 88px; border-radius: 18px; background: #FFE7D6; flex-shrink: 0; }
         .uw-pricing .testi blockquote { font-family: 'Fraunces', serif; font-weight: 500; font-size: 24px; line-height: 1.35; margin-bottom: 16px; max-width: 620px; }
         .uw-pricing .testi cite { font-style: normal; font-size: 13.5px; color: rgba(21,19,15,0.55); }
-        .uw-pricing .cta-band { position: relative; overflow: hidden; border-radius: 26px; padding: 70px 40px; text-align: center; background: radial-gradient(70% 70% at 15% 20%, #FFD9BE 0%, transparent 55%), radial-gradient(70% 70% at 88% 85%, #FFB98F 0%, transparent 55%), linear-gradient(160deg, #FFF3E9 0%, #FFE0C7 100%); }
-        .uw-pricing .cta-band::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(196,62,20,0.09) 1px, transparent 1px); background-size: 24px 24px; mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, black 0%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, black 0%, transparent 70%); }
-        .uw-pricing .cta-band > * { position: relative; z-index: 2; }
-        .uw-pricing .cta-band h2 { font-size: 32px; max-width: 560px; margin: 0 auto 26px; line-height: 1.2; }
+        .uw-pricing .cta-band { position: relative; border-radius: 20px; padding: 60px 40px; text-align: center; background: #15130F; }
+        .uw-pricing .cta-band h2 { font-size: 30px; max-width: 560px; margin: 0 auto 26px; line-height: 1.2; color: #FBF8F2; }
         .uw-pricing .cta-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 18px; }
-        .uw-pricing .cta-band .noc { font-size: 12.5px; color: rgba(21,19,15,0.55); }
+        .uw-pricing .cta-band .noc { font-size: 12.5px; color: rgba(251,248,242,0.5); }
         .uw-pricing .faq-wrap { max-width: 680px; margin: 0 auto; }
         .uw-pricing .faq-wrap h2 { text-align: center; font-size: 28px; margin-bottom: 36px; }
         .uw-pricing details { border-bottom: 1px solid rgba(21,19,15,0.10); padding: 20px 4px; }
@@ -175,14 +174,9 @@ export default function LandingPricingPage() {
         {/* TRUST BAR */}
         <div className="trustbar">
           <div className="wrap">
-            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>Already tracking their AI visibility</span>
-            <div className="trustlogos">
-              <div className="tlogo"><span className="ic">N</span><span>Norea</span></div>
-              <div className="tlogo"><span className="ic">K</span><span>Klarcy</span></div>
-              <div className="tlogo"><span className="ic">M</span><span>Mio One</span></div>
-              <div className="tlogo"><span className="ic">IB</span><span>Iberia Digital</span></div>
-              <div className="tlogo"><span className="ic">E</span><span>Embat</span></div>
-              <div className="tlogo"><span className="ic">P</span><span>Presqu'Île</span></div>
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>Ils mesurent leur visibilité IA</span>
+            <div style={{ marginTop: 32 }}>
+              <BrandLogos />
             </div>
           </div>
         </div>
@@ -204,10 +198,10 @@ export default function LandingPricingPage() {
         <section>
           <div className="wrap">
             <div className="cta-band">
-              <h2 className="serif">10x your AI visibility without becoming a GEO expert</h2>
+              <h2>10x your AI visibility without becoming a GEO expert</h2>
               <div className="cta-btns">
-                <button className="btn btn-dark" onClick={goRegister}>14-day free trial</button>
-                <button className="btn btn-outline" style={{ background: '#fff' }} onClick={goHome}>See a demo</button>
+                <button className="btn" style={{ background: '#FF5A1F', color: '#fff' }} onClick={goRegister}>14-day free trial</button>
+                <button className="btn btn-outline" style={{ background: 'transparent', color: '#FBF8F2', borderColor: 'rgba(251,248,242,0.3)' }} onClick={goHome}>See a demo</button>
               </div>
               <p className="noc">No credit card · 14 days free · Your score in under 3 minutes</p>
             </div>

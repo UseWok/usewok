@@ -5,6 +5,7 @@ import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId } from '@/lib/plan
 import { useAuth } from '@/lib/AuthContext';
 import { Check, ArrowRight, X } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
+import BrandLogos from '@/components/pricing/BrandLogos';
 
 const WIX = "'Inter', 'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const SERIF = "'Fraunces', 'Helvetica Neue', serif";
@@ -134,15 +135,7 @@ export default function PricingPage() {
         .uw-app-pricing .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #FF5A1F; }
 
         /* HERO */
-        .uw-app-pricing .p-hero { position: relative; text-align: center; padding: 56px 0 8px; overflow: hidden; }
-        .uw-app-pricing .p-hero::before {
-          content: ''; position: absolute; inset: -40px 0 0; z-index: 0;
-          background:
-            radial-gradient(55% 140% at 15% 0%, #FFE0C7 0%, transparent 60%),
-            radial-gradient(55% 140% at 88% 0%, #FFD2AE 0%, transparent 60%);
-          pointer-events: none;
-        }
-        .uw-app-pricing .p-hero > * { position: relative; z-index: 1; }
+        .uw-app-pricing .p-hero { position: relative; text-align: center; padding: 56px 0 8px; }
         .uw-app-pricing .p-hero h1 { font-size: 38px; margin-bottom: 12px; }
         .uw-app-pricing .p-hero p { font-size: 14.5px; color: rgba(21,19,15,0.55); }
 
@@ -241,6 +234,13 @@ export default function PricingPage() {
                 Contact the team <ArrowRight size={13} />
               </button>
             </div>
+          </div>
+        </section>
+
+        {/* BRAND LOGOS */}
+        <section style={{ paddingTop: 0, paddingBottom: 0 }}>
+          <div className="wrap">
+            <BrandLogos />
           </div>
         </section>
 
