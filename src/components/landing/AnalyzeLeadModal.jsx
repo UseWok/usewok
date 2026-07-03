@@ -25,6 +25,7 @@ const QUESTIONS = [
     options: [
       { value: 'no_code', label: 'Je gère seul(e)', sub: 'Wix, Squarespace, sans code', logos: NO_CODE_LOGOS },
       { value: 'ai_nocode', label: "J'utilise des IA", sub: 'ChatGPT, Claude pour m\'aider', logos: AI_LOGOS },
+      { value: 'developer', label: 'Je suis développeur', sub: 'Je code moi-même mon site' },
     ],
   },
   {

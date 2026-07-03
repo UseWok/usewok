@@ -317,7 +317,7 @@ export default function LandingPage() {
           </div>
           <div className="navright">
             <button className="nav-login" onClick={goLogin}>Log in</button>
-            <button className="btn btn-dark" onClick={goRegister}>Get started</button>
+            <button className="btn btn-dark" onClick={() => setShowAnalyze(true)}>Get started</button>
           </div>
         </div>
       </nav>
