@@ -2,8 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Search, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap } from 'lucide-react';
-import SearchModal from './SearchModal';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -505,7 +504,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const [recents, setRecents] = useState([]);
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [starredOpen, setStarredOpen] = useState(false);
@@ -529,13 +527,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       setRecents((getLocalDiscussions(wsId) || []).slice(0, 5));
     });
   }, [expanded]);
-
-  // Ctrl+K
-  useEffect(() => {
-    const h = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true); } };
-    document.addEventListener('keydown', h);
-    return () => document.removeEventListener('keydown', h);
-  }, []);
 
   const isActive = path => location.pathname === path;
   const nav = path => { navigate(path); };
@@ -624,7 +615,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
             <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
             <NavItem icon={BarChart2} label="Dashboard" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
-            <NavItem icon={Search} label="Search" onClick={() => setShowSearch(true)} expanded={expanded} shortcut={['⌘', 'K']} />
+            <NavItem icon={Trophy} label="Historique" onClick={() => nav('/history')} active={isActive('/history')} expanded={expanded} />
           </div>
 
           <Divider />
@@ -702,7 +693,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       </motion.aside>
 
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
-      <SearchModal open={showSearch} onClose={() => setShowSearch(false)} />
     </>
   );
 }

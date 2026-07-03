@@ -45,6 +45,7 @@ const AuditPage = lazy(() => import('./pages/AuditPage.jsx'));
 const ConnectionsPage = lazy(() => import('./pages/ConnectionsPage'));
 const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'));
 const UIShowcase = lazy(() => import('./pages/UIShowcase'));
+const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#FBF8F2' }}>
@@ -133,6 +134,7 @@ const AuthenticatedApp = () => {
             <Route path="/performance" element={<PerformancePage />} />
             <Route path="/audit" element={<AuditPage />} />
             <Route path="/connections" element={<ConnectionsPage />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="*" element={<PageNotFound />} />
           </Route>
