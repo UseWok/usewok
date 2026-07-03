@@ -34,7 +34,7 @@ function ThinkingAnimation() {
         <p style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4 }}>
           Thinking<span style={{ animation: 'ellipsis 1.5s steps(4, end) infinite' }}>...</span>
         </p>
-        <p style={{ fontSize: 12, color: '#888' }}>Analyse du problème en cours</p>
+        <p style={{ fontSize: 12, color: '#888' }}>Analyzing the issue</p>
       </div>
 
       {/* Shimmer bars */}
@@ -88,7 +88,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
       if (data && onFixSaved) onFixSaved(issueId, data);
     }).catch(err => {
       console.error('Error generating fix:', err);
-      setFix({ summary: 'Impossible de générer les instructions.', steps: [] });
+      setFix({ summary: 'Unable to generate instructions.', steps: [] });
       setLoading(false);
     });
   }, []);
@@ -124,10 +124,10 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
           setTimeout(() => { onVerified(); }, 2500);
         }
       } else {
-        setVerifyResult({ verified: false, feedback: 'Impossible de vérifier. Réessayez dans un instant.', confidence: 0 });
+        setVerifyResult({ verified: false, feedback: 'Unable to verify. Try again in a moment.', confidence: 0 });
       }
     } catch {
-      setVerifyResult({ verified: false, feedback: 'Erreur de vérification. Réessayez.', confidence: 0 });
+      setVerifyResult({ verified: false, feedback: 'Verification error. Please retry.', confidence: 0 });
     }
     setVerifying(false);
   };
@@ -156,7 +156,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
           {/* Header */}
           <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #F1F0EE', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Instructions de correction</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Fix instructions</p>
               <p style={{ fontSize: 13, color: '#555', lineHeight: 1.4 }}>{issue}</p>
             </div>
             <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: '#F5F5F3', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -180,7 +180,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                     color: fix.profile_type === 'no_code' ? '#B45309' : fix.profile_type === 'ai_nocode' ? '#5B21B6' : '#6B21A8',
                   }}>
                     {fix.profile_type === 'no_code' && '🖱️ No-Code'}
-                    {fix.profile_type === 'ai_nocode' && '🤖 IA Helper'}
+                    {fix.profile_type === 'ai_nocode' && '🤖 AI Helper'}
                     {fix.profile_type === 'developer' && '💻 Developer'}
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                   // AI-NOCODE: show the prompt
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      ➡️ Copie ceci dans ChatGPT ou Claude:
+                      ➡️ Copy this into ChatGPT or Claude:
                     </p>
                     <div style={{
                       background: '#F8F7F4', border: '1px solid #E8E6E1',
@@ -213,7 +213,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                     {fix.steps.map((step, i) => (
                       <div key={i} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: i < fix.steps.length - 1 ? '1px solid #E8E6E1' : 'none' }}>
                         <p style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Étape {i + 1}
+                          Step {i + 1}
                         </p>
                         <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6 }}>
                           {step}
@@ -233,7 +233,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                 {/* Time estimate */}
                 {fix.time_estimate && (
                   <p style={{ fontSize: 11, color: '#888', marginTop: 12, paddingTop: 12, borderTop: '1px solid #E8E6E1' }}>
-                    ⏱️ Temps estimé: <strong>{fix.time_estimate}</strong>
+                    ⏱️ Estimated time: <strong>{fix.time_estimate}</strong>
                   </p>
                 )}
 
@@ -250,7 +250,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                       transition: 'background 0.2s',
                     }}
                   >
-                    {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le prompt</>}
+                    {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy prompt</>}
                   </button>
                 )}
 
@@ -267,7 +267,7 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                     transition: 'background 0.2s',
                   }}
                 >
-                  {verifying ? '⏳ Analyse de votre site…' : verifyResult?.verified ? '✓ Tâche validée par l\'IA' : '✨ Vérifier avec l\'IA'}
+                  {verifying ? '⏳ Analyzing your site…' : verifyResult?.verified ? '✓ Task verified by AI' : '✨ Verify with AI'}
                 </button>
                 {verifyResult && (
                   <div style={{
@@ -281,18 +281,18 @@ export default function FixInstructionModal({ issue, issueId, profile, cachedFix
                         ? <CheckCircle2 size={14} color="#10B981" />
                         : <AlertTriangle size={14} color="#D97706" />}
                       <span style={{ fontSize: 11, fontWeight: 800, color: verifyResult.verified ? '#10B981' : '#D97706', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                        {verifyResult.verified ? 'Correction validée' : 'Pas encore validé'}
+                        {verifyResult.verified ? 'Fix verified' : 'Not verified yet'}
                       </span>
                       {verifyResult.confidence > 0 && (
-                        <span style={{ fontSize: 11, color: '#888', marginLeft: 'auto' }}>{verifyResult.confidence}% confiance</span>
+                        <span style={{ fontSize: 11, color: '#888', marginLeft: 'auto' }}>{verifyResult.confidence}% confidence</span>
                       )}
                     </div>
                     <p style={{ fontSize: 13, color: verifyResult.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{verifyResult.feedback}</p>
                     {verifyResult.what_was_found && (
-                      <p style={{ fontSize: 12, color: '#666', margin: '0 0 6px', lineHeight: 1.5 }}><strong>Trouvé:</strong> {verifyResult.what_was_found}</p>
+                      <p style={{ fontSize: 12, color: '#666', margin: '0 0 6px', lineHeight: 1.5 }}><strong>Found:</strong> {verifyResult.what_was_found}</p>
                     )}
                     {verifyResult.what_is_missing && !verifyResult.verified && (
-                      <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.5 }}><strong>Manquant:</strong> {verifyResult.what_is_missing}</p>
+                      <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.5 }}><strong>Missing:</strong> {verifyResult.what_is_missing}</p>
                     )}
                   </div>
                 )}

@@ -158,7 +158,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
               )}
               {fixType && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 500, color: ORANGE_DEEP, background: ORANGE_SOFT, borderRadius: 999, padding: '5px 11px' }}>
-                  <Check size={12} /> {fixType === 'seul' ? 'Do it yourself' : 'With help'}
+                  <Check size={12} /> {fixType === 'solo' || fixType === 'seul' ? 'Do it yourself' : 'With help'}
                 </span>
               )}
             </div>

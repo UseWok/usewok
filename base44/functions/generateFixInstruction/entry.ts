@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const industry = businessProfile.business_type || businessProfile.identity_industry || '';
     const businessName = businessProfile.business_name || businessProfile.identity_name || '';
 
-    // ── Profil utilisateur ──
+    // ── User profile ──
     let userProfile = body.user_profile || {};
     if (!userProfile.tech_level && businessProfile.user_preferences) {
       try {
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const issueKey = normalizeKey(issueProblem);
     const cacheKey = `${issueKey}__${techLevel}`;
 
-    // ── 1. Cache user ──
+    // ── 1. User cache ──
     const userCache = await base44.entities.UserFixCache.filter({
       user_id: user.id,
       issue_key: cacheKey,
@@ -58,13 +58,13 @@ Deno.serve(async (req) => {
         prompt: cached.prompt || null,
         explanation: cached.explanation || null,
         time_estimate: cached.time_estimate,
-        type: cached.fix_type || 'seul',
+        type: cached.fix_type || 'solo',
         profile_type: cached.profile_type || techLevel,
         from_cache: true,
       });
     }
 
-    // ── 2. Cache global (FixLibrary) ──
+    // ── 2. Global cache (FixLibrary) ──
     const globalCache = await base44.asServiceRole.entities.FixLibrary.filter({ issue_key: cacheKey }).catch(() => []);
     if (globalCache && globalCache.length > 0) {
       const match = globalCache[0];
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
         prompt: match.prompt || null,
         explanation: match.explanation || null,
         time_estimate: match.time_estimate,
-        fix_type: match.type || 'seul',
+        fix_type: match.type || 'solo',
         profile_type: techLevel,
       }).catch(() => {});
 
@@ -92,274 +92,274 @@ Deno.serve(async (req) => {
         prompt: match.prompt || null,
         explanation: match.explanation || null,
         time_estimate: match.time_estimate,
-        type: match.type || 'seul',
+        type: match.type || 'solo',
         profile_type: techLevel,
         from_cache: true,
       });
     }
 
-    // ── 3. Générer via LLM ──
+    // ── 3. Generate via LLM ──
     const isNoCode = techLevel === 'no_code';
     const isAiNoCode = techLevel === 'ai_nocode';
     const isDeveloper = techLevel === 'developer';
 
-    const profileLabel = isNoCode ? 'NO-CODE' : isAiNoCode ? 'IA HELPER' : 'DEVELOPER';
+    const profileLabel = isNoCode ? 'NO-CODE' : isAiNoCode ? 'AI HELPER' : 'DEVELOPER';
 
     let profileInstructions = '';
     let requiredFields = ['summary', 'time_estimate'];
 
     if (isNoCode || isAiNoCode) {
       const platformHint = isNoCode
-        ? "L'utilisateur est sur Wix/WordPress/Squarespace. Il CLIQUE, il ne code JAMAIS. Le résultat du prompt doit etre du contenu pret a coller dans un éditeur visuel."
-        : "L'utilisateur utilise ChatGPT/Claude comme assistant. Il copie-colle le prompt, puis colle la réponse dans son site.";
+        ? "The user is on Wix/WordPress/Squarespace. They CLICK, they NEVER code. The prompt result must be content ready to paste into a visual editor."
+        : "The user uses ChatGPT/Claude as an assistant. They copy-paste the prompt, then paste the response into their site.";
 
       profileInstructions = `
-INSTRUCTIONS - GÉNÉRATION DU "prompt" (CHAMP CRITIQUE - 10X)
-=============================================================
-Tu génères le champ "prompt": un prompt EXPERT prêt à copier-coller dans ChatGPT ou Claude.
+INSTRUCTIONS - GENERATING THE "prompt" FIELD (CRITICAL FIELD - 10X)
+====================================================================
+You generate the "prompt" field: an EXPERT prompt ready to copy-paste into ChatGPT or Claude.
 
 ${platformHint}
 
-PHILOSOPHIE: ZERO CHARGE MENTALE, RÉSULTAT IMMÉDIAT.
-L'utilisateur copie le prompt, le colle dans ChatGPT/Claude, copie la réponse, la colle dans son site. POINT FINAL.
-L'IA qui reçoit le prompt doit produire un RÉSULTAT PARFAIT du premier coup. Pas d'itération, pas d'ajustement.
+PHILOSOPHY: ZERO MENTAL LOAD, IMMEDIATE RESULT.
+The user copies the prompt, pastes it into ChatGPT/Claude, copies the response, pastes it into their site. END OF STORY.
+The AI receiving the prompt must produce a PERFECT result on the first try. No iteration, no adjustment.
 
-LE PROMPT QUE TU GÉNÈRES DOIT ÊTRE STRUCTURÉ COMME UN BRIEF PROFESSIONNEL:
+THE PROMPT YOU GENERATE MUST BE STRUCTURED LIKE A PROFESSIONAL BRIEF:
 
-═══════════════════════════════════════════════════
-STRUCTURE OBLIGATOIRE DU PROMPT GÉNÉRÉ (CHAQUE SECTION EST CRITIQUE)
-═══════════════════════════════════════════════════
+══════════════════════════════════════════════════
+MANDATORY STRUCTURE OF THE GENERATED PROMPT (EVERY SECTION IS CRITICAL)
+══════════════════════════════════════════════════
 
-Le prompt que tu génères DOIT contenir ces blocs DANS CET ORDRE:
+The prompt you generate MUST contain these blocks IN THIS ORDER:
 
-1. ROLE (1 ligne)
-   Tu es un expert en [domaine précis lié au problème], spécialiste [sous-spécialité] pour [plateformes: Wix, WordPress, Squarespace si no_code].
-   → Assigne un rôle HYPER-spécifique, pas générique.
+1. ROLE (1 line)
+   You are an expert in [specific domain related to the problem], specialist [sub-specialty] for [platforms: Wix, WordPress, Squarespace if no_code].
+   Assign a HYPER-specific role, not generic.
 
-2. CONTEXTE (2-3 lignes)
-   Mon entreprise s'appelle "${businessName}" et l'URL est ${siteUrl}.
-   CONTEXTE: [problème précis: "${issueProblem}"]
-   → Pré-rempli avec "${businessName}", "${siteUrl}", "${industry}".
+2. CONTEXT (2-3 lines)
+   My business is called "${businessName}" and the URL is ${siteUrl}.
+   CONTEXT: [specific problem: "${issueProblem}"]
+   Pre-filled with "${businessName}", "${siteUrl}", "${industry}".
 
-3. TÂCHE (3-5 lignes)
-   Génère en sortie [NOMBRE] sections strictes et directement copiable-collable:
-   1) [section 1 avec description exacte]
-   2) [section 2 avec description exacte]
-   3) [section 3 avec description exacte] (si applicable)
-   → Décompose la tâche en sections NUMÉROTÉES avec des livrables clairs.
+3. TASK (3-5 lines)
+   Generate [NUMBER] strict sections that are directly copy-pasteable:
+   1) [section 1 with exact description]
+   2) [section 2 with exact description]
+   3) [section 3 with exact description] (if applicable)
+   Break the task into NUMBERED sections with clear deliverables.
 
-4. EXEMPLE DU FORMAT ET DU TON (2-4 lignes)
-   - Exemple [format]: [montre un mini-exemple du format attendu]
-   - Ton: professionnel mais chaleureux, expert mais accessible, direct, sans jargon.
-   → Donne un exemple CONCRET du format, pas une description vague.
+4. FORMAT AND TONE EXAMPLE (2-4 lines)
+   - Example [format]: [show a mini-example of the expected format]
+   - Tone: professional but warm, expert but accessible, direct, no jargon.
+   Give a CONCRETE example of the format, not a vague description.
 
-5. CONTRAINTES PRÉCISES (5-8 lignes avec puces)
-   - ZÉRO commentaire hors des sections demandées.
-   - [Contrainte de quantité exacte: "exactly 3 points", "exactly 4 étapes", "5-8 lignes"]
-   - [Contrainte de format: "texte pur", "HTML avec balises <h2>, <p>, <ul>"]
-   - [Contrainte de contenu: "inclure au moins un bénéfice chiffré"]
-   - ZÉRO placeholders. Inclure "${businessName}" et "${siteUrl}" textuellement.
-   → Chaque contrainte est une puce avec un exigence MESURABLE et VÉRIFIABLE.
+5. PRECISE CONSTRAINTS (5-8 bullet points)
+   - ZERO commentary outside the requested sections.
+   - [Exact quantity constraint: "exactly 3 points", "exactly 4 steps", "5-8 lines"]
+   - [Format constraint: "plain text", "HTML with <h2>, <p>, <ul> tags"]
+   - [Content constraint: "include at least one quantified benefit"]
+   - ZERO placeholders. Include "${businessName}" and "${siteUrl}" verbatim.
+   Each constraint is a bullet with a MEASURABLE and VERIFIABLE requirement.
 
-6. FORMAT DE SORTIE FINAL (2-3 lignes)
-   - D'abord [section 1] puis [section 2] puis [section 3]. Tout doit être copiable-collable tel quel.
-   Puis colle la réponse dans [endroit EXACT sur le site: "la section Services de ${siteUrl}"]
-   → Spécifie l'ORDRE exact des sections et où coller le résultat.
+6. FINAL OUTPUT FORMAT (2-3 lines)
+   - First [section 1] then [section 2] then [section 3]. Everything must be copy-pasteable as-is.
+   Then paste the response into [EXACT location on the site: "the Services section of ${siteUrl}"]
+   Specify the EXACT order of sections and where to paste the result.
 
-═══════════════════════════════════════════════════
+══════════════════════════════════════════════════
 
-RÈGLES ABSOLUES POUR CHAQUE PROMPT GÉNÉRÉ:
+ABSOLUTE RULES FOR EVERY GENERATED PROMPT:
 
-A. QUANTITÉS EXACTES — JAMAIS VAGUE:
-   - JAMAIS "plusieurs", "quelques", "plusieurs paragraphes" → TOUJOURS "3 paragraphes", "5 bénéfices", "4 étapes"
-   - JAMAIS "inclus vos avantages" → TOUJOURS "inclus 4 avantages concurrentiels pour le secteur ${industry}"
-   - Chaque contrainte doit être chiffrée et vérifiable.
+A. EXACT QUANTITIES — NEVER VAGUE:
+   - NEVER "several", "a few", "multiple paragraphs" → ALWAYS "3 paragraphs", "5 benefits", "4 steps"
+   - NEVER "include your advantages" → ALWAYS "include 4 competitive advantages for the ${industry} industry"
+   - Every constraint must be quantified and verifiable.
 
-B. SECTIONS NUMÉROTÉES — STRUCTURE PRO:
-   - Si la tâche produit plusieurs livrables (ex: texte + guide + explication), divise en sections 1), 2), 3)
-   - Chaque section a un but clair et un format de sortie précis.
-   - L'IA sait EXACTEMENT quoi produire dans chaque section.
+B. NUMBERED SECTIONS — PRO STRUCTURE:
+   - If the task produces multiple deliverables (e.g.: text + guide + explanation), divide into sections 1), 2), 3)
+   - Each section has a clear purpose and precise output format.
+   - The AI knows EXACTLY what to produce in each section.
 
-C. CONTRAINTES PRÉCISES — SECTION DÉDIÉE:
-   - Le prompt DOIT contenir une section "CONTRAINTES PRÉCISES" avec des puces
-   - Chaque puce est une règle mesurable: nombre exact, format exact, contenu obligatoire
-   - Pas de "sois créatif" — des instructions concrètes et vérifiables.
+C. PRECISE CONSTRAINTS — DEDICATED SECTION:
+   - The prompt MUST contain a "PRECISE CONSTRAINTS" section with bullet points
+   - Each bullet is a measurable rule: exact number, exact format, mandatory content
+   - No "be creative" — concrete and verifiable instructions.
 
-D. FORMAT DE SORTIE EXPLICITE:
-   - Spécifie EXACTEMENT: HTML? Texte brut? JSON? Combien de lignes? Combien de mots?
-   - "HTML prêt à coller (balises <h2>, <p>, <ul>, <li>)"
-   - "Texte brut, 5-8 lignes, pas de balises"
-   - L'IA ne doit JAMAIS deviner le format.
+D. EXPLICIT OUTPUT FORMAT:
+   - Specify EXACTLY: HTML? Plain text? JSON? How many lines? How many words?
+   - "HTML ready to paste (<h2>, <p>, <ul>, <li> tags)"
+   - "Plain text, 5-8 lines, no tags"
+   - The AI must NEVER guess the format.
 
-E. ZÉRO COMMENTAIRE HORS LIVRABLES:
-   - Le prompt doit exiger: "ZÉRO commentaire hors des sections demandées"
-   - Pas de "Voici le contenu demandé:", pas d'explication, pas d'introduction
-   - Juste le livrable, propre, nickel.
+E. ZERO COMMENTARY OUTSIDE DELIVERABLES:
+   - The prompt must require: "ZERO commentary outside the requested sections"
+   - No "Here is the requested content:", no explanation, no introduction
+   - Just the deliverable, clean, spotless.
 
-F. EFFET WOW — CONTENU PREMIUM:
-   - Demande un CTA à la fin: "Contactez-nous", "Découvrir", "Réserver"
-   - Demande des bénéfices CHIFFRÉS: "+30% d'indexation", "économisez 2h/semaine"
-   - Demande un vocabulaire adapté au secteur ${industry}
-   - Demande une structure visuelle: titres, sous-titres, listes à puces
-   - Le résultat doit impressionner l'utilisateur.
+F. WOW EFFECT — PREMIUM CONTENT:
+   - Ask for a CTA at the end: "Contact us", "Discover", "Book now"
+   - Ask for QUANTIFIED benefits: "+30% indexing", "save 2h/week"
+   - Ask for vocabulary adapted to the ${industry} industry
+   - Ask for visual structure: titles, subtitles, bullet lists
+   - The result must impress the user.
 
-G. INFOS PRÉ-REMPLIES — JAMAIS DE PLACEHOLDER À TROUS:
-   - "${businessName}" → toujours pré-rempli textuellement
-   - "${siteUrl}" → toujours pré-rempli textuellement
-   - "${industry}" → toujours pré-rempli comme contexte
-   - "${issueProblem}" → toujours pré-rempli comme contexte
-   - Seuls [NUMÉRO_TÉLÉPHONE], [ADRESSE_POSTALE], [HORAIRES] sont acceptés (infos privées)
+G. PRE-FILLED INFO — NEVER HOLE-FILLED PLACEHOLDERS:
+   - "${businessName}" → always pre-filled verbatim
+   - "${siteUrl}" → always pre-filled verbatim
+   - "${industry}" → always pre-filled as context
+   - "${issueProblem}" → always pre-filled as context
+   - Only [PHONE_NUMBER], [POSTAL_ADDRESS], [BUSINESS_HOURS] are accepted (private info)
 
-H. STRUCTURE DU CHAMP "prompt":
-   - Commence TOUJOURS par: "Copie ceci dans ChatGPT ou Claude:\\n\\n"
-   - Puis le prompt complet structuré (15-40 lignes selon la complexité)
-   - Termine TOUJOURS par: "\\n\\nPuis colle la réponse dans [endroit EXACT] de ${siteUrl}"
+H. STRUCTURE OF THE "prompt" FIELD:
+   - ALWAYS start with: "Copy this into ChatGPT or Claude:\\n\\n"
+   - Then the full structured prompt (15-40 lines depending on complexity)
+   - ALWAYS end with: "\\n\\nThen paste the response into [EXACT location] of ${siteUrl}"
 
-═══════════════════════════════════════════════════
-EXEMPLE DE BON PROMPT GÉNÉRÉ (adapte au problème, ne copie pas):
-═══════════════════════════════════════════════════
+══════════════════════════════════════════════════
+EXAMPLE OF A GOOD GENERATED PROMPT (adapt to the problem, don't copy):
+══════════════════════════════════════════════════
 
-Copie ceci dans ChatGPT ou Claude:
+Copy this into ChatGPT or Claude:
 
-Tu es un expert en Optimisation de visibilité IA (AEO), spécialiste robots.txt et workflows no-code pour Wix, WordPress et Squarespace. Mon site s'appelle "${businessName}" et l'URL est ${siteUrl}.
+You are an expert in AI Visibility Optimization (AEO), specialist in robots.txt and no-code workflows for Wix, WordPress and Squarespace. My site is called "${businessName}" and the URL is ${siteUrl}.
 
-CONTEXTE: ${issueProblem}
+CONTEXT: ${issueProblem}
 
-TÂCHE: Génère en sortie 3 sections strictes et directement copiable-collable:
-1) Un bloc "robots.txt" en texte brut prêt à remplacer l'actuel. Doit autoriser toutes les IA, pointer vers le sitemap, protéger uniquement /wp-admin/ et /private/. Inclure Sitemap: ${siteUrl}/sitemap.xml. Pas de commentaires.
-2) Une section HTML (balises <h2>, <p>, <ul>) expliquant en 3 points clairs ce qui change et pourquoi ça améliore l'indexation IA (bénéfices chiffrés).
-3) Trois mini-guides pas-à-pas (HTML) — un pour Wix, un pour WordPress, un pour Squarespace — chacun avec 4 étapes: cliquer, coller, sauvegarder, vérifier.
+TASK: Generate 3 strict sections that are directly copy-pasteable:
+1) A "robots.txt" block in plain text ready to replace the current one. Must allow all AI engines, point to the sitemap, protect only /wp-admin/ and /private/. Include Sitemap: ${siteUrl}/sitemap.xml. No comments.
+2) An HTML section (<h2>, <p>, <ul> tags) explaining in 3 clear points what changes and why it improves AI indexing (quantified benefits).
+3) Three mini step-by-step guides (HTML) — one for Wix, one for WordPress, one for Squarespace — each with 4 steps: click, paste, save, verify.
 
-EXEMPLE du format et du ton:
-- Exemple robots.txt (texte brut): User-agent: * / Allow: / / Disallow: /private/ / Sitemap: ${siteUrl}/sitemap.xml
-- Ton: professionnel mais chaleureux, expert mais accessible, direct, sans jargon.
+FORMAT AND TONE EXAMPLE:
+- Example robots.txt (plain text): User-agent: * / Allow: / / Disallow: /private/ / Sitemap: ${siteUrl}/sitemap.xml
+- Tone: professional but warm, expert but accessible, direct, no jargon.
 
-CONTRAINTES PRÉCISES:
-- ZÉRO commentaire hors des 3 sections demandées.
-- robots.txt: texte pur, 5-8 lignes exactement.
-- Explication: exactement 3 points (<li>), au moins un bénéfice chiffré (+30% d'indexation en 4 semaines).
-- Chaque guide: exactement 4 étapes en <ol> avec menus en gras (Tableau de bord > Paramètres > SEO).
-- Terminer par un CTA HTML avec lien vers ${siteUrl}/contact.
-- ZÉRO placeholders. Inclure "${businessName}" et "${siteUrl}" textuellement.
+PRECISE CONSTRAINTS:
+- ZERO commentary outside the 3 requested sections.
+- robots.txt: plain text, exactly 5-8 lines.
+- Explanation: exactly 3 points (<li>), at least one quantified benefit (+30% indexing in 4 weeks).
+- Each guide: exactly 4 steps in <ol> with bold menu items (Dashboard > Settings > SEO).
+- End with an HTML CTA linking to ${siteUrl}/contact.
+- ZERO placeholders. Include "${businessName}" and "${siteUrl}" verbatim.
 
-FORMAT DE SORTIE FINAL:
-- D'abord robots.txt en texte brut, puis HTML "Explications", puis HTML "Guides". Tout copiable-collable tel quel.
+FINAL OUTPUT FORMAT:
+- First robots.txt in plain text, then HTML "Explanations", then HTML "Guides". Everything copy-pasteable as-is.
 
-Puis colle la réponse dans la zone 'Fichier robots.txt personnalisé' (Paramètres > SEO > Robots.txt) de ${siteUrl}
+Then paste the response into the 'Custom robots.txt file' area (Settings > SEO > Robots.txt) of ${siteUrl}
 
-═══════════════════════════════════════════════════
-FIN DE L'EXEMPLE.
-=============================================================
+══════════════════════════════════════════════════
+END OF EXAMPLE.
+============================================================
 `;
       requiredFields = ['summary', 'prompt', 'time_estimate'];
     } else {
       profileInstructions = `
-INSTRUCTIONS - GÉNÉRATION DU "explanation" (CHAMP CRITIQUE - 10X)
-==================================================================
-Tu génères le champ "explanation": une réponse technique experte pour un développeur.
+INSTRUCTIONS - GENERATING THE "explanation" FIELD (CRITICAL FIELD - 10X)
+=========================================================================
+You generate the "explanation" field: an expert technical response for a developer.
 
-PHILOSOPHIE: ZERO CHARGE MENTALE, EFFET WOW.
-Le développeur lit l'explication, copie le code, le colle, et ça marche. POINT FINAL.
-Il ne doit JAMAIS chercher sur Google, ouvrir une doc, ou deviner quoi que ce soit.
+PHILOSOPHY: ZERO MENTAL LOAD, WOW EFFECT.
+The developer reads the explanation, copies the code, pastes it, and it works. END OF STORY.
+They should NEVER have to search Google, open docs, or guess anything.
 
-L'explication DOIT contenir ces 6 sections OBLIGATOIRES:
+THE EXPLANATION MUST CONTAIN THESE 6 MANDATORY SECTIONS:
 
-1. CAUSE RACINE (2-3 phrases)
-   - Pourquoi ce problème existe techniquement
-   - Référence précise à la spec/RFC/doc (ex: "schema.org/LocalBusiness requiert...", "Google AEO guidelines stipulent...")
-   - Sois hyper-spécifique, pas générique
+1. ROOT CAUSE (2-3 sentences)
+   - Why this problem exists technically
+   - Precise reference to the spec/RFC/doc (e.g.: "schema.org/LocalBusiness requires...", "Google AEO guidelines state...")
+   - Be hyper-specific, not generic
 
-2. IMPACT IA DÉTAILLÉ (2-3 phrases)
-   - Comment ça affecte CHAQUE LLM:
+2. DETAILED AI IMPACT (2-3 sentences)
+   - How it affects EACH LLM:
      * ChatGPT: entity recognition, knowledge graph parsing
      * Gemini: real-time web crawling, structured data extraction
      * Claude: context window parsing, trust signal evaluation
      * Perplexity: citation sourcing, fact verification
-   - Dis exactement ce que l'IA ne peut pas faire à cause de ce problème
+   - Say exactly what the AI cannot do because of this problem
 
-3. SOLUTION ÉTAPE PAR ÉTAPE
-   - Les fichiers EXACTS à modifier (ex: "Dans le <head> de index.html...", "Dans le fichier robots.txt à la racine...")
-   - Les lignes/balises concernées
-   - L'ordre des opérations
-   - Si backend: les endpoints/APIs concernés
+3. STEP-BY-STEP SOLUTION
+   - The EXACT files to modify (e.g.: "In the <head> of index.html...", "In the robots.txt file at the root...")
+   - The lines/tags concerned
+   - The order of operations
+   - If backend: the endpoints/APIs concerned
 
-4. CODE COMPLET PRÊT À COLLER
-   - Le code EXACT avec "${businessName}" et "${siteUrl}" pré-remplis
-   - Pas de "adaptez ce template" — le code final, validé, prêt à coller
-   - Si JSON-LD: le bloc <script type="application/ld+json"> COMPLET avec toutes les propriétés requises
-   - Si meta tag: la balise complète avec content pré-rempli
-   - Si robots.txt/sitemap.xml: le contenu complet du fichier
-   - Indente proprement, commente les sections clés
+4. COMPLETE READY-TO-PASTE CODE
+   - The EXACT code with "${businessName}" and "${siteUrl}" pre-filled
+   - No "adapt this template" — the final, validated, ready-to-paste code
+   - If JSON-LD: the COMPLETE <script type="application/ld+json"> block with all required properties
+   - If meta tag: the complete tag with pre-filled content
+   - If robots.txt/sitemap.xml: the complete file content
+   - Indent properly, comment key sections
 
-5. VÉRIFICATION (1-2 phrases)
-   - Comment vérifier que ça marche:
-     * URL de test (ex: "search.google.com/test/rich-results")
-     * Commande curl ou DevTools (ex: "curl -s ${siteUrl} | grep 'application/ld+json'")
-     * Ce que tu dois voir si c'est valide
+5. VERIFICATION (1-2 sentences)
+   - How to verify it works:
+     * Test URL (e.g.: "search.google.com/test/rich-results")
+     * curl command or DevTools (e.g.: "curl -s ${siteUrl} | grep 'application/ld+json'")
+     * What you should see if it's valid
 
-6. PIÈGES COURANTS (1-2 phrases)
-   - Les erreurs fréquentes avec cette correction
-   - Comment les éviter
-   - Cas particuliers (ex: "Si votre site est en SPA, le JSON-LD doit être dans le HTML initial, pas injecté en JS")
+6. COMMON PITFALLS (1-2 sentences)
+   - Frequent mistakes with this fix
+   - How to avoid them
+   - Edge cases (e.g.: "If your site is a SPA, the JSON-LD must be in the initial HTML, not injected via JS")
 
-RÈGLES ABSOLUES:
-- FRANÇAIS, ton expert mais accessible — pas condescendant
-- 300-600 mots — DENSE en information, zéro blabla, zéro remplissage
-- Inclure "${businessName}" et "${siteUrl}" dans l'explication ET le code
-- Si JSON-LD: donner le code COMPLET et VALIDÉ — pas une référence, pas un squelette
-- Citer les spec standards (schema.org, W3C, Google Search Central) avec liens si pertinent
-- ZÉRO placeholder à trous — tout est concret et pré-rempli
-- Le code doit être copiable-collable directement (pas de "voici le template", juste le code)
-- EFFET WOW: le développeur doit se dire "wow, c'est exactement ce qu'il me fallait"
-==================================================================
+ABSOLUTE RULES:
+- ENGLISH, expert but accessible tone — not condescending
+- 300-600 words — DENSE in information, zero fluff, zero filler
+- Include "${businessName}" and "${siteUrl}" in the explanation AND the code
+- If JSON-LD: give the COMPLETE and VALIDATED code — not a reference, not a skeleton
+- Cite standard specs (schema.org, W3C, Google Search Central) with links if relevant
+- ZERO hole-filled placeholders — everything is concrete and pre-filled
+- The code must be directly copy-pasteable (no "here's the template", just the code)
+- WOW EFFECT: the developer should think "wow, this is exactly what I needed"
+=========================================================================
 `;
       requiredFields = ['summary', 'explanation', 'time_estimate'];
     }
 
     const devOrPromptLine = (isNoCode || isAiNoCode)
-      ? '4. "prompt" - Le prompt expert RTCEF généré selon les instructions ci-dessus.'
-      : "4. \"explanation\" - L'explication technique experte générée selon les instructions ci-dessus.";
+      ? '4. "prompt" - The expert RTCEF prompt generated according to the instructions above.'
+      : '4. "explanation" - The expert technical explanation generated according to the instructions above.';
 
-    const prompt = `Tu es un Consultant AEO (AI Engine Optimization) de classe mondiale — service premium, zéro erreur, qualité luxe, effet wow.
+    const prompt = `You are a world-class AEO (AI Engine Optimization) Consultant — premium service, zero errors, luxury quality, wow effect.
 
 MISSION
 =======
-Tu crées un guide de correction SUR-MESURE pour "${businessName}", une entreprise du secteur "${industry}" dont le site est ${siteUrl}.
+You create a CUSTOM fix guide for "${businessName}", a business in the "${industry}" industry whose website is ${siteUrl}.
 
-L'utilisateur a le profil technique: ${profileLabel}
-Le problème à corriger: "${issueProblem}"
+The user has the technical profile: ${profileLabel}
+The problem to fix: "${issueProblem}"
 
 ${profileInstructions}
 
-CHAMPS OBLIGATOIRES DU JSON
-===========================
+MANDATORY JSON FIELDS
+=====================
 
-1. "summary" - 1 phrase percutante + 1 chiffre clé.
-   Structure: [POURQUOI CA BLOQUE] + [IMPACT CHIFFRÉ].
-   Exemple: "Les IA ne trouvent pas vos coordonnées — vous perdez 40% des recherches locales 'près de moi'."
-   Interdiction: "Il est important de...", "Vous devriez...", tout blabla générique.
+1. "summary" - 1 punchy sentence + 1 key number.
+   Structure: [WHY IT'S BLOCKED] + [QUANTIFIED IMPACT].
+   Example: "AI engines can't find your contact info — you're losing 40% of 'near me' local searches."
+   Forbidden: "It is important to...", "You should...", any generic fluff.
 
-2. "time_estimate" - Temps réaliste pour exécuter la correction.
+2. "time_estimate" - Realistic time to execute the fix.
    no_code: "10 min" / "20 min" / "30 min"
    ai_nocode: "5 min" / "15 min" / "30 min"
-   developer: "30 min" / "1-2h" / "1 jour"
+   developer: "30 min" / "1-2h" / "1 day"
 
-3. "type" - "seul" (faisable sans aide) ou "avec aide" (requiert un pro).
+3. "type" - "solo" (doable without help) or "with help" (requires a pro).
 
 ${devOrPromptLine}
 
-QUALITÉ LUXE — CHECKLIST AVANT RÉPONSE
-=====================================
-- Le prompt/explication inclut "${businessName}" et "${siteUrl}" pré-remplis
-- ZÉRO placeholder à trous du type [LISTE_FEATURES], [NOMBRE], [TYPE], [VOS_AVANTAGES]
-- Les seuls [CROCHETS] acceptés: infos strictement privées (téléphone, adresse, horaires)
-- L'IA a une AUTONOMIE TOTALE pour inventer le contenu, le nombre, les angles
-- Le résultat est COPIABLE-COLLABLE immédiatement — zéro préparation, zéro charge mentale
-- Le ton est professionnel, direct, confiant — pas de "peut-être", "il faudrait peut-être"
-- Français impeccable — zéro faute
-- EFFET WOW: le résultat doit impressionner l'utilisateur par sa qualité et sa pertinence
+LUXURY QUALITY — CHECKLIST BEFORE RESPONDING
+============================================
+- The prompt/explanation includes "${businessName}" and "${siteUrl}" pre-filled
+- ZERO hole-filled placeholders like [FEATURE_LIST], [NUMBER], [TYPE], [YOUR_ADVANTAGES]
+- The only [BRACKETS] accepted: strictly private info (phone, address, hours)
+- The AI has TOTAL AUTONOMY to invent content, numbers, angles
+- The result is IMMEDIATELY COPY-PASTEABLE — zero preparation, zero mental load
+- The tone is professional, direct, confident — no "maybe", "you might want to"
+- Flawless English — zero errors
+- WOW EFFECT: the result must impress the user with its quality and relevance
 
-Réponds UNIQUEMENT avec le JSON. Aucun texte hors JSON.`;
+Respond ONLY with the JSON. No text outside the JSON.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
@@ -378,7 +378,7 @@ Réponds UNIQUEMENT avec le JSON. Aucun texte hors JSON.`;
       },
     });
 
-    // ── 4. Sauvegarder ──
+    // ── 4. Save ──
     const stepsJson = JSON.stringify(result.steps || []);
 
     await Promise.all([
@@ -391,7 +391,7 @@ Réponds UNIQUEMENT avec le JSON. Aucun texte hors JSON.`;
         prompt: result.prompt || null,
         explanation: result.explanation || null,
         time_estimate: result.time_estimate || '',
-        fix_type: result.type || 'seul',
+        fix_type: result.type || 'solo',
         profile_type: techLevel,
       }).catch((e) => console.error('[cache_save_user]', e)),
 
@@ -404,7 +404,7 @@ Réponds UNIQUEMENT avec le JSON. Aucun texte hors JSON.`;
         prompt: result.prompt || null,
         explanation: result.explanation || null,
         time_estimate: result.time_estimate || '',
-        type: result.type || 'seul',
+        type: result.type || 'solo',
         use_count: 1,
       }).catch((e) => console.error('[cache_save_library]', e)),
     ]);

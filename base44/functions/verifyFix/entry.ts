@@ -24,49 +24,49 @@ Deno.serve(async (req) => {
 
     const taskLabel = taskTitle || issue || '';
 
-    const prompt = `Tu es un expert AEO (AI Engine Optimization) qui vérifie si une correction a été appliquée avec succès sur un site web en direct.
+    const prompt = `You are an AEO (AI Engine Optimization) expert who verifies whether a fix has been successfully applied to a live website.
 
-IDENTITÉ COMPLÈTE DU BUSINESS:
-- Nom: "${businessName}"
-- Site web: ${siteUrl}
-- Secteur: ${industry}
-- Ville: ${city}
-- Audience cible: ${target}
-- Mots-clés de marque: ${brandKeywords}
-- Produits/services: ${products}
+COMPLETE BUSINESS IDENTITY:
+- Name: "${businessName}"
+- Website: ${siteUrl}
+- Industry: ${industry}
+- City: ${city}
+- Target audience: ${target}
+- Brand keywords: ${brandKeywords}
+- Products/services: ${products}
 
-TÂCHE À VÉRIFIER:
+TASK TO VERIFY:
 ${taskLabel}
 
-${issue && issue !== taskLabel ? `Problème initial identifié: ${issue}` : ''}
+${issue && issue !== taskLabel ? `Initial issue identified: ${issue}` : ''}
 
-CE QUI DEVRAIT ÊTRE FAIT:
+WHAT SHOULD HAVE BEEN DONE:
 ${fixSummary}
 
-${fixSteps && fixSteps.length > 0 ? `Étapes attendues:\n${fixSteps.map((s, i) => `${i+1}. ${typeof s === 'string' ? s : s.description || s.text || ''}`).join('\n')}` : ''}
+${fixSteps && fixSteps.length > 0 ? `Expected steps:\n${fixSteps.map((s, i) => `${i+1}. ${typeof s === 'string' ? s : s.description || s.text || ''}`).join('\n')}` : ''}
 
-${fixPrompt ? `Prompt utilisé pour générer le contenu:\n${fixPrompt}` : ''}
+${fixPrompt ? `Prompt used to generate content:\n${fixPrompt}` : ''}
 
-${fixExplanation ? `Explication technique:\n${fixExplanation}` : ''}
+${fixExplanation ? `Technical explanation:\n${fixExplanation}` : ''}
 
 MISSION:
-1. Va sur le site ${siteUrl} et analyse son contenu actuel (pages, texte, structure HTML, données structurées)
-2. Vérifie si la correction décrite ci-dessus a été appliquée sur le site
-3. Cherche spécifiquement les éléments que la correction devrait avoir produit:
-   - Texte généré (paragraphes, descriptions, titres)
-   - Structure HTML (balises sémantiques, sections)
-   - Données structurées (JSON-LD, schema.org)
+1. Go to the site ${siteUrl} and analyze its current content (pages, text, HTML structure, structured data)
+2. Check if the fix described above has been applied to the site
+3. Look specifically for the elements the fix should have produced:
+   - Generated text (paragraphs, descriptions, headings)
+   - HTML structure (semantic tags, sections)
+   - Structured data (JSON-LD, schema.org)
    - Meta tags
-   - Contenu de la page correspondant au business "${businessName}"
-4. Sois RIGOUREUX: ne valide QUE si tu trouves réellement la correction sur le site live
+   - Page content matching the business "${businessName}"
+4. Be RIGOROUS: only validate if you actually find the fix on the live site
 
-RÉPONSE JSON OBLIGATOIRE:
+MANDATORY JSON RESPONSE:
 {
   "verified": true/false,
   "confidence": 0-100,
-  "what_was_found": "Ce que tu as réellement trouvé sur le site (sois précis: quelle page, quel contenu, quelle balise)",
-  "what_is_missing": "Ce qui manque encore (laisse vide si tout est validé)",
-  "feedback": "Message direct et chaleureux à l'utilisateur. Si validé: félicitations + impact business. Si non validé: encouragement précis sur ce qu'il reste à faire."
+  "what_was_found": "What you actually found on the site (be specific: which page, what content, what tag)",
+  "what_is_missing": "What is still missing (leave empty if everything is validated)",
+  "feedback": "Direct and friendly message to the user. If validated: congratulations + business impact. If not validated: precise encouragement on what remains to be done."
 }`;
 
     const result = await base44.integrations.Core.InvokeLLM({

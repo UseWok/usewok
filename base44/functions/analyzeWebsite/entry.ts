@@ -311,12 +311,12 @@ Deno.serve(async (req) => {
         h1: homeSignals.h1Tags,
         h2Count: homeSignals.h2Count,
         h2Sample: homeSignals.h2Tags.slice(0, 5),
-        metaDesc: homeSignals.metaDesc || '(absente)',
+        metaDesc: homeSignals.metaDesc || '(missing)',
         metaDescLength: homeSignals.metaDescLength,
-        canonical: homeSignals.canonical || '(absent)',
+        canonical: homeSignals.canonical || '(missing)',
         canonicalMatchesUrl,
         wordCount: homeSignals.wordCount,
-        ogImage: homeSignals.ogImage ? 'présente' : 'absente',
+        ogImage: homeSignals.ogImage ? 'present' : 'missing',
         hasMobileViewport: homeSignals.hasMobileViewport,
         hasPhone: homeSignals.hasPhone,
         hasEmail: homeSignals.hasEmail,
@@ -367,44 +367,44 @@ Deno.serve(async (req) => {
 
       // SEO + AI scores — give LLM the REAL technical audit
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Tu es un expert SEO et visibilité IA (AEO). Tu as reçu un audit technique RÉEL du site ${cleanUrl} — toutes les données ci-dessous proviennent d'un vrai crawl HTML du site, pas d'estimations.
+        prompt: `You are an SEO and AI visibility (AEO) expert. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
 
-DONNÉES RÉELLES CRAWLÉES :
+REAL CRAWLED DATA:
 ${JSON.stringify(technicalAudit, null, 2)}
 
-Sur la base de ces données RÉELLES, calcule :
-- ai_visibility_score: 0-100 (présence IA — schémas, mentions, citations)
-- message_clarity_score: 0-100 (clarté du message — H1, meta desc, mots)  
-- commercial_presence_score: 0-100 (signaux business — téléphone, adresse, fiche Google probable)
-- overall_score: 0-100 (moyenne pondérée)
+Based on this REAL data, calculate:
+- ai_visibility_score: 0-100 (AI presence — schemas, mentions, citations)
+- message_clarity_score: 0-100 (message clarity — H1, meta desc, words)
+- commercial_presence_score: 0-100 (business signals — phone, address, likely Google listing)
+- overall_score: 0-100 (weighted average)
 
-Et fournis aussi (depuis tes connaissances + web) :
+Also provide (from your knowledge + web):
 - business_name: string
-- business_type: string (secteur réel de l'entreprise)
+- business_type: string (actual industry of the business)
 - city: string
-- country: string (code ISO 2 lettres)
-- organic_traffic: number (estimation mensuelle)
+- country: string (2-letter ISO code)
+- organic_traffic: number (monthly estimate)
 - organic_keywords: number
 - backlinks: number
 - authority_score: number 0-100
-- shock_insight: string (une phrase courte et percutante en français sur ce que ce site perd concrètement)
+- shock_insight: string (a short, punchy English sentence about what this site is concretely losing)
 
-PUIS génère des ISSUES ultra-concrètes basées UNIQUEMENT sur ce que le crawl a révélé.
-Chaque issue doit :
-- citer la page exacte concernée si possible (ex: "sur votre page d'accueil", "sur /contact", "sur votre page /blog")
-- être formulée en français simple pour un non-technicien
-- avoir un urgency : "high" | "medium" | "low"
-- avoir un impact: string (ce que ça fait perdre concrètement)
+THEN generate ultra-specific ISSUES based ONLY on what the crawl revealed.
+Each issue must:
+- cite the exact page concerned if possible (e.g.: "on your homepage", "on /contact", "on your /blog page")
+- be written in simple English for a non-technical person
+- have an urgency: "high" | "medium" | "low"
+- have an impact: string (what it concretely costs you)
 
-Exemples de BONS issues basés sur les données réelles :
-- Si hasOrganization=false → "Votre page d'accueil ne contient aucune information structurée sur votre entreprise — ChatGPT et Gemini ne savent pas qui vous êtes quand un client les interroge sur votre secteur."
-- Si aboutPageFound=false → "Aucune page 'À propos' détectée — les IA ne peuvent pas identifier qui dirige cette entreprise ni établir la confiance nécessaire pour vous recommander."
-- Si metaDescLength=0 → "Votre page d'accueil n'a aucune description — Google et les IA voient une page sans contexte, ce qui réduit vos chances d'apparaître en réponse à une question."
-- Si hasFaqSchema=false et questionMarksInText>0 → "Votre site contient des questions mais sans balisage FAQ structuré — Perplexity et Google affichent vos concurrents en featured snippet à votre place."
+Examples of GOOD issues based on real data:
+- If hasOrganization=false → "Your homepage contains no structured information about your business — ChatGPT and Gemini don't know who you are when a customer asks them about your industry."
+- If aboutPageFound=false → "No 'About' page detected — AI engines cannot identify who runs this business or build the trust needed to recommend you."
+- If metaDescLength=0 → "Your homepage has no description — Google and AI engines see a page with no context, reducing your chances of appearing in response to a question."
+- If hasFaqSchema=false and questionMarksInText>0 → "Your site contains questions but no structured FAQ markup — Perplexity and Google show your competitors in featured snippets instead of you."
 
-Ne génère que des issues basées sur ce que le crawl a RÉELLEMENT trouvé ou pas trouvé. Maximum 5 issues, classées par urgency décroissante.
+Only generate issues based on what the crawl ACTUALLY found or didn't find. Maximum 5 issues, sorted by decreasing urgency.
 
-Retourne JSON valide uniquement.`,
+Return valid JSON only.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {
@@ -441,9 +441,9 @@ Retourne JSON valide uniquement.`,
 
       // AI engines scores
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Estime les scores de visibilité IA pour ${cleanUrl} sur chaque moteur (0-100).
-Un site bien connu = 60-90. Une PME locale sans présence en ligne = 5-20.
-Retourne uniquement du JSON valide.`,
+        prompt: `Estimate AI visibility scores for ${cleanUrl} on each engine (0-100).
+A well-known site = 60-90. A local SMB with no online presence = 5-20.
+Return only valid JSON.`,
         add_context_from_internet: true,
         model: 'gemini_3_flash',
         response_json_schema: {
@@ -464,27 +464,27 @@ Retourne uniquement du JSON valide.`,
 
       // LRS + Action plan — ANCHORED in real crawl data
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Tu es expert en AEO (Answer Engine Optimization). Voici le crawl RÉEL de ${cleanUrl} :
+        prompt: `You are an AEO (Answer Engine Optimization) expert. Here is the REAL crawl of ${cleanUrl}:
 
 ${JSON.stringify(technicalAudit, null, 2)}
 
-Calcule le LLM Resonance Score (LRS) basé sur ces données réelles.
+Calculate the LLM Resonance Score (LRS) based on this real data.
 
-Puis génère UN PLAN D'ACTION en 3 à 5 actions CONCRÈTES et SPÉCIFIQUES.
-Chaque action doit :
-- Nommer la page EXACTE à modifier (ex: "/", "/a-propos", "/blog/mon-article")
-- Nommer l'élément EXACT à ajouter/modifier (ex: "bloc JSON-LD de type Organization", "balise <meta name='description'>", "section FAQ avec 6 questions en schema FAQPage")
-- Expliquer en 1 phrase POURQUOI ça va changer les recommandations IA
-- Estimer l'effort réel (low = < 1h, medium = 2-4h, high = 1 jour+)
+Then generate AN ACTION PLAN with 3 to 5 CONCRETE and SPECIFIC actions.
+Each action must:
+- Name the EXACT page to modify (e.g.: "/", "/about", "/blog/my-article")
+- Name the EXACT element to add/modify (e.g.: "JSON-LD Organization block", "<meta name='description'> tag", "FAQ section with 6 questions in FAQPage schema")
+- Explain in 1 sentence WHY it will change AI recommendations
+- Estimate real effort (low = < 1h, medium = 2-4h, high = 1 day+)
 
-EXEMPLES D'ACTIONS CONCRÈTES :
-- Si hasOrganization=false : "Ajouter un bloc JSON-LD Organization sur la page d'accueil (/) avec name, url, description, sameAs (réseaux sociaux)"
-- Si aboutPageFound=false : "Créer une page /a-propos avec le nom et la photo du fondateur + schéma Person"
-- Si hasFaqSchema=false : "Transformer les questions existantes en bloc FAQPage JSON-LD sur /faq — Perplexity cite directement les FAQs structurées"
-- Si metaDescLength < 50 : "Rédiger une meta description de 155 caractères sur / incluant votre activité, ville, et bénéfice principal"
-- Si canonicalMatchesUrl=false : "Corriger la balise canonical sur / qui pointe vers ${homeSignals.canonical} au lieu de ${cleanUrl}"
+EXAMPLES OF CONCRETE ACTIONS:
+- If hasOrganization=false: "Add a JSON-LD Organization block on the homepage (/) with name, url, description, sameAs (social media)"
+- If aboutPageFound=false: "Create an /about page with the founder's name and photo + Person schema"
+- If hasFaqSchema=false: "Turn existing questions into FAQPage JSON-LD block on /faq — Perplexity directly cites structured FAQs"
+- If metaDescLength < 50: "Write a 155-character meta description on / including your activity, city, and main benefit"
+- If canonicalMatchesUrl=false: "Fix the canonical tag on / that points to ${homeSignals.canonical} instead of ${cleanUrl}"
 
-Toutes les actions en français. Retourne JSON valide uniquement.`,
+All actions in English. Return valid JSON only.`,
         add_context_from_internet: false,
         model: 'gemini_3_1_pro',
         response_json_schema: {

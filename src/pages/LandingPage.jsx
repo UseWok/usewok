@@ -244,6 +244,59 @@ export default function LandingPage() {
           .uw-landing .navlinks{ display:none; }
           .uw-landing .confidence-top{ flex-direction:column; align-items:flex-start; }
         }
+        @media (max-width:640px){
+          .uw-landing section{ padding:56px 0; }
+          .uw-landing .hero{ padding:80px 0 48px; }
+          .uw-landing .hero h1{ font-size:30px; line-height:1.1; }
+          .uw-landing .hero p{ font-size:15px; }
+          .uw-landing .hero-ctas{ flex-direction:column; gap:10px; width:100%; }
+          .uw-landing .hero-ctas .btn{ width:100%; justify-content:center; }
+          .uw-landing .hero-strip{ gap:8px; margin-top:36px; }
+          .uw-landing .strip-pill{ font-size:11px; padding:6px 12px; }
+          .uw-landing .navright{ gap:10px; }
+          .uw-landing .navright .btn-dark{ padding:0 16px; height:40px; font-size:13px; }
+          .uw-landing .nav-login{ display:none; }
+          .uw-landing nav .wrap{ height:60px; }
+          .uw-landing .brand span{ font-size:14px; }
+          .uw-landing .brand .mark{ width:24px; height:24px; }
+          .uw-landing .panel{ padding:28px 22px; min-height:auto; border-radius:16px; }
+          .uw-landing .panel-light h3{ font-size:22px; }
+          .uw-landing .panel-check{ padding:28px 22px; border-radius:16px; }
+          .uw-landing .panel-scores{ padding:28px 22px; border-radius:16px; }
+          .uw-landing .score-row{ padding:12px 14px; }
+          .uw-landing .score-row .bar{ width:70px; }
+          .uw-landing .confidence-top{ gap:20px; margin-bottom:28px; }
+          .uw-landing .confidence-top h2{ font-size:26px; }
+          .uw-landing .confidence-top p{ font-size:13px; margin-bottom:12px; }
+          .uw-landing .explain-head h2{ font-size:24px; }
+          .uw-landing .explain-head{ margin-bottom:36px; }
+          .uw-landing .explain-col{ gap:24px; }
+          .uw-landing .explain-item b{ font-size:14px; }
+          .uw-landing .explain-item p{ font-size:12.5px; max-width:100%; }
+          .uw-landing .stack-cards{ width:170px; height:140px; }
+          .uw-landing .stack-cards .c{ width:100px; height:125px; }
+          .uw-landing .stackband{ padding:48px 24px; border-radius:18px; }
+          .uw-landing .stackband h2{ font-size:28px; }
+          .uw-landing .stackband p{ font-size:13px; margin:14px auto 32px; }
+          .uw-landing .logos{ gap:20px; }
+          .uw-landing .logos .lg{ font-size:13px; gap:6px; }
+          .uw-landing .finalcta{ padding:56px 20px; border-radius:18px; }
+          .uw-landing .cta-card{ padding:32px 24px; max-width:100%; }
+          .uw-landing .cta-card h3{ font-size:22px; }
+          .uw-landing .test-card{ padding:20px; border-radius:14px; }
+          .uw-landing .stat-card{ padding:20px; min-height:120px; }
+          .uw-landing .stat-card .big{ font-size:30px; }
+          .uw-landing .faq-wrap h2{ font-size:22px; margin-bottom:24px; }
+          .uw-landing details{ padding:16px 4px; }
+          .uw-landing details summary{ font-size:13.5px; }
+          .uw-landing details p{ font-size:12.5px; }
+          .uw-landing footer{ padding:48px 0 32px; }
+          .uw-landing .foot-top{ gap:28px; margin-bottom:40px; }
+          .uw-landing .foot-brand p{ font-size:12.5px; max-width:100%; }
+          .uw-landing .foot-bottom{ flex-direction:column; gap:8px; text-align:center; padding-top:20px; }
+          .uw-landing .trustbar{ padding:0 0 56px; }
+          .uw-landing .trustlogos span{ font-size:13px; }
+        }
       `}</style>
 
       {/* NAV */}

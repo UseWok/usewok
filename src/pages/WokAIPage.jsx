@@ -35,8 +35,8 @@ function TypingDots() {
 
 // ── AI content renderer — detects plan link ────────────────────────
 function AIContent({ content, onPlanLink }) {
-  // Detect if response contains a "plan d'action" reference → render link
-  const hasPlanRef = /plan\s+d['']action|rapport\s+complet|voir\s+le\s+plan/i.test(content);
+  // Detect if response contains an "action plan" reference → render link
+  const hasPlanRef = /action\s+plan|full\s+report|see\s+the\s+plan|detailed\s+plan/i.test(content);
 
   // Strip the markdown plan-link marker if present, render rest
   const cleanContent = content.replace(/\[PLAN_LINK\]/gi, '').trim();
@@ -51,7 +51,7 @@ function AIContent({ content, onPlanLink }) {
           <button onClick={onPlanLink}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: F }}>
             <ArrowRight size={13} color={CORAL} strokeWidth={2} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: CORAL }}>Voir le plan d'action détaillé</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: CORAL }}>View the detailed action plan</span>
           </button>
         </div>
       )}
@@ -62,7 +62,7 @@ function AIContent({ content, onPlanLink }) {
 // ── Message bubble ─────────────────────────────────────────────────
 function MessageBubble({ msg, onPlanLink }) {
   const isUser = msg.role === 'user';
-  const time = new Date(msg.ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const time = new Date(msg.ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
   if (isUser) {
     return (
@@ -132,10 +132,10 @@ function getSmartSuggestions(profile, domainLabel, actionTasks) {
   void nextPendingTask;
 
   if (!profile) return [
-    { icon: Zap, text: 'Lance un scan pour analyser mon site' },
-    { icon: Target, text: 'Comment améliorer ma visibilité sur les IA ?' },
-    { icon: AlertTriangle, text: 'Quels sont les critères clés pour ChatGPT ?' },
-    { icon: TrendingUp, text: 'Comment optimiser mon contenu pour les LLM ?' },
+    { icon: Zap, text: 'Run a scan to analyze my site' },
+    { icon: Target, text: 'How can I improve my AI visibility?' },
+    { icon: AlertTriangle, text: 'What are the key criteria for ChatGPT?' },
+    { icon: TrendingUp, text: 'How do I optimize my content for LLMs?' },
   ];
 
   const score = profile.score_overall || profile.lrs_score || 0;
@@ -143,10 +143,10 @@ function getSmartSuggestions(profile, domainLabel, actionTasks) {
   const topCompetitor = profile.competitors?.[0]?.name || profile.competitors?.[0]?.domain || null;
 
   return [
-    { icon: Zap, text: nextPendingTask ? `J'ai ${doneCount} tâche${doneCount > 1 ? 's' : ''} terminée${doneCount > 1 ? 's' : ''} — que faire maintenant ?` : score > 0 ? `Mon score est ${score}/100 — comment l'améliorer rapidement ?` : "Quelles sont mes priorités d'optimisation ?" },
-    { icon: AlertTriangle, text: critiques ? `Comment corriger "${critiques.slice(0, 40)}" ?` : 'Quels problèmes techniques bloquent mon référencement IA ?' },
-    { icon: TrendingUp, text: topCompetitor ? `Pourquoi ${topCompetitor} me dépasse-t-il sur les IA ?` : 'Comment améliorer ma part de voix IA vs concurrents ?' },
-    { icon: Target, text: nextPendingTask ? `Explique-moi comment réaliser : "${nextPendingTask.slice(0, 45)}"` : `Donne-moi un plan d'action concret pour cette semaine` },
+    { icon: Zap, text: nextPendingTask ? `I've completed ${doneCount} task${doneCount > 1 ? 's' : ''} — what should I do next?` : score > 0 ? `My score is ${score}/100 — how can I improve it quickly?` : 'What are my optimization priorities?' },
+    { icon: AlertTriangle, text: critiques ? `How do I fix "${critiques.slice(0, 40)}"?` : 'What technical issues are blocking my AI visibility?' },
+    { icon: TrendingUp, text: topCompetitor ? `Why is ${topCompetitor} outranking me on AI engines?` : 'How can I improve my AI share of voice vs competitors?' },
+    { icon: Target, text: nextPendingTask ? `Explain how to do: "${nextPendingTask.slice(0, 45)}"` : 'Give me a concrete action plan for this week' },
   ];
 }
 
@@ -159,7 +159,7 @@ function EmptyState({ onSuggest, domain, profile, actionTasks }) {
       </div>
       <p style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.03em', fontFamily: F }}>WOK AI</p>
       <p style={{ fontSize: 13, color: INK3, margin: '0 0 32px', lineHeight: 1.6, textAlign: 'center', fontFamily: F }}>
-        {domain ? `Données de ${domain} disponibles. Pose ta question.` : "Lance un scan depuis l'accueil pour des réponses basées sur tes données réelles."}
+        {domain ? `Data for ${domain} is ready. Ask your question.` : 'Run a scan from the home page to get answers based on your real data.'}
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%' }}>
         {suggestions.map((s, i) => {
@@ -220,7 +220,7 @@ function MicButton({ onTranscript }) {
       tick();
     } catch {}
     const rec = new SpeechRecognition();
-    rec.lang = 'fr-FR';
+    rec.lang = 'en-US';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
@@ -265,7 +265,7 @@ function DrivePickerModal({ open, onClose, onImport }) {
       setFiles(res?.data?.files || res?.data || []);
       setLoading(false);
     }).catch(() => {
-      setError('Connexion Google Drive requise. Connecte-la dans Connexions.');
+      setError('Google Drive connection required. Connect it in Connections.');
       setLoading(false);
     });
   }, [open]);
@@ -281,9 +281,9 @@ function DrivePickerModal({ open, onClose, onImport }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3 }}><X size={14} /></button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Chargement…</p>}
+          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Loading…</p>}
           {error && <p style={{ fontSize: 13, color: '#EF4444', padding: '12px 6px', lineHeight: 1.5 }}>{error}</p>}
-          {!loading && !error && files.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Aucun fichier trouvé</p>}
+          {!loading && !error && files.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>No files found</p>}
           {files.map(f => (
             <div key={f.id} onClick={() => toggle(f.id)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 8, cursor: 'pointer', background: selected.includes(f.id) ? SURFACE : 'transparent', marginBottom: 2 }}
@@ -301,7 +301,7 @@ function DrivePickerModal({ open, onClose, onImport }) {
           <div style={{ padding: '12px 16px', borderTop: `1px solid ${BORDER}` }}>
             <button onClick={() => { onImport(files.filter(f => selected.includes(f.id))); onClose(); }} disabled={!selected.length}
               style={{ width: '100%', padding: '10px', background: selected.length ? INK : '#DDD', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 600, color: WHITE, cursor: selected.length ? 'pointer' : 'not-allowed', fontFamily: F }}>
-              Importer {selected.length ? `${selected.length} fichier${selected.length > 1 ? 's' : ''}` : ''}
+              Import {selected.length ? `${selected.length} file${selected.length > 1 ? 's' : ''}` : ''}
             </button>
           </div>
         )}
@@ -317,7 +317,7 @@ async function loadCloudConvs() {
     return recs.map(r => {
       let messages = [];
       try { messages = JSON.parse(r.messages_json || '[]'); } catch {}
-      return { id: r.id, title: r.title || 'Sans titre', messages, site_url: r.site_url, updatedAt: r.updated_at || new Date(r.updated_date).getTime() };
+      return { id: r.id, title: r.title || 'Untitled', messages, site_url: r.site_url, updatedAt: r.updated_at || new Date(r.updated_date).getTime() };
     });
   } catch { return []; }
 }
@@ -335,55 +335,55 @@ async function saveCloudConv(conv) {
 
 // ── Context builder ────────────────────────────────────────────────
 function buildContext(user, profile, activeDomain) {
-  const name = user?.full_name || user?.email?.split('@')[0] || 'utilisateur';
+  const name = user?.full_name || user?.email?.split('@')[0] || 'user';
   const url = activeDomain?.url || profile?.site_url || '';
 
-  let ctx = `Tu es WOK AI, l'assistant IA de ${name}.\n\n`;
-  ctx += `## RÈGLES STRICTES\n`;
-  ctx += `1. Réponds en français, court et direct. 3-5 phrases max sauf si plan complet demandé.\n`;
-  ctx += `2. JAMAIS de tableaux. JAMAIS d'intro ou conclusion. Va droit au but.\n`;
-  ctx += `3. Si l'utilisateur demande une action : 2-3 étapes concrètes numérotées max.\n`;
-  ctx += `4. Cite les chiffres exacts si disponibles ci-dessous.\n`;
-  ctx += `5. Commence directement par la réponse.\n`;
-  ctx += `6. IMPORTANT: Quand tu mentionnes le plan d'action ou recommandes de le consulter, assure-toi que ta réponse contient les mots "plan d'action" ou "plan détaillé" — cela affichera automatiquement un lien pour l'utilisateur.\n\n`;
-  ctx += `## DONNÉES — ${name} (${url})\n`;
+  let ctx = `You are WOK AI, the AI assistant for ${name}.\n\n`;
+  ctx += `## STRICT RULES\n`;
+  ctx += `1. Respond in English, short and direct. 3-5 sentences max unless a full plan is requested.\n`;
+  ctx += `2. NEVER use tables. NEVER use intros or conclusions. Get straight to the point.\n`;
+  ctx += `3. If the user asks for an action: 2-3 concrete numbered steps max.\n`;
+  ctx += `4. Cite exact numbers if available below.\n`;
+  ctx += `5. Start directly with the answer.\n`;
+  ctx += `6. IMPORTANT: When you mention the action plan or recommend viewing it, make sure your response contains the words "action plan" or "detailed plan" — this will automatically display a link for the user.\n\n`;
+  ctx += `## DATA — ${name} (${url})\n`;
 
   if (!profile) {
-    ctx += `Aucune donnée de site disponible. Si demande d'infos site → dire de cliquer "Analyser" sur l'accueil.\n`;
+    ctx += `No site data available. If the user asks for site info → tell them to click "Analyze" on the home page.\n`;
     return ctx;
   }
 
   const score = profile.score_overall || profile.lrs_score;
-  if (score) ctx += `Score global: ${score}/100\n`;
-  if (profile.score_ai_visibility) ctx += `Visibilité IA: ${profile.score_ai_visibility}/100\n`;
-  if (profile.score_message_clarity) ctx += `Clarté: ${profile.score_message_clarity}/100\n`;
-  if (profile.score_commercial_signal) ctx += `Commercial: ${profile.score_commercial_signal}/100\n`;
+  if (score) ctx += `Overall score: ${score}/100\n`;
+  if (profile.score_ai_visibility) ctx += `AI visibility: ${profile.score_ai_visibility}/100\n`;
+  if (profile.score_message_clarity) ctx += `Message clarity: ${profile.score_message_clarity}/100\n`;
+  if (profile.score_commercial_signal) ctx += `Commercial signal: ${profile.score_commercial_signal}/100\n`;
 
   const engines = ['chatgpt', 'gemini', 'claude', 'perplexity', 'mistral', 'grok'];
   const engScores = engines.filter(k => profile[`${k}_score`] != null).map(k => `${k}: ${profile[`${k}_score`]}`);
-  if (engScores.length) ctx += `Moteurs IA: ${engScores.join(' | ')}\n`;
+  if (engScores.length) ctx += `AI engines: ${engScores.join(' | ')}\n`;
 
   if (profile.identity_name) ctx += `Business: ${profile.identity_name}${profile.identity_industry ? ` (${profile.identity_industry})` : ''}\n`;
   if (profile.shock_insight) ctx += `Insight: "${profile.shock_insight}"\n`;
 
   if (profile.action_plan?.length) {
-    ctx += `Plan d'action (${profile.action_plan.length} actions):\n`;
+    ctx += `Action plan (${profile.action_plan.length} actions):\n`;
     profile.action_plan.slice(0, 6).forEach((a, i) => ctx += `${i+1}. ${a.title || a}\n`);
   }
 
   const issues = profile.technical_issues || profile.issues || [];
-  if (issues.length) ctx += `Problèmes (${issues.length}): ${issues.slice(0,4).map(i => i.title || i.name || i).join(', ')}\n`;
+  if (issues.length) ctx += `Issues (${issues.length}): ${issues.slice(0,4).map(i => i.title || i.name || i).join(', ')}\n`;
 
-  if (profile.last_scan) ctx += `Dernier scan: ${new Date(profile.last_scan).toLocaleDateString('fr-FR')}\n`;
+  if (profile.last_scan) ctx += `Last scan: ${new Date(profile.last_scan).toLocaleDateString('en-US')}\n`;
   return ctx;
 }
 
 // ── Easter egg fake demo messages ─────────────────────────────────
 const DEMO_MESSAGES = [
-  { role: 'user', content: 'bonjour', ts: Date.now() - 90000 },
-  { role: 'assistant', content: 'Bonjour ! Prêt à analyser ta visibilité IA. Pose ta question.', ts: Date.now() - 88000 },
-  { role: 'user', content: 'Mon score est 97/100 — comment l\'améliorer encore ?', ts: Date.now() - 60000 },
-  { role: 'assistant', content: 'Très bon score. Les 3 points restants viennent surtout de la fréquence de citation sur Perplexity et Copilot.', ts: Date.now() - 58000, hasPlanLink: true },
+  { role: 'user', content: 'hello', ts: Date.now() - 90000 },
+  { role: 'assistant', content: 'Hi! Ready to analyze your AI visibility. Ask your question.', ts: Date.now() - 88000 },
+  { role: 'user', content: 'My score is 97/100 — how can I improve it further?', ts: Date.now() - 60000 },
+  { role: 'assistant', content: 'Great score. The remaining 3 points come mostly from citation frequency on Perplexity and Copilot.', ts: Date.now() - 58000, hasPlanLink: true },
 ];
 
 // ── Main ───────────────────────────────────────────────────────────
@@ -474,7 +474,7 @@ export default function WokAIPage({ user: userProp }) {
     if (!chatQuota.allowed) {
       setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, {
         role: 'assistant',
-        content: `⛔ **Quota de messages atteint** (${chatQuota.used}/${chatQuota.limit} ce mois).\n\nVotre abonnement limite le nombre de messages WOK AI. Passez à un plan supérieur pour continuer.`,
+        content: `⛔ **Message quota reached** (${chatQuota.used}/${chatQuota.limit} this month).\n\nYour subscription limits the number of WOK AI messages. Upgrade to a higher plan to continue.`,
         ts: Date.now() + 1, isError: true,
       }]);
       setInput('');
@@ -500,14 +500,14 @@ export default function WokAIPage({ user: userProp }) {
       const u = await base44.auth.me().catch(() => null);
       const email = u?.email;
       if (!email) {
-        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: '❌ Email non trouvé — connecte-toi d\'abord.', ts: Date.now() + 1, isError: true }]);
+        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: '❌ Email not found — please log in first.', ts: Date.now() + 1, isError: true }]);
         return;
       }
       const firstName = u?.full_name?.split(' ')[0] || '';
       const siteUrl = profile?.site_url || '';
       const score = profile?.score_overall || 42;
       const criticalErrors = 3;
-      const issues = [{ problem: 'Aucun schéma Organization détecté sur votre page d\'accueil', urgency: 'high' }];
+      const issues = [{ problem: 'No Organization schema detected on your homepage', urgency: 'high' }];
 
       setSendingTest(true);
       try {
@@ -516,9 +516,9 @@ export default function WokAIPage({ user: userProp }) {
           base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'no_scan_j3', score, criticalErrors, issues } }),
           base44.functions.invoke('brevoEmailSystem', { action: 'sendEmail', email, firstName, siteUrl, data: { emailType: 'final_offer', score, criticalErrors, issues } }),
         ]);
-        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: `✅ 3 mails envoyés à **${email}** :\n- Mail 1 : Résultats du scan\n- Mail 2 : Pourquoi les IA t'ignorent\n- Mail 3 : Tes concurrents captent ces clients`, ts: Date.now() + 1 }]);
+        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: `✅ 3 emails sent to **${email}**:\n- Email 1: Scan results\n- Email 2: Why AI engines ignore you\n- Email 3: Your competitors are capturing these customers`, ts: Date.now() + 1 }]);
       } catch (e) {
-        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: `❌ Erreur : ${e.message}`, ts: Date.now() + 1, isError: true }]);
+        setMessages(m => [...m, { role: 'user', content, ts: Date.now() }, { role: 'assistant', content: `❌ Error: ${e.message}`, ts: Date.now() + 1, isError: true }]);
       } finally { setSendingTest(false); }
       return;
     }
@@ -565,7 +565,7 @@ export default function WokAIPage({ user: userProp }) {
         setConvs(prev => prev.map(c => c.id === activeDbId ? { ...c, messages: final, updatedAt: Date.now() } : c));
       } else {
         // Generate title + create new cloud conversation
-        const titleRes = await base44.integrations.Core.InvokeLLM({ prompt: `Titre court 3-5 mots français sans ponctuation pour: "${content.slice(0,100)}". UNIQUEMENT le titre.` }).catch(() => null);
+        const titleRes = await base44.integrations.Core.InvokeLLM({ prompt: `Short 3-5 word English title with no punctuation for: "${content.slice(0,100)}". ONLY the title.` }).catch(() => null);
         const titleRaw = typeof titleRes === 'string' ? titleRes : (titleRes?.data || titleRes?.response || content);
         const title = String(titleRaw).replace(/["']/g, '').trim().slice(0, 48) || content.slice(0, 40);
         const created = await base44.entities.Conversation.create({ title, site_url: activeDomain?.url || '', messages_json: JSON.stringify(final), updated_at: Date.now() });
@@ -576,7 +576,7 @@ export default function WokAIPage({ user: userProp }) {
         window.history.replaceState({}, '', `/wok-ai?conv=${created.id}`);
       }
     } catch {
-      setMessages(m => [...m, { role: 'assistant', content: "Je n'ai pas pu répondre — vérifie ta connexion et réessaie.", ts: Date.now(), isError: true }]);
+      setMessages(m => [...m, { role: 'assistant', content: "I couldn't respond — check your connection and try again.", ts: Date.now(), isError: true }]);
     } finally { setLoading(false); }
   };
 
@@ -596,18 +596,18 @@ export default function WokAIPage({ user: userProp }) {
             <motion.div initial={{ x: -300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }} transition={{ duration: 0.2 }}
               style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 280, background: WHITE, borderRight: `1px solid ${BORDER}`, zIndex: 50, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <div style={{ padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Conversations récentes</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Recent conversations</span>
                 <button onClick={() => setShowHistory(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3, padding: 2 }}><X size={14} /></button>
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '8px 8px' }}>
                 {/* Bouton Nouvelle conversation */}
                 <button onClick={() => { setMessages([]); setActiveConvId(null); setActiveDbId(null); window.history.replaceState({}, '', '/wok-ai'); setShowHistory(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', background: SURFACE, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, color: INK, fontFamily: F, marginBottom: 6, fontWeight: 600 }}>
-                  <Plus size={12} color={INK} /> Nouvelle conversation
-                </button>
-                {convLoading && <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '16px 0' }}>Chargement…</p>}
-                {!convLoading && convs.length === 0 && (
-                  <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '24px 0' }}>Aucune conversation</p>
+                  <Plus size={12} color={INK} /> New conversation
+                  </button>
+                  {convLoading && <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '16px 0' }}>Loading…</p>}
+                  {!convLoading && convs.length === 0 && (
+                   <p style={{ fontSize: 12, color: INK3, textAlign: 'center', padding: '24px 0' }}>No conversations</p>
                 )}
                 {convs.sort((a, b) => b.updatedAt - a.updatedAt).map(conv => (
                   <button key={conv.id} onClick={() => {
@@ -620,8 +620,8 @@ export default function WokAIPage({ user: userProp }) {
                     style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '9px 10px', background: activeConvId === conv.id ? SURFACE : 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', marginBottom: 2, textAlign: 'left', fontFamily: F }}
                     onMouseEnter={e => { if (activeConvId !== conv.id) e.currentTarget.style.background = SURFACE; }}
                     onMouseLeave={e => { if (activeConvId !== conv.id) e.currentTarget.style.background = 'transparent'; }}>
-                    <span style={{ fontSize: 12.5, color: INK, fontWeight: activeConvId === conv.id ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{conv.title || 'Sans titre'}</span>
-                    <span style={{ fontSize: 10, color: INK3, marginTop: 2 }}>{new Date(conv.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                    <span style={{ fontSize: 12.5, color: INK, fontWeight: activeConvId === conv.id ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{conv.title || 'Untitled'}</span>
+                    <span style={{ fontSize: 10, color: INK3, marginTop: 2 }}>{new Date(conv.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
                   </button>
                 ))}
               </div>
@@ -635,8 +635,8 @@ export default function WokAIPage({ user: userProp }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(10,10,11,0.75)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, fontFamily: F }}>
           <div style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.15)', borderTopColor: '#FF5A1F', animation: 'spin 0.8s linear infinite' }} />
           <div style={{ textAlign: 'center' }}>
-            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em' }}>Envoi des 3 emails en cours…</p>
-            <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Mail 1 · Mail 2 · Mail 3</p>
+            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em' }}>Sending 3 emails…</p>
+            <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Email 1 · Email 2 · Email 3</p>
           </div>
         </div>
       )}
@@ -645,7 +645,7 @@ export default function WokAIPage({ user: userProp }) {
       <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
         <button onClick={() => setShowHistory(v => !v)}
           style={{ width: 28, height: 28, borderRadius: 8, background: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer' }}
-          title="Historique des conversations">
+          title="Conversation history">
           <Sparkles size={13} color={CORAL} fill={CORAL} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -656,14 +656,14 @@ export default function WokAIPage({ user: userProp }) {
           style={{ padding: '5px 10px', border: `1px solid ${BORDER}`, borderRadius: 7, background: 'transparent', fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}
           onMouseEnter={e => e.currentTarget.style.background = SURFACE}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-          <Clock size={10} /> Historique {convs.length > 0 && <span style={{ fontSize: 10, background: INK, color: '#fff', borderRadius: 10, padding: '1px 5px' }}>{convs.length}</span>}
+          <Clock size={10} /> History {convs.length > 0 && <span style={{ fontSize: 10, background: INK, color: '#fff', borderRadius: 10, padding: '1px 5px' }}>{convs.length}</span>}
         </button>
         {activeConvId && (
           <button onClick={() => { setMessages([]); setActiveConvId(null); setActiveDbId(null); window.history.replaceState({}, '', '/wok-ai'); }}
             style={{ padding: '5px 10px', border: `1px solid ${BORDER}`, borderRadius: 7, background: 'transparent', fontSize: 11.5, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}
             onMouseEnter={e => e.currentTarget.style.background = SURFACE}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <Plus size={10} /> Nouvelle
+            <Plus size={10} /> New
           </button>
         )}
       </div>
@@ -733,7 +733,7 @@ export default function WokAIPage({ user: userProp }) {
                       transition={{ duration: 0.12 }}
                       style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden', minWidth: 200, zIndex: 100, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
                       {[
-                        { label: 'Joindre des fichiers', icon: <Paperclip size={13} color={INK2} />, action: () => { fileInputRef.current?.click(); setShowPlus(false); } },
+                        { label: 'Attach files', icon: <Paperclip size={13} color={INK2} />, action: () => { fileInputRef.current?.click(); setShowPlus(false); } },
                         { label: 'Google Drive', icon: <FileText size={13} color={INK2} />, action: () => { setShowDrive(true); setShowPlus(false); } },
                       ].map((item, i) => (
                         <button key={i} onClick={item.action}
@@ -755,7 +755,7 @@ export default function WokAIPage({ user: userProp }) {
                 e.target.style.height = 'auto';
                 e.target.style.height = Math.min(e.target.scrollHeight, 4 * 1.5 * 13.5) + 'px';
               }} onKeyDown={handleKeyDown}
-              placeholder={mode === 'scan' ? "Rechercher un domaine, lancer une analyse…" : "Poser une question, demander de l'aide..."} rows={1}
+              placeholder={mode === 'scan' ? 'Search a domain, run an analysis…' : 'Ask a question, get help...'} rows={1}
               style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
 
             {/* Mode selector */}

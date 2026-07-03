@@ -162,12 +162,12 @@ Based on this real data AND your knowledge of this domain, return a complete aud
   "js_css_total_files": number (estimated),
   "issues": array of objects {
     "id": string (slug),
-    "title": string (clear French title — no jargon, explain what it means for the business),
-    "category": string (one of: "Meta balises", "Contenu", "Explorabilité", "CSS", "Sécurité", "Liens", "IA"),
+    "title": string (clear English title — no jargon, explain what it means for the business),
+    "category": string (one of: "Meta tags", "Content", "Crawlability", "CSS", "Security", "Links", "AI"),
     "severity": "error"|"warning"|"notice",
     "count": number (pages affected),
-    "description": string (2-3 sentences in simple French, what is the problem and why it matters),
-    "fix_steps": array of 3-4 strings in French (concrete actionable steps)
+    "description": string (2-3 sentences in simple English, what is the problem and why it matters),
+    "fix_steps": array of 3-4 strings in English (concrete actionable steps)
   },
   "top_pages": array of max 15 objects {
     "url": string (full URL),
