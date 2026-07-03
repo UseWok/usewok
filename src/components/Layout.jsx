@@ -120,46 +120,28 @@ export default function Layout() {
   const [feedbackSending, setFeedbackSending] = useState(false);
 
   const RATINGS = [
-    { key: 'mauvais',  emoji: '👎', label: 'Mauvais',  color: '#EF4444' },
-    { key: 'mediocre', emoji: '😞', label: 'Médiocre', color: '#EF4444' },
-    { key: 'correct',  emoji: '😐', label: 'Correct',  color: '#F59E0B' },
-    { key: 'bien',     emoji: '😊', label: 'Bien',     color: '#10B981' },
-    { key: 'jadore',   emoji: '🤩', label: "J'adore", color: '#10B981' },
+    { key: 'bad',   emoji: '👎', label: 'Bad',   color: '#EF4444' },
+    { key: 'okay',  emoji: '😐', label: 'Okay',  color: '#F59E0B' },
+    { key: 'good',  emoji: '😊', label: 'Good',  color: '#10B981' },
+    { key: 'great', emoji: '🤩', label: 'Great', color: '#10B981' },
   ];
-
-  const isGood = (r) => r === 'bien' || r === 'jadore' || r === 'correct';
 
   const handleRatingClick = (key) => {
     if (feedbackSending) return;
     setFeedbackRating(key);
-    setFeedbackText('');
   };
 
   const handleFeedbackSend = async () => {
     if (!feedbackRating) return;
     setFeedbackSending(true);
     try {
-      if (!isGood(feedbackRating)) {
-        await base44.entities.SupportTicket.create({
-          description: `Feedback automatique — Note : ${feedbackRating}${feedbackText ? `\n\nMessage: ${feedbackText}` : ''}`,
-          category: 'other',
-          status: 'open',
-          user_email: user?.email || '',
-          user_name: user?.full_name || '',
-        });
-        setFeedbackSending(false);
-        setShowFeedback(false);
-        setFeedbackRating(null);
-        setFeedbackText('');
-        navigate('/support');
-        return;
-      } else {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: 'support@wok.so',
-          subject: `Feedback utilisateur — ${feedbackRating}`,
-          body: `Note: ${feedbackRating}\nUtilisateur: ${user?.email || 'inconnu'}\n\nMessage: ${feedbackText || '(aucun)'}`,
-        });
-      }
+      await base44.entities.Feedback.create({
+        rating: feedbackRating,
+        message: feedbackText || '',
+        user_email: user?.email || '',
+        user_name: user?.full_name || '',
+        user_id: user?.id || '',
+      });
     } catch {}
     setFeedbackSending(false);
     setFeedbackSent(true);
@@ -201,7 +183,7 @@ export default function Layout() {
           )}
           <button
             onClick={() => setShowFeedback(true)}
-            title="Donner un feedback"
+            title="Give feedback"
             style={{
               width: 28, height: 28, borderRadius: 8,
               background: 'rgba(0,0,0,0.05)', border: 'none',
@@ -228,65 +210,54 @@ export default function Layout() {
                 initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.22, ease: [0.22,1,0.36,1] }}
                 onClick={e => e.stopPropagation()}
-                style={{ background: '#fff', border: '1px solid #E8E8E6', borderRadius: 20, padding: '28px 24px 24px', width: '100%', maxWidth: 420, boxShadow: '0 24px 80px rgba(0,0,0,0.18)', position: 'relative' }}
+                style={{ background: '#fff', borderRadius: 16, padding: '24px 22px 20px', width: '100%', maxWidth: 360, boxShadow: '0 24px 80px rgba(0,0,0,0.16)', position: 'relative' }}
               >
                 <button onClick={() => { setShowFeedback(false); setFeedbackRating(null); setFeedbackText(''); }}
-                  style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, borderRadius: 8, border: '1px solid #E8E8E6', background: '#F8F7F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#999" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                  style={{ position: 'absolute', top: 12, right: 12, width: 26, height: 26, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
                 </button>
 
                 {feedbackSent ? (
-                  <div style={{ textAlign: 'center', padding: '20px 0 10px' }}>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '0 0 6px' }}>Merci pour votre retour !</p>
-                    <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.6 }}>Vos retours nous aident à nous améliorer.</p>
+                  <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16,185,129,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 4px' }}>Thank you!</p>
+                    <p style={{ fontSize: 12, color: '#888', margin: 0, lineHeight: 1.5 }}>Your feedback helps us improve.</p>
                   </div>
                 ) : (
                   <>
-                    <p style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Comment est votre expérience ?</p>
-                    <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.5 }}>Vos retours façonnent ce que nous construisons ensuite.</p>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '0 0 3px', letterSpacing: '-0.01em' }}>How is your experience?</p>
+                    <p style={{ fontSize: 12, color: '#999', margin: '0 0 16px', lineHeight: 1.5 }}>Your feedback shapes what we build next.</p>
 
-                    {/* 5 rating squares — color coded */}
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
                       {RATINGS.map(r => {
                         const selected = feedbackRating === r.key;
                         return (
                           <button key={r.key} onClick={() => handleRatingClick(r.key)}
                             disabled={feedbackSending}
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 4px 12px', borderRadius: 14, border: selected ? `2px solid ${r.color}` : '1.5px solid #E8E8E6', background: selected ? `${r.color}12` : '#FAFAF9', cursor: 'pointer', transition: 'all 130ms' }}>
-                            <span style={{ fontSize: 24, lineHeight: 1 }}>{r.emoji}</span>
-                            <span style={{ fontSize: 10, fontWeight: 600, color: selected ? r.color : '#999', whiteSpace: 'nowrap' }}>{r.label}</span>
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '11px 2px 9px', borderRadius: 10, border: selected ? `1.5px solid ${r.color}` : '1.5px solid #EEE', background: selected ? `${r.color}10` : '#FAFAF9', cursor: 'pointer', transition: 'all 130ms' }}>
+                            <span style={{ fontSize: 20, lineHeight: 1 }}>{r.emoji}</span>
+                            <span style={{ fontSize: 9.5, fontWeight: 600, color: selected ? r.color : '#AAA', whiteSpace: 'nowrap' }}>{r.label}</span>
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* Textarea always visible */}
-                    {(!feedbackRating || isGood(feedbackRating)) && (
-                      <textarea
-                        value={feedbackText}
-                        onChange={e => setFeedbackText(e.target.value)}
-                        placeholder="Dites-nous ce que vous en pensez..."
-                        rows={3}
-                        style={{ width: '100%', padding: '11px 13px', fontSize: 13, border: '1.5px solid #E8E8E6', borderRadius: 12, outline: 'none', resize: 'none', fontFamily: 'Inter, sans-serif', color: '#111', background: '#fff', boxSizing: 'border-box', marginBottom: 12, transition: 'border-color 150ms' }}
-                        onFocus={e => e.target.style.borderColor = '#F95738'}
-                        onBlur={e => e.target.style.borderColor = '#E8E8E6'}
-                      />
-                    )}
+                    <textarea
+                      value={feedbackText}
+                      onChange={e => setFeedbackText(e.target.value)}
+                      placeholder="Tell us more (optional)..."
+                      rows={2}
+                      style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: '1.5px solid #EEE', borderRadius: 10, outline: 'none', resize: 'none', fontFamily: 'Inter, sans-serif', color: '#111', background: '#fff', boxSizing: 'border-box', marginBottom: 12, transition: 'border-color 150ms' }}
+                      onFocus={e => e.target.style.borderColor = '#FF5A1F'}
+                      onBlur={e => e.target.style.borderColor = '#EEE'}
+                    />
 
-                    {/* Send / Support button */}
-                    {feedbackRating && !isGood(feedbackRating) ? (
-                      <button onClick={handleFeedbackSend} disabled={feedbackSending}
-                        style={{ width: '100%', padding: '13px 0', background: '#EF4444', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: feedbackSending ? 0.6 : 1 }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        {feedbackSending ? 'Envoi…' : 'Aller au support'}
-                      </button>
-                    ) : (
-                      <button onClick={handleFeedbackSend} disabled={feedbackSending || !feedbackRating}
-                        style={{ width: '100%', padding: '13px 0', background: feedbackRating ? '#0A0A0B' : '#F0EFED', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: feedbackRating ? '#fff' : '#aaa', cursor: feedbackRating ? 'pointer' : 'default', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: feedbackSending ? 0.6 : 1, transition: 'all 180ms' }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                        {feedbackSending ? 'Envoi…' : 'Envoyer'}
-                      </button>
-                    )}
+                    <button onClick={handleFeedbackSend} disabled={feedbackSending || !feedbackRating}
+                      style={{ width: '100%', padding: '11px 0', background: feedbackRating ? '#0A0A0B' : '#F0EFED', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: feedbackRating ? '#fff' : '#aaa', cursor: feedbackRating ? 'pointer' : 'default', fontFamily: 'Inter, sans-serif', opacity: feedbackSending ? 0.6 : 1, transition: 'all 180ms' }}>
+                      {feedbackSending ? 'Sending…' : 'Send feedback'}
+                    </button>
                   </>
                 )}
               </motion.div>

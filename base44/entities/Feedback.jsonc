@@ -1,0 +1,54 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "rating": {
+      "type": "string",
+      "title": "Rating",
+      "enum": [
+        "bad",
+        "okay",
+        "good",
+        "great"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "title": "Message",
+      "format": "textarea"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "user_name": {
+      "type": "string",
+      "title": "User Name"
+    },
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    }
+  },
+  "required": [
+    "rating"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
