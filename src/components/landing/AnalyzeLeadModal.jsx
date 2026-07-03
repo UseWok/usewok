@@ -21,28 +21,28 @@ const AI_LOGOS = [
 
 const QUESTIONS = [
   {
-    id: 'tech_level', emoji: '🛠️', question: 'Comment gérez-vous votre site ?',
+    id: 'tech_level', emoji: '🛠️', question: 'How do you manage your site?',
     options: [
-      { value: 'no_code', label: 'Je gère seul(e)', sub: 'Wix, Squarespace, sans code', logos: NO_CODE_LOGOS },
-      { value: 'ai_nocode', label: "J'utilise des IA", sub: 'ChatGPT, Claude pour m\'aider', logos: AI_LOGOS },
-      { value: 'developer', label: 'Je suis développeur', sub: 'Je code moi-même mon site' },
+      { value: 'no_code', label: 'I manage it myself', sub: 'Wix, Squarespace, no code', logos: NO_CODE_LOGOS },
+      { value: 'ai_nocode', label: 'I use AI tools', sub: 'ChatGPT, Claude to help me', logos: AI_LOGOS },
+      { value: 'developer', label: "I'm a developer", sub: 'I code my site myself' },
     ],
   },
   {
-    id: 'industry', emoji: '🏢', question: 'Votre secteur d\'activité ?',
+    id: 'industry', emoji: '🏢', question: 'What industry are you in?',
     options: [
-      { value: 'ecommerce', label: 'E-commerce', sub: 'Vente de produits en ligne' },
-      { value: 'services', label: 'Services', sub: 'Conseil, agence, freelance' },
-      { value: 'local', label: 'Commerce local', sub: 'Restaurant, magasin, artisan' },
-      { value: 'saas', label: 'SaaS / Tech', sub: 'Logiciel, application' },
+      { value: 'ecommerce', label: 'E-commerce', sub: 'Selling products online' },
+      { value: 'services', label: 'Services', sub: 'Consulting, agency, freelance' },
+      { value: 'local', label: 'Local business', sub: 'Restaurant, shop, artisan' },
+      { value: 'saas', label: 'SaaS / Tech', sub: 'Software, application' },
     ],
   },
   {
-    id: 'main_goal', emoji: '🎯', question: 'Votre objectif principal ?',
+    id: 'main_goal', emoji: '🎯', question: 'What is your main goal?',
     options: [
-      { value: 'more_clients', label: 'Plus de clients', sub: 'Être recommandé par ChatGPT, Gemini…' },
-      { value: 'local_visibility', label: 'Visibilité locale', sub: 'Apparaître pour ma zone' },
-      { value: 'competitor_beat', label: 'Dépasser mes concurrents', sub: 'Les surpasser sur les IA' },
+      { value: 'more_clients', label: 'More clients', sub: 'Get recommended by ChatGPT, Gemini…' },
+      { value: 'local_visibility', label: 'Local visibility', sub: 'Show up for my area' },
+      { value: 'competitor_beat', label: 'Beat my competitors', sub: 'Outrank them on AI engines' },
     ],
   },
 ];
@@ -91,21 +91,21 @@ export default function AnalyzeLeadModal({ onClose }) {
           {step === 'lead' && (
             <motion.div key="lead" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '32px 28px 28px' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#C43E14', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL }} /> Analyse gratuite
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL }} /> Free analysis
               </span>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Quel site voulez-vous analyser ?</h2>
-              <p style={{ fontSize: 13, color: INK_FAINT, margin: '0 0 20px', lineHeight: 1.5 }}>Recevez votre score de visibilité IA et un plan d'action personnalisé.</p>
+              <h2 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Which site should we analyze?</h2>
+              <p style={{ fontSize: 13, color: INK_FAINT, margin: '0 0 20px', lineHeight: 1.5 }}>Get your AI visibility score and a personalized action plan.</p>
 
               <form onSubmit={handleLeadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
                 <input required autoFocus value={url} onChange={e => setUrl(e.target.value)} placeholder="votresite.com"
                   style={{ padding: '13px 15px', border: `1.5px solid ${BORDER}`, borderRadius: 12, fontSize: 14.5, fontFamily: 'inherit', outline: 'none', background: '#fff' }} />
                 <button type="submit"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 0', background: INK, color: CREAM, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  Lancer mon analyse <ArrowRight size={14} />
+                  Start my analysis <ArrowRight size={14} />
                 </button>
               </form>
 
-              <p style={{ fontSize: 11, fontWeight: 700, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>Vérifié par Trustpilot</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>Verified by Trustpilot</p>
               <TrustpilotWidget />
             </motion.div>
           )}
@@ -150,7 +150,7 @@ export default function AnalyzeLeadModal({ onClose }) {
               </div>
 
               <div style={{ marginTop: 20 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>Vérifié par Trustpilot</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>Verified by Trustpilot</p>
                 <TrustpilotWidget />
               </div>
             </motion.div>
@@ -159,10 +159,10 @@ export default function AnalyzeLeadModal({ onClose }) {
           {step === 'projection' && (
             <motion.div key="projection" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '32px 28px 28px' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: '#EBF6F0', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#1E7A4C', marginBottom: 14 }}>
-                <Check size={11} /> Votre projection est prête
+                <Check size={11} /> Your projection is ready
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>{url.replace(/https?:\/\//, '')}</h2>
-              <p style={{ fontSize: 13, color: INK_FAINT, margin: '0 0 20px' }}>Basé sur vos réponses — avec UseWok, en 3 mois.</p>
+              <p style={{ fontSize: 13, color: INK_FAINT, margin: '0 0 20px' }}>Based on your answers — with UseWok, in 3 months.</p>
 
               <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 18, marginBottom: 20 }}>
                 <ProjectionChart answers={answers} />
@@ -170,9 +170,9 @@ export default function AnalyzeLeadModal({ onClose }) {
 
               <button onClick={goCreateAccount}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 0', background: CORAL, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 10 }}>
-                <Sparkles size={14} /> Créer mon compte et lancer le scan <ArrowRight size={14} />
+                <Sparkles size={14} /> Create my account & start the scan <ArrowRight size={14} />
               </button>
-              <p style={{ textAlign: 'center', fontSize: 11.5, color: INK_FAINT, margin: 0 }}>Résultat en moins de 60 secondes</p>
+              <p style={{ textAlign: 'center', fontSize: 11.5, color: INK_FAINT, margin: 0 }}>Results in under 60 seconds</p>
             </motion.div>
           )}
         </AnimatePresence>

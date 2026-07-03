@@ -259,6 +259,16 @@ Deno.serve(async (req) => {
     }
 
     const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+
+    // ── Server-side quota enforcement (anti-abuse) ────────────────────────────
+    const authUser = await base44.auth.me().catch(() => null);
+    if (!authUser) return Response.json({ error: 'Authentication required' }, { status: 401 });
+    const guardRes = await base44.functions.invoke('quotaGuard', { action: 'scan', site_url: cleanUrl }).catch(() => null);
+    if (!guardRes?.data?.allowed) {
+      console.log(`[analyzeWebsite] Quota blocked for ${authUser.email}: ${guardRes?.data?.reason || 'unknown'}`);
+      return Response.json({ error: 'Quota exceeded', reason: guardRes?.data?.reason || 'scan_limit', quota: guardRes?.data || null }, { status: 429 });
+    }
+
     let origin = '';
     try { origin = new URL(cleanUrl).origin; } catch {}
 
@@ -578,6 +588,21 @@ All actions in English. Return valid JSON only.`,
         } else {
           await base44.asServiceRole.entities.BusinessProfile.create({ ...profileFields, created_by_id: user.id });
         }
+
+        // Record consumption + history snapshot (server-side, non-forgeable)
+        await base44.asServiceRole.entities.CreditLedger.create({
+          user_id: user.id, action: 'SCAN', amount: -1,
+          description: `Full scan ${cleanUrl}`, timestamp: new Date().toISOString(),
+        }).catch(() => {});
+        await base44.asServiceRole.entities.ScanRecord.create({
+          user_id: user.id, site_url: cleanUrl,
+          score_overall: result.overall_score || 0,
+          score_ai_visibility: result.ai_visibility_score || 0,
+          score_message_clarity: result.message_clarity_score || 0,
+          score_commercial_signal: result.commercial_presence_score || 0,
+          lrs_score: result.lrs_score || 0,
+          scan_type: 'full',
+        }).catch(() => {});
       }
     } catch {}
 

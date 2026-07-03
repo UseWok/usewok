@@ -174,7 +174,7 @@ export default function LandingPricingPage() {
         {/* TRUST BAR */}
         <div className="trustbar">
           <div className="wrap">
-            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>Ils mesurent leur visibilité IA</span>
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>They track their AI visibility</span>
             <div style={{ marginTop: 32 }}>
               <BrandLogos />
             </div>
@@ -214,36 +214,36 @@ export default function LandingPricingPage() {
             <div className="faq-wrap">
               <h2>Frequently asked questions</h2>
               <details open>
-                <summary>Puis-je annuler à tout moment ?</summary>
-                <p>Oui. Annulez en un clic depuis votre tableau de bord — sans frais, sans justification, sans engagement. Vous gardez l'accès jusqu'à la fin de la période déjà payée.</p>
+                <summary>Can I cancel anytime?</summary>
+                <p>Yes. Cancel in one click from your dashboard — no fees, no questions, no commitment. You keep access until the end of the period you already paid for.</p>
               </details>
               <details>
-                <summary>L'annulation est-elle rapide ?</summary>
-                <p>Immédiate. Un seul clic et votre abonnement est annulé. Aucun appel, aucun formulaire, aucun délai d'attente. Vous recevez une confirmation par e-mail dans la minute.</p>
+                <summary>Is cancellation fast?</summary>
+                <p>Immediate. One click and your subscription is cancelled. No calls, no forms, no waiting. You get an email confirmation within a minute.</p>
               </details>
               <details>
-                <summary>Faut-il une carte bancaire pour commencer ?</summary>
-                <p>Non. Le plan Gratuit est libre pour toujours, sans carte requise. Les plans payants démarrent par un essai de 14 jours — vous ne payez que si vous décidez de continuer.</p>
+                <summary>Do I need a credit card to start?</summary>
+                <p>No. The Free plan is free forever, no card required. Paid plans start with a 14-day trial — you only pay if you decide to continue.</p>
               </details>
               <details>
-                <summary>Puis-je être remboursé ?</summary>
-                <p>Absolument. Si vous n'êtes pas satisfait dans les 14 jours suivant votre premier paiement, contactez-nous pour un remboursement intégral — sans question posée.</p>
+                <summary>Can I get a refund?</summary>
+                <p>Absolutely. If you're not satisfied within 14 days of your first payment, contact us for a full refund — no questions asked.</p>
               </details>
               <details>
-                <summary>Mon paiement est-il sécurisé ?</summary>
-                <p>Oui. Tous les paiements sont traités par Stripe, le leader de la sécurité des paiements. Nous ne voyons ni ne stockons jamais vos informations bancaires.</p>
+                <summary>Is my payment secure?</summary>
+                <p>Yes. All payments are processed by Stripe, the leader in payment security. We never see or store your banking information.</p>
               </details>
               <details>
-                <summary>Que devient mon données si j'annule ?</summary>
-                <p>Vos données sont conservées 30 jours après l'annulation au cas où vous changeriez d'avis, puis définitivement supprimées. Vous pouvez aussi tout supprimer manuellement à tout moment depuis vos paramètres.</p>
+                <summary>What happens to my data if I cancel?</summary>
+                <p>Your data is kept for 30 days after cancellation in case you change your mind, then permanently deleted. You can also delete everything manually at any time from your settings.</p>
               </details>
               <details>
-                <summary>Qu'est-ce que UseWok ?</summary>
-                <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini — et vous dit exactement quoi faire pour améliorer votre présence.</p>
+                <summary>What is UseWok?</summary>
+                <p>UseWok is an AI visibility platform that shows where and how your brand appears in AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini — and tells you exactly what to do to improve your presence.</p>
               </details>
               <details>
-                <summary>Mes données sont-elles hébergées en France ?</summary>
-                <p>Oui — UseWok est conçu et hébergé en France, en conformité avec le RGPD.</p>
+                <summary>Is my data hosted in France?</summary>
+                <p>Yes — UseWok is designed and hosted in France, in compliance with GDPR.</p>
               </details>
             </div>
           </div>

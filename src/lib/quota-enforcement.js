@@ -1,80 +1,37 @@
 /**
- * Quota Enforcement — Bloque dur quand l'utilisateur dépasse ses limites.
- * Aucun contournement possible côté frontend : si quota atteint → action coupée.
+ * Quota Enforcement — all checks are performed SERVER-SIDE via the quotaGuard
+ * backend function. The frontend only displays the result; the analyze
+ * functions enforce the same limits again on the server, so tampering with
+ * client code cannot bypass quotas.
  */
 
 import { base44 } from '@/api/base44Client';
-import { getWokFeatures } from '@/lib/wok-plans';
 
-/**
- * Vérifie le quota de scans pour la période en cours.
- * @returns {allowed, used, limit, period}
- */
-export async function checkScanQuota(user) {
-  const features = getWokFeatures(user);
-  const limit = features.scans_per_period ?? 1;
-  const period = features.scan_period || 'month';
-
-  if (limit <= 0) return { allowed: false, used: 0, limit, period };
-
-  const now = new Date();
-  const periodStart = period === 'day'
-    ? new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-    : new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-  try {
-    const ledger = await base44.entities.CreditLedger.filter({ user_id: user.id, action: 'SCAN' });
-    const used = (ledger || []).filter(l => {
-      const ts = l.timestamp ? new Date(l.timestamp).getTime() : 0;
-      return ts >= periodStart;
-    }).length;
-    return { allowed: used < limit, used, limit, period };
-  } catch {
-    return { allowed: true, used: 0, limit, period };
-  }
+async function guard(payload) {
+  const res = await base44.functions.invoke('quotaGuard', payload);
+  return res?.data || { allowed: true };
 }
 
-/**
- * Vérifie le quota de messages chatbot pour le mois en cours.
- * @returns {allowed, used, limit}
- */
-export async function checkChatQuota(user) {
-  const features = getWokFeatures(user);
-  const limit = features.chatbot_messages ?? 5;
-
-  if (limit <= 0) return { allowed: false, used: 0, limit };
-
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-  try {
-    const convs = await base44.entities.Conversation.list('-updated_at', 100);
-    const used = (convs || []).reduce((acc, conv) => {
-      let msgs = [];
-      try { msgs = JSON.parse(conv.messages_json || '[]'); } catch { msgs = []; }
-      return acc + msgs.filter(m => m.role === 'user' && (m.ts || 0) >= monthStart).length;
-    }, 0);
-    return { allowed: used < limit, used, limit };
-  } catch {
-    return { allowed: true, used: 0, limit };
-  }
+/** Scan quota for the current period. @returns {allowed, used, limit, period, reason} */
+export async function checkScanQuota(_user, siteUrl) {
+  try { return await guard({ action: 'scan', site_url: siteUrl || null }); }
+  catch { return { allowed: true, used: 0, limit: 1, period: 'month' }; }
 }
 
-/**
- * Vérifie le quota de sites surveillés simultanément.
- * @returns {allowed, used, limit}
- */
-export async function checkSiteQuota(user) {
-  const features = getWokFeatures(user);
-  const limit = features.max_sites ?? 1;
+/** Chatbot message quota for the current month. @returns {allowed, used, limit} */
+export async function checkChatQuota() {
+  try { return await guard({ action: 'chat' }); }
+  catch { return { allowed: true, used: 0, limit: 5 }; }
+}
 
-  if (limit <= 0) return { allowed: false, used: 0, limit };
+/** Concurrent monitored-sites quota. @returns {allowed, used, limit} */
+export async function checkSiteQuota() {
+  try { return await guard({ action: 'site' }); }
+  catch { return { allowed: true, used: 0, limit: 1 }; }
+}
 
-  try {
-    const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: user.id });
-    const used = (profiles || []).length;
-    return { allowed: used < limit, used, limit };
-  } catch {
-    return { allowed: true, used: 0, limit };
-  }
+/** History window (days) allowed by the user's plan. @returns {history_days, plan} */
+export async function getHistoryWindow() {
+  try { return await guard({ action: 'history' }); }
+  catch { return { history_days: 30, plan: 'free' }; }
 }

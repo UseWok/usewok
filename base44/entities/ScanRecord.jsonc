@@ -1,0 +1,76 @@
+{
+  "name": "ScanRecord",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL"
+    },
+    "score_overall": {
+      "type": "number",
+      "title": "Overall score",
+      "default": 0
+    },
+    "score_ai_visibility": {
+      "type": "number",
+      "title": "AI visibility score",
+      "default": 0
+    },
+    "score_message_clarity": {
+      "type": "number",
+      "title": "Message clarity score",
+      "default": 0
+    },
+    "score_commercial_signal": {
+      "type": "number",
+      "title": "Commercial signal score",
+      "default": 0
+    },
+    "lrs_score": {
+      "type": "number",
+      "title": "LRS score",
+      "default": 0
+    },
+    "scan_type": {
+      "type": "string",
+      "title": "Scan type (lite/full)"
+    }
+  },
+  "required": [
+    "user_id",
+    "site_url"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

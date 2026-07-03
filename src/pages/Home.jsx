@@ -186,7 +186,7 @@ function SubmitButton({ onClick, loading }) {
           padding: '4px 9px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 100,
           letterSpacing: '0.01em',
         }}>
-          Analyser
+          Analyze
           <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: `4px solid ${INK}` }} />
         </div>
       )}

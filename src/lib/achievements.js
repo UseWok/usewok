@@ -6,13 +6,13 @@ export function computeAchievements({ profile, doneTasksCount, accountCreatedDat
   const scorePrev = Math.round(profile?.score_previous || 0);
 
   const firstDayDate = accountCreatedDate ? new Date(accountCreatedDate) : null;
-  const firstDayLabel = firstDayDate ? firstDayDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
+  const firstDayLabel = firstDayDate ? firstDayDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
 
   return [
     {
       id: 'first_day',
-      name: 'Premier pas',
-      description: 'Créer votre premier scan de visibilité IA sur UseWok.',
+      name: 'First step',
+      description: 'Run your first AI visibility scan on UseWok.',
       icon: Sparkles,
       color: '#7B4FE0',
       unlocked: !!accountCreatedDate,
@@ -20,8 +20,8 @@ export function computeAchievements({ profile, doneTasksCount, accountCreatedDat
     },
     {
       id: 'score_50',
-      name: 'Cap des 50',
-      description: 'Atteindre un score de visibilité IA de 50/100.',
+      name: 'The 50 mark',
+      description: 'Reach an AI visibility score of 50/100.',
       icon: Target,
       color: '#3B8BEB',
       unlocked: score >= 50,
@@ -30,8 +30,8 @@ export function computeAchievements({ profile, doneTasksCount, accountCreatedDat
     },
     {
       id: 'score_80',
-      name: 'Élite IA',
-      description: 'Atteindre un score de visibilité IA de 80/100.',
+      name: 'AI Elite',
+      description: 'Reach an AI visibility score of 80/100.',
       icon: Crown,
       color: '#F59E0B',
       unlocked: score >= 80,
@@ -40,8 +40,8 @@ export function computeAchievements({ profile, doneTasksCount, accountCreatedDat
     },
     {
       id: 'first_fix',
-      name: 'Premier correctif',
-      description: 'Marquer votre première action recommandée comme terminée.',
+      name: 'First fix',
+      description: 'Mark your first recommended action as done.',
       icon: Wrench,
       color: '#16A34A',
       unlocked: doneTasksCount >= 1,
@@ -50,8 +50,8 @@ export function computeAchievements({ profile, doneTasksCount, accountCreatedDat
     },
     {
       id: 'five_fixes',
-      name: 'Optimisateur',
-      description: 'Terminer 5 actions recommandées pour améliorer votre visibilité.',
+      name: 'Optimizer',
+      description: 'Complete 5 recommended actions to improve your visibility.',
       icon: Flame,
       color: '#EF4444',
       unlocked: doneTasksCount >= 5,
@@ -60,8 +60,8 @@ export function computeAchievements({ profile, doneTasksCount, accountCreatedDat
     },
     {
       id: 'progression',
-      name: 'En progression',
-      description: 'Améliorer votre score par rapport à votre dernier scan.',
+      name: 'On the rise',
+      description: 'Improve your score compared to your previous scan.',
       icon: Rocket,
       color: '#FF5A1F',
       unlocked: scorePrev > 0 && score > scorePrev,

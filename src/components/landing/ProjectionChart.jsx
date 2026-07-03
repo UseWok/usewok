@@ -10,10 +10,10 @@ export function computeProjection(answers) {
   const techBoost = { no_code: 0, ai_nocode: 40 }[answers?.tech_level] || 20;
   const month3 = base + goalBoost + techBoost;
   return [
-    { label: "Aujourd'hui", value: base },
-    { label: 'Mois 1', value: Math.round(base + (month3 - base) * 0.3) },
-    { label: 'Mois 2', value: Math.round(base + (month3 - base) * 0.62) },
-    { label: 'Mois 3', value: month3 },
+    { label: 'Today', value: base },
+    { label: 'Month 1', value: Math.round(base + (month3 - base) * 0.3) },
+    { label: 'Month 2', value: Math.round(base + (month3 - base) * 0.62) },
+    { label: 'Month 3', value: month3 },
   ];
 }
 
@@ -29,7 +29,7 @@ export default function ProjectionChart({ answers }) {
   return (
     <div>
       <p style={{ fontSize: 11, fontWeight: 700, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
-        Visiteurs mensuels apportés par l'IA — projection 3 mois
+        Monthly visitors brought by AI — 3-month projection
       </p>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
         <defs>
