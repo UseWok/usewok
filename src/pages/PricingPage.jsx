@@ -24,7 +24,7 @@ const ContactModal = ({ onClose }) => {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(21,19,15,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, backdropFilter: 'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: '#FBF8F2', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 20, padding: 30, width: '100%', maxWidth: 400, position: 'relative', fontFamily: WIX, boxShadow: '0 24px 60px rgba(21,19,15,0.18)' }}>
+      <div style={{ background: '#FAF9F6', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 20, padding: 30, width: '100%', maxWidth: 400, position: 'relative', fontFamily: WIX, boxShadow: '0 24px 60px rgba(21,19,15,0.18)' }}>
         <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 9, border: '1px solid rgba(21,19,15,0.12)', background: '#fff', cursor: 'pointer' }}><X size={12} color="#4A453B" /></button>
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -33,7 +33,7 @@ const ContactModal = ({ onClose }) => {
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#15130F', marginBottom: 8 }}>Message received</h3>
             <p style={{ fontSize: 13, color: '#4A453B', lineHeight: 1.6 }}>Our team will get back to you within 24 hours.</p>
-            <button onClick={onClose} style={{ marginTop: 18, padding: '10px 24px', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: WIX }}>Close</button>
+            <button onClick={onClose} style={{ marginTop: 18, padding: '10px 24px', background: '#15130F', color: '#FAF9F6', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: WIX }}>Close</button>
           </div>
         ) : (
           <>
@@ -49,7 +49,7 @@ const ContactModal = ({ onClose }) => {
                 <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required type={t} value={form[k]} onChange={set(k)} style={inp} /></div>
               ))}
               <div><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>Message</label><textarea required value={form.message} onChange={set('message')} rows={3} style={{ ...inp, resize: 'none' }} /></div>
-              <button type="submit" style={{ padding: '11px 0', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, fontFamily: WIX }}
+              <button type="submit" style={{ padding: '11px 0', background: '#15130F', color: '#FAF9F6', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, fontFamily: WIX }}
                 onMouseEnter={e => e.currentTarget.style.background = '#C43E14'}
                 onMouseLeave={e => e.currentTarget.style.background = '#15130F'}>
                 Send
@@ -115,14 +115,14 @@ export default function PricingPage() {
   const discount = samplePaid ? Math.round((1 - (samplePaid.price_yearly / (samplePaid.price_monthly * 12))) * 100) : 0;
 
   if (loading) return (
-    <div style={{ minHeight: '100%', background: '#FBF8F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
+    <div style={{ minHeight: '100%', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
       <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2.5px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100%', background: '#FBF8F2', fontFamily: WIX, color: '#15130F' }}>
+    <div style={{ minHeight: '100%', background: '#FAF9F6', fontFamily: WIX, color: '#15130F' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
 
@@ -140,9 +140,9 @@ export default function PricingPage() {
         .uw-app-pricing .p-hero p { font-size: 14.5px; color: rgba(21,19,15,0.55); }
 
         /* TOGGLE */
-        .uw-app-pricing .toggle { display: inline-flex; margin: 28px auto 0; padding: 4px; background: #F3EEE3; border-radius: 100px; border: 1px solid rgba(21,19,15,0.08); }
+        .uw-app-pricing .toggle { display: inline-flex; margin: 28px auto 0; padding: 4px; background: #F0EFEB; border-radius: 100px; border: 1px solid rgba(21,19,15,0.08); }
         .uw-app-pricing .toggle button { padding: 9px 20px; font-size: 13px; font-weight: 600; border-radius: 100px; cursor: pointer; color: rgba(21,19,15,0.55); display: flex; align-items: center; gap: 7px; border: none; background: none; font-family: inherit; transition: background .15s ease, color .15s ease; }
-        .uw-app-pricing .toggle button.on { background: #15130F; color: #FBF8F2; }
+        .uw-app-pricing .toggle button.on { background: #15130F; color: #FAF9F6; }
         .uw-app-pricing .toggle .save { font-size: 10.5px; font-weight: 700; color: #C43E14; background: #FFE7D6; padding: 2px 7px; border-radius: 100px; }
         .uw-app-pricing .toggle-wrap { text-align: center; }
 
@@ -161,7 +161,7 @@ export default function PricingPage() {
           font-family: inherit; display: flex; align-items: center; gap: 7px;
           transition: border-color .15s ease, background .15s ease;
         }
-        .uw-app-pricing .ent-btn:hover { border-color: #15130F; background: #F3EEE3; }
+        .uw-app-pricing .ent-btn:hover { border-color: #15130F; background: #F0EFEB; }
 
         /* FAQ */
         .uw-app-pricing .faq-wrap { max-width: 680px; margin: 0 auto; }

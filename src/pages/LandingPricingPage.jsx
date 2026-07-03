@@ -14,7 +14,7 @@ export default function LandingPricingPage() {
   const [billing, setBilling] = useState('monthly');
 
   useEffect(() => {
-    document.body.style.backgroundColor = '#FBF8F2';
+    document.body.style.backgroundColor = '#FAF9F6';
     document.body.style.fontFamily = WIX;
     loadPlansFromDB()
       .then(db => { setPlans((db || getPlansConfig()).filter(p => p.visible !== false)); setLoading(false); })
@@ -33,14 +33,14 @@ export default function LandingPricingPage() {
   const discount = samplePaid ? Math.round((1 - (samplePaid.price_yearly / (samplePaid.price_monthly * 12))) * 100) : 0;
 
   if (loading) return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBF8F2', fontFamily: WIX }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAF9F6', fontFamily: WIX }}>
       <div style={{ width: 20, height: 20, border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   return (
-    <div style={{ fontFamily: WIX, background: '#FBF8F2', color: '#15130F', minHeight: '100vh', WebkitFontSmoothing: 'antialiased' }}>
+    <div style={{ fontFamily: WIX, background: '#FAF9F6', color: '#15130F', minHeight: '100vh', WebkitFontSmoothing: 'antialiased' }}>
       <style>{`
         .uw-pricing * { box-sizing: border-box; }
         .uw-pricing .wrap { max-width: 1160px; margin: 0 auto; padding: 0 40px; }
@@ -51,11 +51,11 @@ export default function LandingPricingPage() {
         .uw-pricing .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #FF5A1F; }
         .uw-pricing .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 100px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: transform .15s ease, background .15s ease; }
         .uw-pricing .btn:active { transform: scale(0.97); }
-        .uw-pricing .btn-dark { background: #15130F; color: #FBF8F2; }
+        .uw-pricing .btn-dark { background: #15130F; color: #FAF9F6; }
         .uw-pricing .btn-dark:hover { background: #C43E14; }
         .uw-pricing .btn-outline { background: transparent; color: #15130F; border: 1px solid rgba(21,19,15,0.14); }
         .uw-pricing .btn-outline:hover { border-color: #15130F; }
-        .uw-pricing nav { position: sticky; top: 0; z-index: 20; background: rgba(251,248,242,0.82); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(21,19,15,0.10); }
+        .uw-pricing nav { position: sticky; top: 0; z-index: 20; background: rgba(250,249,246,0.82); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(21,19,15,0.10); }
         .uw-pricing nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 74px; }
         .uw-pricing .brand { display: flex; align-items: center; gap: 9px; cursor: pointer; }
         .uw-pricing .brand .mark { width: 26px; height: 26px; border-radius: 7px; background: #FF5A1F; display: flex; align-items: center; justify-content: center; }
@@ -69,25 +69,25 @@ export default function LandingPricingPage() {
         .uw-pricing .p-hero { text-align: center; padding: 72px 0 8px; }
         .uw-pricing .p-hero h1 { font-size: 48px; margin-bottom: 14px; }
         .uw-pricing .p-hero p { font-size: 15.5px; color: rgba(21,19,15,0.55); }
-        .uw-pricing .toggle { display: inline-flex; margin: 34px auto 0; padding: 4px; background: #F3EEE3; border-radius: 100px; }
+        .uw-pricing .toggle { display: inline-flex; margin: 34px auto 0; padding: 4px; background: #F0EFEB; border-radius: 100px; }
         .uw-pricing .toggle span { padding: 9px 20px; font-size: 13.5px; font-weight: 600; border-radius: 100px; cursor: pointer; color: rgba(21,19,15,0.55); display: flex; align-items: center; gap: 7px; border: none; background: none; font-family: inherit; }
-        .uw-pricing .toggle span.on { background: #15130F; color: #FBF8F2; }
+        .uw-pricing .toggle span.on { background: #15130F; color: #FAF9F6; }
         .uw-pricing .toggle .save { font-size: 10.5px; font-weight: 700; color: #C43E14; background: #FFE7D6; padding: 2px 7px; border-radius: 100px; }
         .uw-pricing .toggle-wrap { text-align: center; }
         .uw-pricing .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 52px; align-items: start; }
         .uw-pricing .trustbar { padding: 70px 0; text-align: center; }
         .uw-pricing .trustlogos { display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; margin-top: 28px; }
         .uw-pricing .tlogo { display: flex; align-items: center; gap: 8px; opacity: 0.75; }
-        .uw-pricing .tlogo .ic { width: 26px; height: 26px; border-radius: 7px; background: #15130F; color: #FBF8F2; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .uw-pricing .tlogo .ic { width: 26px; height: 26px; border-radius: 7px; background: #15130F; color: #FAF9F6; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
         .uw-pricing .tlogo span { font-weight: 700; font-size: 14.5px; }
         .uw-pricing .testi { display: flex; align-items: center; gap: 40px; }
-        .uw-pricing .testi .av { width: 88px; height: 88px; border-radius: 18px; background: #FFE7D6; flex-shrink: 0; }
+        .uw-pricing .testi .av { width: 88px; height: 88px; border-radius: 18px; background: #E8E7E2; flex-shrink: 0; }
         .uw-pricing .testi blockquote { font-family: 'Fraunces', serif; font-weight: 500; font-size: 24px; line-height: 1.35; margin-bottom: 16px; max-width: 620px; }
         .uw-pricing .testi cite { font-style: normal; font-size: 13.5px; color: rgba(21,19,15,0.55); }
         .uw-pricing .cta-band { position: relative; border-radius: 20px; padding: 60px 40px; text-align: center; background: #15130F; }
-        .uw-pricing .cta-band h2 { font-size: 30px; max-width: 560px; margin: 0 auto 26px; line-height: 1.2; color: #FBF8F2; }
+        .uw-pricing .cta-band h2 { font-size: 30px; max-width: 560px; margin: 0 auto 26px; line-height: 1.2; color: #FAF9F6; }
         .uw-pricing .cta-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 18px; }
-        .uw-pricing .cta-band .noc { font-size: 12.5px; color: rgba(251,248,242,0.5); }
+        .uw-pricing .cta-band .noc { font-size: 12.5px; color: rgba(250,249,246,0.5); }
         .uw-pricing .faq-wrap { max-width: 680px; margin: 0 auto; }
         .uw-pricing .faq-wrap h2 { text-align: center; font-size: 28px; margin-bottom: 36px; }
         .uw-pricing details { border-bottom: 1px solid rgba(21,19,15,0.10); padding: 20px 4px; }
@@ -100,7 +100,7 @@ export default function LandingPricingPage() {
         .uw-pricing .foot-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 60px; }
         .uw-pricing .foot-brand p { font-size: 13.5px; color: rgba(21,19,15,0.55); line-height: 1.6; margin: 16px 0 20px; max-width: 280px; }
         .uw-pricing .foot-social { display: flex; gap: 10px; }
-        .uw-pricing .foot-social a { width: 32px; height: 32px; border-radius: 9px; background: #F3EEE3; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #4A453B; font-size: 13px; }
+        .uw-pricing .foot-social a { width: 32px; height: 32px; border-radius: 9px; background: #F0EFEB; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #4A453B; font-size: 13px; }
         .uw-pricing .foot-col h5 { font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(21,19,15,0.55); margin-bottom: 16px; }
         .uw-pricing .foot-col button { display: block; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13.5px; color: #4A453B; text-align: left; margin-bottom: 11px; padding: 0; }
         .uw-pricing .foot-col button:hover { color: #15130F; }
@@ -122,7 +122,7 @@ export default function LandingPricingPage() {
         <nav>
           <div className="wrap">
             <div className="brand" onClick={goHome}>
-              <div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div>
+              <div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FAF9F6"/></svg></div>
               <span>UseWok</span>
             </div>
             <div className="navlinks">
@@ -201,7 +201,7 @@ export default function LandingPricingPage() {
               <h2>10x your AI visibility without becoming a GEO expert</h2>
               <div className="cta-btns">
                 <button className="btn" style={{ background: '#FF5A1F', color: '#fff' }} onClick={goRegister}>14-day free trial</button>
-                <button className="btn btn-outline" style={{ background: 'transparent', color: '#FBF8F2', borderColor: 'rgba(251,248,242,0.3)' }} onClick={goHome}>See a demo</button>
+                <button className="btn btn-outline" style={{ background: 'transparent', color: '#FAF9F6', borderColor: 'rgba(250,249,246,0.3)' }} onClick={goHome}>See a demo</button>
               </div>
               <p className="noc">No credit card · 14 days free · Your score in under 3 minutes</p>
             </div>
@@ -214,24 +214,36 @@ export default function LandingPricingPage() {
             <div className="faq-wrap">
               <h2>Frequently asked questions</h2>
               <details open>
-                <summary>What is UseWok?</summary>
-                <p>UseWok is an AI visibility platform that shows where and how your brand appears in AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini. UseWok goes further and shows you how to act on your data to appear in future AI responses.</p>
+                <summary>Puis-je annuler à tout moment ?</summary>
+                <p>Oui. Annulez en un clic depuis votre tableau de bord — sans frais, sans justification, sans engagement. Vous gardez l'accès jusqu'à la fin de la période déjà payée.</p>
               </details>
               <details>
-                <summary>Which AI engines can I track?</summary>
-                <p>UseWok tracks the major AI engines: ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot and Gemini.</p>
+                <summary>L'annulation est-elle rapide ?</summary>
+                <p>Immédiate. Un seul clic et votre abonnement est annulé. Aucun appel, aucun formulaire, aucun délai d'attente. Vous recevez une confirmation par e-mail dans la minute.</p>
               </details>
               <details>
-                <summary>Can I change plans at any time?</summary>
-                <p>Yes, you can change plans or cancel at any time, with no commitment.</p>
+                <summary>Faut-il une carte bancaire pour commencer ?</summary>
+                <p>Non. Le plan Gratuit est libre pour toujours, sans carte requise. Les plans payants démarrent par un essai de 14 jours — vous ne payez que si vous décidez de continuer.</p>
               </details>
               <details>
-                <summary>Is my data hosted in France?</summary>
-                <p>Yes — UseWok is built and hosted in France, in compliance with GDPR.</p>
+                <summary>Puis-je être remboursé ?</summary>
+                <p>Absolument. Si vous n'êtes pas satisfait dans les 14 jours suivant votre premier paiement, contactez-nous pour un remboursement intégral — sans question posée.</p>
               </details>
               <details>
-                <summary>How long to see AEO results?</summary>
-                <p>We've seen AEO results in as little as 7 days with our clients. AI visibility can be influenced much faster than with traditional SEO.</p>
+                <summary>Mon paiement est-il sécurisé ?</summary>
+                <p>Oui. Tous les paiements sont traités par Stripe, le leader de la sécurité des paiements. Nous ne voyons ni ne stockons jamais vos informations bancaires.</p>
+              </details>
+              <details>
+                <summary>Que devient mon données si j'annule ?</summary>
+                <p>Vos données sont conservées 30 jours après l'annulation au cas où vous changeriez d'avis, puis définitivement supprimées. Vous pouvez aussi tout supprimer manuellement à tout moment depuis vos paramètres.</p>
+              </details>
+              <details>
+                <summary>Qu'est-ce que UseWok ?</summary>
+                <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini — et vous dit exactement quoi faire pour améliorer votre présence.</p>
+              </details>
+              <details>
+                <summary>Mes données sont-elles hébergées en France ?</summary>
+                <p>Oui — UseWok est conçu et hébergé en France, en conformité avec le RGPD.</p>
               </details>
             </div>
           </div>
@@ -242,7 +254,7 @@ export default function LandingPricingPage() {
           <div className="wrap">
             <div className="foot-top">
               <div className="foot-brand">
-                <div className="brand" onClick={goHome}><div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div><span>UseWok</span></div>
+                <div className="brand" onClick={goHome}><div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FAF9F6"/></svg></div><span>UseWok</span></div>
                 <p>UseWok is the platform that measures and improves your visibility on AI engines.</p>
                 <div className="foot-social">
                   <a href="https://x.com/usewok" target="_blank" rel="noopener noreferrer">𝕏</a>

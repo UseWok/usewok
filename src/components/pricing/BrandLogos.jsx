@@ -18,7 +18,7 @@ export default function BrandLogos() {
     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '24px', alignItems: 'center' }}>
       {LOGOS.map((url, i) => (
         <div key={i} style={{ flexBasis: 'calc((100% - 144px) / 7)', minWidth: 80, flexGrow: 0, flexShrink: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <img src={url} alt="" style={{ maxHeight: 30, maxWidth: '100%', objectFit: 'contain', opacity: 0.65 }} />
+          <img src={url} alt="" style={{ maxHeight: 28, maxWidth: '100%', objectFit: 'contain', filter: 'brightness(0)' }} />
         </div>
       ))}
     </div>
