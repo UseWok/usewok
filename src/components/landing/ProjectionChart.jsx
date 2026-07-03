@@ -2,32 +2,34 @@ const CORAL = '#FF5A1F';
 const INK = '#15130F';
 const INK_FAINT = 'rgba(21,19,15,0.55)';
 
-// Simple, deterministic 3-month score projection based on quiz answers
+// Simple, deterministic 3-month projection based on quiz answers — expressed in
+// something people relate to (extra AI-driven visits/month) rather than an abstract score.
 export function computeProjection(answers) {
-  const base = 22;
-  const goalBoost = { more_clients: 24, local_visibility: 20, brand_authority: 18, competitor_beat: 26 }[answers?.main_goal] || 20;
-  const techBoost = { no_code: 0, ai_nocode: 4, claude_code: 6, developer: 8 }[answers?.tech_level] || 2;
-  const month3 = Math.min(92, base + goalBoost + techBoost);
+  const base = 40;
+  const goalBoost = { more_clients: 260, local_visibility: 190, competitor_beat: 300 }[answers?.main_goal] || 200;
+  const techBoost = { no_code: 0, ai_nocode: 40 }[answers?.tech_level] || 20;
+  const month3 = base + goalBoost + techBoost;
   return [
     { label: "Aujourd'hui", value: base },
-    { label: 'Mois 1', value: Math.round(base + (month3 - base) * 0.35) },
-    { label: 'Mois 2', value: Math.round(base + (month3 - base) * 0.68) },
+    { label: 'Mois 1', value: Math.round(base + (month3 - base) * 0.3) },
+    { label: 'Mois 2', value: Math.round(base + (month3 - base) * 0.62) },
     { label: 'Mois 3', value: month3 },
   ];
 }
 
 export default function ProjectionChart({ answers }) {
   const data = computeProjection(answers);
+  const max = data[data.length - 1].value;
   const W = 280, H = 110, PAD = 12;
   const toX = (i) => PAD + (i / (data.length - 1)) * (W - PAD * 2);
-  const toY = (v) => H - PAD - (v / 100) * (H - PAD * 2);
+  const toY = (v) => H - PAD - (v / max) * (H - PAD * 2);
   const path = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(d.value)}`).join(' ');
   const area = `${path} L ${toX(data.length - 1)} ${H - PAD} L ${PAD} ${H - PAD} Z`;
 
   return (
     <div>
       <p style={{ fontSize: 11, fontWeight: 700, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
-        Votre projection de score sur 3 mois
+        Visiteurs mensuels apportés par l'IA — projection 3 mois
       </p>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
         <defs>
@@ -46,7 +48,7 @@ export default function ProjectionChart({ answers }) {
         {data.map((d, i) => (
           <div key={i} style={{ textAlign: i === 0 ? 'left' : i === data.length - 1 ? 'right' : 'center' }}>
             <div style={{ fontSize: 10.5, color: INK_FAINT }}>{d.label}</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: i === data.length - 1 ? CORAL : INK }}>{d.value}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: i === data.length - 1 ? CORAL : INK }}>+{d.value}</div>
           </div>
         ))}
       </div>
