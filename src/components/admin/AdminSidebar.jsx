@@ -19,6 +19,7 @@ const navItems = [
   { label: 'Codes d\'accès',  path: '/admin/codes',         icon: Tag },
   { label: 'Messagerie',      path: '/admin/messaging',     icon: MessageSquare, badge: true },
   { label: 'Feedback',        path: '/admin/feedback',      icon: Star },
+  { label: 'Avis clients',    path: '/admin/testimonials',  icon: Star },
   { label: 'Blog',            path: '/admin/blog',          icon: BookOpen },
   { label: 'Analytics',       path: '/admin/analytics',     icon: BarChart2 },
   { label: 'Logs',            path: '/admin/logs',          icon: FileText },

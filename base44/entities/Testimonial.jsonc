@@ -1,0 +1,60 @@
+{
+  "name": "Testimonial",
+  "type": "object",
+  "properties": {
+    "author_name": {
+      "type": "string",
+      "title": "Nom"
+    },
+    "author_role": {
+      "type": "string",
+      "title": "R\u00f4le / Entreprise"
+    },
+    "rating": {
+      "type": "number",
+      "title": "Note (1-5)",
+      "default": 5
+    },
+    "text": {
+      "type": "string",
+      "title": "Avis",
+      "format": "textarea"
+    },
+    "avatar_url": {
+      "type": "string",
+      "title": "Photo (URL)"
+    },
+    "visible": {
+      "type": "boolean",
+      "title": "Visible sur le site",
+      "default": true
+    },
+    "order": {
+      "type": "number",
+      "title": "Ordre d'affichage",
+      "default": 0
+    }
+  },
+  "required": [
+    "author_name",
+    "text"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": true,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

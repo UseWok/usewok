@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import AnalyzeLeadModal from '@/components/landing/AnalyzeLeadModal';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [showAnalyze, setShowAnalyze] = useState(false);
   const featuresRef = useRef(null);
   const howRef = useRef(null);
   const stackRef = useRef(null);
@@ -327,7 +329,7 @@ export default function LandingPage() {
           <h1>Your customers ask AI<br />who to <span className="hi">call.</span></h1>
           <p>UseWok measures your visibility on ChatGPT, Claude and Gemini — and gives you a clear action plan to get found.</p>
           <div className="hero-ctas">
-            <button className="btn btn-dark" onClick={goRegister}>Analyze my site →</button>
+            <button className="btn btn-dark" onClick={() => setShowAnalyze(true)}>Analyze my site →</button>
             <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>See a demo</button>
           </div>
           <div className="hero-strip">
@@ -545,7 +547,7 @@ export default function LandingPage() {
           <div className="finalcta">
             <div className="cta-card">
               <h3 className="serif">So, what are we analyzing?</h3>
-              <button className="btn btn-dark" onClick={goRegister}>Start analyzing →</button>
+              <button className="btn btn-dark" onClick={() => setShowAnalyze(true)}>Start analyzing →</button>
             </div>
           </div>
         </div>
@@ -595,6 +597,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {showAnalyze && <AnalyzeLeadModal onClose={() => setShowAnalyze(false)} />}
     </div>
   );
 }

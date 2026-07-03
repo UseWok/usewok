@@ -18,6 +18,7 @@ import AdminBlog from '@/pages/admin/AdminBlog.jsx';
 import AdminPlanSettingsPage from '@/pages/admin/AdminPlanSettingsPage.jsx';
 import AdminEmailTestPage from '@/pages/admin/AdminEmailTestPage.jsx';
 import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage.jsx';
+import AdminTestimonialsPage from '@/pages/admin/AdminTestimonialsPage.jsx';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -84,6 +85,7 @@ export default function AdminPanel() {
           <Route path="/plan-settings" element={<AdminPlanSettingsPage />} />
           <Route path="/email-test" element={<AdminEmailTestPage />} />
           <Route path="/feedback" element={<AdminFeedbackPage />} />
+          <Route path="/testimonials" element={<AdminTestimonialsPage />} />
         </Routes>
       </main>
     </div>
