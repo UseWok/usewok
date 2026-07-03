@@ -14,10 +14,10 @@ import UpgradeModal from '@/components/upsell/UpgradeModal';
 
 
 const TABS = [
-  { id: 'overview',      label: 'Overview' },
-  { id: 'crawlability',  label: 'Crawlability' },
-  { id: 'issues',        label: 'Issues' },
-  { id: 'pages',         label: 'Pages crawled' },
+  { id: 'overview',      label: 'Aperçu' },
+  { id: 'crawlability',  label: 'Crawlabilité' },
+  { id: 'issues',        label: 'Problèmes' },
+  { id: 'pages',         label: 'Pages analysées' },
   { id: 'performance',   label: 'Performance' },
 ];
 
