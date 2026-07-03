@@ -34,6 +34,8 @@ const LegalNoticePage = lazy(() => import('./pages/LegalNoticePage'));
 const PublicFiche = lazy(() => import('./pages/PublicFiche'));
 const BlogPage = lazy(() => import('./pages/BlogPage.jsx'));
 const UnsubscribePage = lazy(() => import('./pages/UnsubscribePage.jsx'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
 const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 const AdminBlog = lazy(() => import('./pages/admin/AdminBlog.jsx'));
 const AIVisibilityReport = lazy(() => import('./pages/AIVisibilityReport.jsx'));
@@ -89,6 +91,8 @@ const AuthenticatedApp = () => {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/unsubscribe" element={<UnsubscribePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="*" element={<LandingPage />} />
           </Routes>
         </Suspense>
@@ -111,6 +115,8 @@ const AuthenticatedApp = () => {
           <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin/*" element={<AdminPanel />} />
 
           <Route element={<Layout />}>

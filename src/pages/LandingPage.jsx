@@ -178,7 +178,7 @@ export default function LandingPage() {
         .uw-landing .cta-card{ position:relative; z-index:2; background:var(--cream); border-radius:20px; padding:44px 48px; text-align:center; max-width:360px; }
         .uw-landing .cta-card h3{ font-size:27px; line-height:1.15; margin-bottom:24px; }
         .uw-landing footer{ padding:80px 0 40px; }
-        .uw-landing .foot-top{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; margin-bottom:60px; }
+        .uw-landing .foot-top{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr; gap:32px; margin-bottom:60px; }
         .uw-landing .foot-brand p{ font-size:13.5px; color:var(--ink-faint); line-height:1.6; margin:16px 0 20px; max-width:280px; }
         .uw-landing .foot-social{ display:flex; gap:10px; }
         .uw-landing .foot-social a{ width:32px; height:32px; border-radius:9px; background:var(--cream-2); display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--ink-soft); font-size:13px; }
@@ -576,6 +576,11 @@ export default function LandingPage() {
               <button onClick={goBlog}>Documentation</button>
               <button onClick={goBlog}>Community</button>
               <button onClick={goBlog}>Blog</button>
+            </div>
+            <div className="foot-col">
+              <h5>Company</h5>
+              <button onClick={() => navigate('/about')}>About</button>
+              <button onClick={() => navigate('/contact')}>Contact</button>
             </div>
             <div className="foot-col">
               <h5>Legal</h5>
