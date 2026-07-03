@@ -12,8 +12,10 @@ import { getWokFeatures } from '@/lib/wok-plans';
  */
 export async function checkScanQuota(user) {
   const features = getWokFeatures(user);
-  const limit = features.scans_per_period || 1;
+  const limit = features.scans_per_period ?? 1;
   const period = features.scan_period || 'month';
+
+  if (limit <= 0) return { allowed: false, used: 0, limit, period };
 
   const now = new Date();
   const periodStart = period === 'day'
@@ -38,7 +40,9 @@ export async function checkScanQuota(user) {
  */
 export async function checkChatQuota(user) {
   const features = getWokFeatures(user);
-  const limit = features.chatbot_messages || 5;
+  const limit = features.chatbot_messages ?? 5;
+
+  if (limit <= 0) return { allowed: false, used: 0, limit };
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -62,7 +66,9 @@ export async function checkChatQuota(user) {
  */
 export async function checkSiteQuota(user) {
   const features = getWokFeatures(user);
-  const limit = features.max_sites || 1;
+  const limit = features.max_sites ?? 1;
+
+  if (limit <= 0) return { allowed: false, used: 0, limit };
 
   try {
     const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: user.id });
