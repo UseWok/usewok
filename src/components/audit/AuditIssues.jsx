@@ -5,12 +5,12 @@ const F = 'Inter, system-ui, sans-serif';
 const INK = '#111111'; const INK2 = '#555555'; const INK3 = '#999999';
 const BORDER = '#E8E7E4'; const SURFACE = '#F7F6F3'; const WHITE = '#FFFFFF';
 
-const CATEGORIES = ['Toutes', 'Meta balises', 'Contenu', 'Explorabilité', 'CSS', 'Sécurité', 'Liens', 'IA'];
+const CATEGORIES = ['All', 'Meta tags', 'Content', 'Crawlability', 'CSS', 'Security', 'Links', 'AI'];
 const SEVERITIES = [
-  { id: 'all', label: 'Tout' }, { id: 'error', label: 'Erreurs' },
-  { id: 'warning', label: 'Avertissements' }, { id: 'notice', label: 'Avis' },
+  { id: 'all', label: 'All' }, { id: 'error', label: 'Errors' },
+  { id: 'warning', label: 'Warnings' }, { id: 'notice', label: 'Notices' },
 ];
-const SEV_LABEL = { error: 'Erreur', warning: 'Avertissement', notice: 'Avis' };
+const SEV_LABEL = { error: 'Error', warning: 'Warning', notice: 'Notice' };
 
 function FixDrawer({ issue, onClose }) {
   if (!issue) return null;
@@ -21,7 +21,7 @@ function FixDrawer({ issue, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ width: 380, background: WHITE, borderLeft: `1px solid ${BORDER}`, height: '100%', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)' }}>
         <div style={{ padding: '20px 24px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
-            <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>Comment corriger</p>
+            <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>How to fix</p>
             <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0, lineHeight: 1.4 }}>{issue.title}</p>
           </div>
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 7, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -46,7 +46,7 @@ function FixDrawer({ issue, onClose }) {
 
 export default function AuditIssues({ data = {} }) {
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('Toutes');
+  const [category, setCategory] = useState('All');
   const [severity, setSeverity] = useState('all');
   const [fixIssue, setFixIssue] = useState(null);
 
@@ -54,25 +54,25 @@ export default function AuditIssues({ data = {} }) {
 
   const filtered = allIssues.filter(issue => {
     const matchSearch = issue.title?.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === 'Toutes' || issue.category === category;
+    const matchCat = category === 'All' || issue.category === category;
     const matchSev = severity === 'all' || issue.severity === severity;
     return matchSearch && matchCat && matchSev;
   });
 
-  const usedCategories = ['Toutes', ...Array.from(new Set(allIssues.map(i => i.category).filter(Boolean)))];
+  const usedCategories = ['All', ...Array.from(new Set(allIssues.map(i => i.category).filter(Boolean)))];
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       <div>
-        <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.03em' }}>Problèmes</p>
-        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>{allIssues.length} problème{allIssues.length !== 1 ? 's' : ''} détecté{allIssues.length !== 1 ? 's' : ''}</p>
+        <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.03em' }}>Issues</p>
+        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>{allIssues.length} issue{allIssues.length !== 1 ? 's' : ''} detected</p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '8px 14px' }}>
           <Search size={13} color={INK3} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un problème…"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search issues…"
             style={{ border: 'none', outline: 'none', fontSize: 13, color: INK, background: 'transparent', flex: 1, fontFamily: F }} />
           {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3, display: 'flex' }}><X size={13} /></button>}
         </div>
@@ -100,12 +100,12 @@ export default function AuditIssues({ data = {} }) {
       {allIssues.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-          <p style={{ fontSize: 15, fontWeight: 600, color: INK, margin: '0 0 6px' }}>Aucun problème détecté !</p>
-          <p style={{ fontSize: 13, color: INK3 }}>Votre site semble en bonne santé technique.</p>
+          <p style={{ fontSize: 15, fontWeight: 600, color: INK, margin: '0 0 6px' }}>No issues detected!</p>
+          <p style={{ fontSize: 13, color: INK3 }}>Your site appears technically healthy.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '48px 20px', color: INK3, fontSize: 13 }}>Aucun problème pour ces filtres</div>}
+          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '48px 20px', color: INK3, fontSize: 13 }}>No issues match these filters</div>}
           {filtered.map((issue, i) => (
             <div key={i}
               style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, transition: 'background 100ms' }}
@@ -120,7 +120,7 @@ export default function AuditIssues({ data = {} }) {
               <button onClick={() => setFixIssue(issue)}
                 style={{ fontSize: 12, fontWeight: 600, color: WHITE, background: INK, border: 'none', borderRadius: 7, padding: '7px 14px', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                Corriger
+                Fix
               </button>
             </div>
           ))}

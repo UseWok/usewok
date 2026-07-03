@@ -5,8 +5,8 @@ import StatusPicker from './StatusPicker';
 import { BORDER, CORAL, GREEN, INK, INK2, ORANGE_DEEP, ORANGE_SOFT, CREAM_DEEP, F } from '@/lib/report-constants';
 
 function ActionCard({ item, index, urgency, urgencyColor, onClick, status, onStatusChange, saving, isFree }) {
-  const urgencyBg = urgency === 'Urgent' ? CORAL : urgency === 'Cette semaine' ? ORANGE_SOFT : CREAM_DEEP;
-  const urgencyFg = urgency === 'Urgent' ? '#fff' : urgency === 'Cette semaine' ? ORANGE_DEEP : INK2;
+  const urgencyBg = urgency === 'Urgent' ? CORAL : urgency === 'This week' ? ORANGE_SOFT : CREAM_DEEP;
+  const urgencyFg = urgency === 'Urgent' ? '#fff' : urgency === 'This week' ? ORANGE_DEEP : INK2;
   const isDone = status === 'done';
 
   return (
@@ -30,7 +30,7 @@ function ActionCard({ item, index, urgency, urgencyColor, onClick, status, onSta
       ) : null}
       <button onClick={onClick} className="lrs-launch"
         style={{ background: 'none', border: 'none', color: CORAL, fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4, fontFamily: F, flexShrink: 0 }}>
-        Lancer<ArrowRight size={12} />
+        Launch<ArrowRight size={12} />
       </button>
     </motion.div>
   );

@@ -189,18 +189,18 @@ function RightCard({ icon, title, desc }) {
 }
 
 const TOC = [
-  [1, "Introduction et mises à jour"],
-  [2, "Identité du responsable du traitement"],
-  [3, "Données collectées"],
-  [4, "Base juridique du traitement"],
-  [5, "Finalités du traitement"],
-  [6, "Partage des données avec des tiers"],
-  [7, "Transferts internationaux de données"],
-  [8, "Durée de conservation des données"],
-  [9, "Sécurité des données"],
-  [10, "Cookies et technologies de suivi"],
-  [11, "Vos droits en matière de données personnelles"],
-  [12, "Contact et réclamations"],
+  [1, "Introduction and updates"],
+  [2, "Identity of the data controller"],
+  [3, "Data collected"],
+  [4, "Legal basis for processing"],
+  [5, "Purposes of processing"],
+  [6, "Data sharing with third parties"],
+  [7, "International data transfers"],
+  [8, "Data retention period"],
+  [9, "Data security"],
+  [10, "Cookies and tracking technologies"],
+  [11, "Your rights regarding personal data"],
+  [12, "Contact and complaints"],
 ];
 
 export default function PrivacyPolicyPage() {
@@ -222,7 +222,7 @@ export default function PrivacyPolicyPage() {
           <span style={{ fontSize: 15, fontWeight: 700, color: INK, letterSpacing: '-0.02em' }}>UseWok</span>
         </Link>
         <div style={{ flex: 1 }} />
-        <Link to="/" style={{ fontSize: 13, color: INK_SOFT, textDecoration: 'none', fontWeight: 500 }}>&larr; Retour au site</Link>
+        <Link to="/" style={{ fontSize: 13, color: INK_SOFT, textDecoration: 'none', fontWeight: 500 }}>&larr; Back to site</Link>
       </nav>
 
       {/* Hero */}
@@ -247,15 +247,15 @@ export default function PrivacyPolicyPage() {
             borderRadius: 20, padding: '5px 14px', marginBottom: 22,
           }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: ORANGE, display: 'inline-block' }} />
-            <span style={{ fontSize: 11, color: ORANGE_DEEP, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Conformité RGPD</span>
+            <span style={{ fontSize: 11, color: ORANGE_DEEP, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>GDPR Compliance</span>
           </div>
           <h1 style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 800, color: INK, margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.08 }}>
-            Politique de confidentialité
+            Privacy Policy
           </h1>
           <p style={{ fontSize: 15, color: INK_SOFT, margin: 0, lineHeight: 1.6 }}>
-            Dernière mise à jour : <strong style={{ color: INK }}>28 juin 2026</strong>
+            Last updated: <strong style={{ color: INK }}>June 28, 2026</strong>
             <span style={{ margin: '0 8px', opacity: 0.35 }}>·</span>
-            Applicable à <strong style={{ color: INK }}>usewok.com</strong>
+            Applies to <strong style={{ color: INK }}>usewok.com</strong>
           </p>
         </div>
       </div>
@@ -263,14 +263,14 @@ export default function PrivacyPolicyPage() {
       {/* Main layout */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(32px, 5vw, 64px) clamp(20px, 3vw, 40px)', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 48, alignItems: 'start' }}>
         <main>
-          <Section number="1" title="Introduction et mises à jour">
-            <P>La présente politique de confidentialité décrit la manière dont <strong>UseWok, Inc.</strong> et ses affiliés (ci-après « UseWok », « nous », « notre » ou « nos ») traitent les informations personnelles collectées via notre site web accessible à l'adresse <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a> (le « Site ») et notre plateforme de service en ligne (la « Plateforme »).</P>
-            <P>Cette politique a été rédigée conformément au Règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des données à caractère personnel (« RGPD ») et à la loi française n° 78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés (« Loi Informatique et Libertés »), telle que modifiée par la loi n° 2018-493 du 20 juin 2018.</P>
-            <P>Nous pouvons mettre à jour la présente politique à tout moment en publiant une nouvelle version sur cette page et en modifiant la date de « Dernière mise à jour ». Nous vous recommandons de la consulter régulièrement. En cas de modification substantielle, nous vous en informerons par e-mail ou via une notification sur la Plateforme.</P>
+          <Section number="1" title="Introduction and updates">
+            <P>This privacy policy describes how <strong>UseWok, Inc.</strong> and its affiliates (hereinafter "UseWok", "we", "our" or "us") process personal information collected through our website accessible at <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a> (the "Site") and our online service platform (the "Platform").</P>
+            <P>This policy has been drafted in accordance with Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data ("GDPR") and the French law No. 78-17 of 6 January 1978 on data processing, files and civil liberties ("Data Protection Act"), as amended by law No. 2018-493 of 20 June 2018.</P>
+            <P>We may update this policy at any time by posting a new version on this page and changing the "Last updated" date. We recommend that you review it regularly. In the event of a material change, we will notify you by email or via a notification on the Platform.</P>
           </Section>
 
-          <Section number="2" title="Identité du responsable du traitement">
-            <P>Le responsable du traitement de vos données personnelles, au sens du RGPD, est :</P>
+          <Section number="2" title="Identity of the data controller">
+            <P>The data controller of your personal data, within the meaning of the GDPR, is:</P>
             <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
               <div style={{ fontWeight: 700, fontSize: 16, color: INK, marginBottom: 12 }}>UseWok, Inc.</div>
               <div style={{ fontSize: 14, color: INK_SOFT, lineHeight: 2.2 }}>
@@ -279,198 +279,198 @@ export default function PrivacyPolicyPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.web} <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a></div>
               </div>
             </div>
-            <P>Pour toute question relative à la présente politique ou à vos données personnelles, veuillez nous contacter à l'adresse e-mail indiquée ci-dessus. Nous nous engageons à répondre dans un délai raisonnable.</P>
+            <P>For any questions regarding this policy or your personal data, please contact us at the email address indicated above. We are committed to responding within a reasonable timeframe.</P>
           </Section>
 
-          <Section number="3" title="Données collectées">
-            <P>Nous collectons différentes catégories de données personnelles selon votre mode d'interaction avec la Plateforme.</P>
+          <Section number="3" title="Data collected">
+            <P>We collect different categories of personal data depending on how you interact with the Platform.</P>
 
-            <SubSection title="3.1 Données fournies activement par l'utilisateur">
+            <SubSection title="3.1 Data actively provided by the user">
               <BulletList items={[
-                <><strong>Identité :</strong> Nom et prénom fournis lors de l'inscription directe par e-mail, ou transmis automatiquement par votre fournisseur d'authentification tiers (Google, Apple).</>,
-                <><strong>Adresse e-mail :</strong> Utilisée comme identifiant principal de compte et moyen de communication avec vous.</>,
-                <><strong>Mot de passe :</strong> Uniquement pour les comptes créés par e-mail. Stocké exclusivement sous forme hachée et irréversible (bcrypt). UseWok n'a jamais accès à votre mot de passe en clair.</>,
-                <><strong>Contenu du support :</strong> Tout message, description de problème ou autre information que vous nous transmettez via notre système de tickets de support client.</>,
+                <><strong>Identity:</strong> First and last name provided during direct email registration, or transmitted automatically by your third-party authentication provider (Google, Apple).</>,
+                <><strong>Email address:</strong> Used as your primary account identifier and as a means of communication with you.</>,
+                <><strong>Password:</strong> Only for accounts created via email. Stored exclusively as a hashed and irreversible value (bcrypt). UseWok never has access to your plaintext password.</>,
+                <><strong>Support content:</strong> Any message, problem description or other information you transmit via our customer support ticketing system.</>,
               ]} />
             </SubSection>
 
-            <SubSection title="3.2 Données Google – Clause spécifique (Exigence Google OAuth)">
+            <SubSection title="3.2 Google Data — Specific Clause (Google OAuth Requirement)">
               <InfoBox icon={Icon.google}>
-                <strong>Authentification via « Continuer avec Google »</strong><br />
-                Lorsque vous choisissez de vous connecter ou de créer un compte via le bouton « Continuer avec Google », UseWok accède aux données suivantes de votre compte Google, dans le cadre des permissions (scopes) limitées que vous autorisez :
+                <strong>Authentication via "Continue with Google"</strong><br />
+                When you choose to sign in or create an account via the "Continue with Google" button, UseWok accesses the following data from your Google account, within the limited permissions (scopes) you authorize:
               </InfoBox>
               <BulletList items={[
-                <><strong>Accès :</strong> Nom, prénom, adresse e-mail, photo de profil Google. Les scopes utilisés sont strictement limités à : openid, email, profile.</>,
-                <><strong>Utilisation :</strong> Ces données sont utilisées exclusivement pour créer votre compte UseWok et vous authentifier lors de vos connexions ultérieures. Elles ne sont utilisées à aucune autre fin.</>,
-                <><strong>Stockage :</strong> Votre nom et votre adresse e-mail sont conservés dans notre base de données sécurisée. Votre photo de profil Google n'est pas stockée sur nos serveurs : elle est chargée dynamiquement depuis les serveurs de Google au moment de son affichage dans l'interface.</>,
-                <><strong>Partage :</strong> Nous ne transférons pas, ne vendons pas et ne partageons pas vos données Google avec des tiers, à l'exception des sous-traitants techniques listés à l'article 6, dans le cadre strict de la fourniture du service et de leurs obligations contractuelles.</>,
+                <><strong>Access:</strong> Name, email address, Google profile picture. The scopes used are strictly limited to: openid, email, profile.</>,
+                <><strong>Use:</strong> This data is used exclusively to create your UseWok account and authenticate you during subsequent logins. It is not used for any other purpose.</>,
+                <><strong>Storage:</strong> Your name and email address are stored in our secure database. Your Google profile picture is not stored on our servers: it is loaded dynamically from Google's servers at the time of display in the interface.</>,
+                <><strong>Sharing:</strong> We do not transfer, sell or share your Google data with third parties, with the exception of the technical subprocessors listed in Article 6, strictly for the provision of the service and their contractual obligations.</>,
               ]} />
-              <P style={{ fontSize: 13, color: INK_SOFT, fontStyle: 'italic' }}>UseWok ne demande aucun accès à vos services Google (Drive, Gmail, Calendar, Contacts, etc.). Seules les informations de profil de base sont sollicitées, conformément au principe du moindre privilège.</P>
+              <P style={{ fontSize: 13, color: INK_SOFT, fontStyle: 'italic' }}>UseWok does not request access to your Google services (Drive, Gmail, Calendar, Contacts, etc.). Only basic profile information is requested, in accordance with the principle of least privilege.</P>
             </SubSection>
 
-            <SubSection title="3.3 Données Apple – Clause spécifique">
+            <SubSection title="3.3 Apple Data — Specific Clause">
               <InfoBox icon={Icon.apple}>
-                <strong>Authentification via « Continuer avec Apple »</strong>
+                <strong>Authentication via "Continue with Apple"</strong>
               </InfoBox>
               <BulletList items={[
-                <><strong>Accès :</strong> Adresse e-mail (réelle ou anonymisée via la fonction « Masquer mon e-mail » d'Apple), nom et prénom (uniquement lors de la première connexion, si vous choisissez de les partager).</>,
-                <><strong>Utilisation :</strong> Ces données sont utilisées exclusivement pour créer et authentifier votre compte UseWok.</>,
-                <><strong>Stockage :</strong> Seuls votre identifiant unique Apple et votre adresse e-mail sont conservés dans notre base de données sécurisée.</>,
-                <><strong>Partage :</strong> Nous ne transférons, ni ne vendons vos données Apple à aucun tiers à des fins commerciales.</>,
+                <><strong>Access:</strong> Email address (real or anonymized via Apple's "Hide My Email" feature), first and last name (only during the first connection, if you choose to share them).</>,
+                <><strong>Use:</strong> This data is used exclusively to create and authenticate your UseWok account.</>,
+                <><strong>Storage:</strong> Only your unique Apple identifier and email address are stored in our secure database.</>,
+                <><strong>Sharing:</strong> We do not transfer or sell your Apple data to any third party for commercial purposes.</>,
               ]} />
             </SubSection>
 
-            <SubSection title="3.4 Données collectées passivement">
+            <SubSection title="3.4 Data collected passively">
               <BulletList items={[
-                <><strong>Journaux de connexion :</strong> Adresse IP, horodatage des connexions et déconnexions, identifiant de session.</>,
-                <><strong>Données comportementales :</strong> Pages visitées sur la Plateforme, actions effectuées (clics, navigation), durée des sessions. Ces données sont collectées via nos outils d'analyse (voir article 10).</>,
-                <><strong>Données techniques :</strong> Type et version du navigateur, système d'exploitation, résolution d'écran, langue du navigateur.</>,
-                <><strong>Cookies et technologies similaires :</strong> Voir l'article 10 de la présente politique.</>,
+                <><strong>Connection logs:</strong> IP address, timestamps of logins and logouts, session identifier.</>,
+                <><strong>Behavioral data:</strong> Pages visited on the Platform, actions performed (clicks, navigation), session duration. This data is collected through our analytics tools (see Article 10).</>,
+                <><strong>Technical data:</strong> Browser type and version, operating system, screen resolution, browser language.</>,
+                <><strong>Cookies and similar technologies:</strong> See Article 10 of this policy.</>,
               ]} />
             </SubSection>
           </Section>
 
-          <Section number="4" title="Base juridique du traitement">
-            <P>Conformément à l'article 6 du RGPD, chaque traitement de données personnelles effectué par UseWok repose sur l'une des bases juridiques suivantes :</P>
+          <Section number="4" title="Legal basis for processing">
+            <P>In accordance with Article 6 of the GDPR, each processing of personal data carried out by UseWok is based on one of the following legal bases:</P>
             <Table
-              headers={['Finalité du traitement', 'Base juridique RGPD']}
+              headers={['Purpose of processing', 'GDPR legal basis']}
               rows={[
-                ['Création et gestion du compte utilisateur', 'Exécution du contrat – Art. 6.1.b'],
-                ['Authentification (Google, Apple, email)', 'Exécution du contrat – Art. 6.1.b'],
-                ['Traitement des abonnements et paiements (Stripe)', 'Exécution du contrat – Art. 6.1.b'],
-                ['Prévention des fraudes, sécurité, journalisation', 'Intérêt légitime – Art. 6.1.f'],
-                ["Analyse d'audience et amélioration du service", 'Intérêt légitime / Consentement (cookies) – Art. 6.1.a & f'],
-                ['Support client', 'Exécution du contrat / Intérêt légitime – Art. 6.1.b & f'],
-                ['Communications marketing et newsletters', 'Consentement explicite – Art. 6.1.a'],
-                ['Conservation des données de facturation', 'Obligation légale (comptabilité) – Art. L123-22 Code de commerce français'],
-                ['Réponse aux autorités compétentes', 'Obligation légale – Art. 6.1.c'],
+                ['Creation and management of user account', 'Performance of contract — Art. 6.1.b'],
+                ['Authentication (Google, Apple, email)', 'Performance of contract — Art. 6.1.b'],
+                ['Subscription and payment processing (Stripe)', 'Performance of contract — Art. 6.1.b'],
+                ['Fraud prevention, security, logging', 'Legitimate interest — Art. 6.1.f'],
+                ['Audience analytics and service improvement', 'Legitimate interest / Consent (cookies) — Art. 6.1.a & f'],
+                ['Customer support', 'Performance of contract / Legitimate interest — Art. 6.1.b & f'],
+                ['Marketing communications and newsletters', 'Explicit consent — Art. 6.1.a'],
+                ['Retention of billing data', 'Legal obligation (accounting) — Art. L123-22 French Commercial Code'],
+                ['Response to competent authorities', 'Legal obligation — Art. 6.1.c'],
               ]}
             />
           </Section>
 
-          <Section number="5" title="Finalités du traitement">
-            <P>UseWok traite vos données personnelles pour les finalités suivantes, chacune justifiée par une base juridique appropriée (voir article 4) :</P>
+          <Section number="5" title="Purposes of processing">
+            <P>UseWok processes your personal data for the following purposes, each justified by an appropriate legal basis (see Article 4):</P>
             <BulletList items={[
-              <><strong>Fourniture du service :</strong> Créer et gérer votre compte, vous authentifier, vous donner accès aux fonctionnalités de la Plateforme auxquelles vous avez souscrit.</>,
-              <><strong>Gestion des abonnements et facturation :</strong> Traiter vos paiements, gérer vos abonnements mensuels ou annuels (l'abonnement Starter bénéficie d'un essai gratuit de 7 jours), émettre les justificatifs de paiement, via notre prestataire Stripe, Inc.</>,
-              <><strong>Support client :</strong> Répondre à vos demandes d'assistance via notre système de tickets, résoudre les problèmes techniques et traiter les litiges liés à l'utilisation du service.</>,
-              <><strong>Sécurité et prévention des fraudes :</strong> Détecter, prévenir et traiter les tentatives d'accès non autorisé, les comportements frauduleux, les attaques informatiques et toute activité susceptible de compromettre l'intégrité de la Plateforme ou la sécurité des utilisateurs.</>,
-              <><strong>Amélioration du service :</strong> Analyser l'utilisation de la Plateforme afin d'identifier les axes d'amélioration, corriger les dysfonctionnements et développer de nouvelles fonctionnalités.</>,
-              <><strong>Communications transactionnelles :</strong> Vous envoyer des notifications liées à votre compte (confirmation d'inscription, alertes de sécurité, reçus de paiement, expiration d'abonnement).</>,
-              <><strong>Communications marketing :</strong> Avec votre consentement explicite préalable, vous envoyer des communications promotionnelles, des newsletters ou des informations sur nos nouvelles fonctionnalités. Vous pouvez vous désinscrire à tout moment.</>,
-              <><strong>Obligations légales :</strong> Respecter nos obligations légales et réglementaires, répondre aux injonctions des autorités compétentes et aux décisions de justice.</>,
+              <><strong>Provision of the service:</strong> Create and manage your account, authenticate you, and give you access to the Platform features you have subscribed to.</>,
+              <><strong>Subscription management and billing:</strong> Process your payments, manage your monthly or annual subscriptions (the Starter subscription includes a 7-day free trial), issue payment receipts, via our provider Stripe, Inc.</>,
+              <><strong>Customer support:</strong> Respond to your support requests via our ticketing system, resolve technical issues and handle disputes related to the use of the service.</>,
+              <><strong>Security and fraud prevention:</strong> Detect, prevent and address unauthorized access attempts, fraudulent behavior, cyberattacks and any activity likely to compromise the integrity of the Platform or the security of users.</>,
+              <><strong>Service improvement:</strong> Analyze the use of the Platform to identify areas for improvement, correct malfunctions and develop new features.</>,
+              <><strong>Transactional communications:</strong> Send you notifications related to your account (registration confirmation, security alerts, payment receipts, subscription expiration).</>,
+              <><strong>Marketing communications:</strong> With your prior explicit consent, send you promotional communications, newsletters or information about new features. You can unsubscribe at any time.</>,
+              <><strong>Legal obligations:</strong> Comply with our legal and regulatory obligations, respond to orders from competent authorities and court decisions.</>,
             ]} />
           </Section>
 
-          <Section number="6" title="Partage des données avec des tiers">
-            <P>UseWok <strong>ne vend, ne loue et ne cède aucune donnée personnelle</strong> à des tiers à des fins commerciales.</P>
-            <P>Vos données peuvent être partagées uniquement avec les catégories de sous-traitants suivants, dans le cadre strict de la fourniture du service et sur la base d'accords contractuels conformes au RGPD :</P>
+          <Section number="6" title="Data sharing with third parties">
+            <P>UseWok <strong>does not sell, rent or transfer any personal data</strong> to third parties for commercial purposes.</P>
+            <P>Your data may be shared only with the following categories of subprocessors, strictly for the provision of the service and based on contractual agreements that comply with the GDPR:</P>
             <Table
-              headers={['Prestataire', 'Rôle', 'Données transmises', 'Localisation']}
+              headers={['Provider', 'Role', 'Data transmitted', 'Location']}
               rows={[
-                ['IONOS SE', 'Hébergement / Infrastructure', 'Données de compte, journaux serveur', 'Allemagne (Union européenne)'],
-                ['Stripe, Inc.', 'Traitement sécurisé des paiements', "Adresse e-mail, historique de paiement. Les coordonnées bancaires sont traitées directement par Stripe, jamais stockées par UseWok.", 'États-Unis (CCT en vigueur)'],
-                ['Google LLC (Analytics)', "Analyse d'audience", 'Données de navigation anonymisées, adresse IP tronquée', 'États-Unis (CCT en vigueur)'],
-                ['Base44, Inc.', 'Analyse applicative et comportementale', 'Données comportementales pseudonymisées (clics, pages)', 'États-Unis (CCT en vigueur)'],
-                ['Futur prestataire emailing', 'Envoi de communications (avec consentement)', 'Adresse e-mail uniquement', 'À préciser lors de la mise en service'],
+                ['IONOS SE', 'Hosting / Infrastructure', 'Account data, server logs', 'Germany (European Union)'],
+                ['Stripe, Inc.', 'Secure payment processing', "Email address, payment history. Bank card details are processed directly by Stripe, never stored by UseWok.", 'United States (SCCs in force)'],
+                ['Google LLC (Analytics)', 'Audience analytics', 'Anonymized browsing data, truncated IP address', 'United States (SCCs in force)'],
+                ['Base44, Inc.', 'Application and behavioral analytics', 'Pseudonymized behavioral data (clicks, pages)', 'United States (SCCs in force)'],
+                ['Future email provider', 'Sending communications (with consent)', 'Email address only', 'To be specified at launch'],
               ]}
             />
-            <P>Tous nos sous-traitants établis hors de l'Union européenne sont soumis aux Clauses Contractuelles Types (CCT) adoptées par la Commission européenne, garantissant un niveau de protection des données équivalent à celui applicable au sein de l'UE.</P>
-            <P>En dehors de ce qui précède, UseWok peut divulguer des données personnelles si la loi l'exige, dans le cadre d'une procédure judiciaire ou administrative, ou pour protéger les droits, la propriété ou la sécurité de UseWok, de ses utilisateurs ou du public en général.</P>
+            <P>All our subprocessors established outside the European Union are subject to the Standard Contractual Clauses (SCCs) adopted by the European Commission, ensuring a level of data protection equivalent to that applicable within the EU.</P>
+            <P>Aside from the above, UseWok may disclose personal data if required by law, in the context of legal or administrative proceedings, or to protect the rights, property or safety of UseWok, its users or the general public.</P>
           </Section>
 
-          <Section number="7" title="Transferts internationaux de données">
-            <P>Notre infrastructure principale est hébergée chez IONOS SE, société de droit allemand dont les centres de données sont situés au sein de l'Union européenne. Vos données sont donc hébergées, en priorité, sur le territoire européen.</P>
-            <P>Cependant, certains de nos prestataires de services sont établis aux États-Unis (Stripe, Inc. ; Google LLC ; Base44, Inc.). Des transferts de données personnelles hors de l'Espace Économique Européen (EEE) sont donc susceptibles d'intervenir dans le cadre de l'utilisation de ces services.</P>
-            <P>Ces transferts sont encadrés par les garanties appropriées prévues par le RGPD, et notamment par les Clauses Contractuelles Types (CCT) issues de la décision d'exécution de la Commission européenne du 4 juin 2021, qui imposent contractuellement à ces prestataires un niveau de protection des données équivalent à celui exigé au sein de l'EEE.</P>
+          <Section number="7" title="International data transfers">
+            <P>Our primary infrastructure is hosted by IONOS SE, a German company whose data centers are located within the European Union. Your data is therefore hosted primarily on European territory.</P>
+            <P>However, some of our service providers are based in the United States (Stripe, Inc.; Google LLC; Base44, Inc.). Transfers of personal data outside the European Economic Area (EEA) may therefore occur in the context of using these services.</P>
+            <P>These transfers are governed by the appropriate safeguards provided for by the GDPR, and in particular by the Standard Contractual Clauses (SCCs) resulting from the European Commission's implementing decision of 4 June 2021, which contractually impose on these providers a level of data protection equivalent to that required within the EEA.</P>
             <InfoBox icon={Icon.info}>
-              <strong>Votre droit à l'information</strong><br />
-              Vous pouvez obtenir des informations supplémentaires sur les garanties encadrant ces transferts en nous contactant à <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>.
+              <strong>Your right to information</strong><br />
+              You can obtain additional information about the safeguards governing these transfers by contacting us at <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>.
             </InfoBox>
           </Section>
 
-          <Section number="8" title="Durée de conservation des données">
-            <P>UseWok conserve vos données personnelles pour une durée n'excédant pas celle nécessaire à la finalité pour laquelle elles ont été collectées, en tenant compte de nos obligations légales et de la nécessité de traiter d'éventuels litiges.</P>
+          <Section number="8" title="Data retention period">
+            <P>UseWok retains your personal data for no longer than is necessary for the purpose for which it was collected, taking into account our legal obligations and the need to handle any potential disputes.</P>
             <Table
-              headers={['Catégorie de données', 'Durée de conservation', 'Justification']}
+              headers={['Data category', 'Retention period', 'Justification']}
               rows={[
-                ['Données de compte actif (nom, email)', "Pendant toute la durée d'activité du compte, puis 12 mois après la dernière connexion", 'Fourniture du service'],
-                ["Données d'un compte supprimé par l'utilisateur", 'Suppression immédiate et irréversible à la demande', "Droit à l'effacement – Art. 17 RGPD"],
-                ['Journaux de connexion et sécurité (logs)', '12 mois à compter de leur génération', 'Sécurité, prévention des fraudes, intérêt légitime'],
-                ["Données de facturation et d'abonnement (via Stripe)", '10 ans à compter de la date de la transaction', 'Obligation légale comptable – Art. L123-22 Code de commerce français'],
-                ['Conversations du support client', '3 ans à compter de la clôture du ticket', 'Intérêt légitime (gestion des litiges) – prescription triennale'],
-                ['Données analytiques de navigation (Google Analytics)', '26 mois maximum (paramétrage CNIL)', 'Amélioration du service'],
-                ['Données analytiques comportementales (Base44)', '12 mois maximum', 'Amélioration du service'],
+                ['Active account data (name, email)', "For the entire duration the account is active, then 12 months after the last login", 'Provision of the service'],
+                ["Data from a user-deleted account", 'Immediate and irreversible deletion upon request', "Right to erasure — Art. 17 GDPR"],
+                ['Connection and security logs', '12 months from their generation', 'Security, fraud prevention, legitimate interest'],
+                ["Billing and subscription data (via Stripe)", '10 years from the transaction date', 'Legal accounting obligation — Art. L123-22 French Commercial Code'],
+                ['Customer support conversations', '3 years from ticket closure', 'Legitimate interest (dispute management) — 3-year limitation period'],
+                ['Navigation analytics data (Google Analytics)', '26 months maximum (CNIL setting)', 'Service improvement'],
+                ['Behavioral analytics data (Base44)', '12 months maximum', 'Service improvement'],
               ]}
             />
             <SuccessBox icon={Icon.success}>
-              <strong>Suppression de compte en quelques clics</strong><br />
-              Vous pouvez supprimer votre compte à tout moment depuis votre espace personnel, sans condition. La suppression est immédiate et définitive. Seules les données soumises à une obligation légale de conservation (données de facturation) sont conservées pour la durée légale applicable, dans une base isolée du service actif.
+              <strong>Account deletion in a few clicks</strong><br />
+              You can delete your account at any time from your personal space, without conditions. Deletion is immediate and permanent. Only data subject to a legal retention obligation (billing data) is retained for the applicable legal period, in a database isolated from the active service.
             </SuccessBox>
           </Section>
 
-          <Section number="9" title="Sécurité des données">
-            <P>UseWok met en œuvre des mesures techniques et organisationnelles appropriées, conformément à l'article 32 du RGPD, pour assurer un niveau de sécurité adapté au risque. Ces mesures comprennent notamment :</P>
+          <Section number="9" title="Data security">
+            <P>UseWok implements appropriate technical and organizational measures, in accordance with Article 32 of the GDPR, to ensure a level of security appropriate to the risk. These measures include in particular:</P>
             <BulletList items={[
-              <><strong>Chiffrement en transit :</strong> L'intégralité des communications entre votre navigateur et nos serveurs est chiffrée via le protocole HTTPS/TLS. Aucune donnée ne circule en clair.</>,
-              <><strong>Hachage des mots de passe :</strong> Les mots de passe des comptes créés par e-mail sont transformés en empreinte cryptographique via bcrypt, un algorithme irréversible intégrant un sel aléatoire. UseWok ne peut jamais reconstituer votre mot de passe.</>,
-              <><strong>Infrastructure sécurisée :</strong> Notre hébergement est assuré par IONOS SE, prestataire certifié ISO 27001 dont les centres de données répondent aux normes européennes de sécurité.</>,
-              <><strong>Contrôle d'accès strict :</strong> L'accès aux données personnelles est limité au personnel de UseWok dont les fonctions l'exigent, et uniquement dans la mesure nécessaire à l'accomplissement de ces fonctions.</>,
-              <><strong>Authentification sécurisée :</strong> Les connexions via Google et Apple reposent sur le protocole OAuth 2.0, standard industriel de délégation d'authentification sécurisée.</>,
+              <><strong>Encryption in transit:</strong> All communications between your browser and our servers are encrypted via the HTTPS/TLS protocol. No data is transmitted in plaintext.</>,
+              <><strong>Password hashing:</strong> Passwords for accounts created via email are transformed into a cryptographic hash using bcrypt, an irreversible algorithm that includes a random salt. UseWok can never reconstruct your password.</>,
+              <><strong>Secure infrastructure:</strong> Our hosting is provided by IONOS SE, a provider certified ISO 27001 whose data centers meet European security standards.</>,
+              <><strong>Strict access control:</strong> Access to personal data is limited to UseWok personnel whose functions require it, and only to the extent necessary to perform those functions.</>,
+              <><strong>Secure authentication:</strong> Logins via Google and Apple rely on the OAuth 2.0 protocol, the industry standard for secure delegated authentication.</>,
             ]} />
             <WarningBox icon={Icon.warning}>
-              <strong>Aucune sécurité n'est infaillible</strong><br />
-              Bien que UseWok mette tout en œuvre pour protéger vos données, aucun système de transmission ou de stockage électronique ne peut garantir une sécurité absolue. Nous vous recommandons d'utiliser un mot de passe fort et unique pour votre compte.
+              <strong>No security is infallible</strong><br />
+              Although UseWok takes every measure to protect your data, no system of transmission or electronic storage can guarantee absolute security. We recommend that you use a strong and unique password for your account.
               <br /><br />
-              En cas de violation de données personnelles susceptible d'engendrer un risque élevé pour vos droits et libertés, UseWok s'engage à notifier l'incident à la CNIL dans les 72 heures suivant sa découverte (Art. 33 RGPD), et à vous en informer sans délai injustifié si votre situation personnelle l'exige (Art. 34 RGPD).
+              In the event of a personal data breach likely to result in a high risk to your rights and freedoms, UseWok undertakes to notify the incident to the CNIL within 72 hours of its discovery (Art. 33 GDPR), and to inform you without undue delay if your personal situation so requires (Art. 34 GDPR).
             </WarningBox>
           </Section>
 
-          <Section number="10" title="Cookies et technologies de suivi">
-            <P>UseWok utilise des cookies et des technologies de suivi similaires pour assurer le fonctionnement du service, analyser l'audience et améliorer votre expérience utilisateur.</P>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: INK, marginBottom: 12 }}>Types de cookies utilisés</h3>
+          <Section number="10" title="Cookies and tracking technologies">
+            <P>UseWok uses cookies and similar tracking technologies to ensure the operation of the service, analyze audience behavior and improve your user experience.</P>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: INK, marginBottom: 12 }}>Types of cookies used</h3>
             <Table
-              headers={['Catégorie', 'Outil', 'Finalité', 'Base légale', 'Durée']}
+              headers={['Category', 'Tool', 'Purpose', 'Legal basis', 'Duration']}
               rows={[
-                ['Essentiels', 'Cookie de session UseWok', 'Maintenir votre authentification, sécuriser votre session, mémoriser vos préférences essentielles', 'Nécessaire au service (pas de consentement requis)', 'Durée de la session'],
-                ["Analyse d'audience", 'Google Analytics', 'Mesurer le trafic, analyser les parcours utilisateurs, améliorer le service', 'Consentement préalable (Art. 6.1.a RGPD)', '26 mois max'],
-                ['Analyse applicative', 'Base44', 'Analyser les comportements in-app (clics, pages visitées)', 'Consentement préalable (Art. 6.1.a RGPD)', '12 mois max'],
+                ['Essential', 'UseWok session cookie', 'Maintain your authentication, secure your session, remember your essential preferences', 'Necessary for the service (no consent required)', 'Session duration'],
+                ['Audience analytics', 'Google Analytics', 'Measure traffic, analyze user journeys, improve the service', 'Prior consent (Art. 6.1.a GDPR)', '26 months max'],
+                ['Application analytics', 'Base44', 'Analyze in-app behavior (clicks, pages visited)', 'Prior consent (Art. 6.1.a GDPR)', '12 months max'],
               ]}
             />
-            <P>Conformément aux recommandations de la CNIL, nous recueillons votre consentement avant de déposer tout cookie non strictement nécessaire au fonctionnement du service. Vous pouvez retirer votre consentement à tout moment via notre gestionnaire de préférences cookies accessible depuis chaque page du site.</P>
-            <P>Vous pouvez également désactiver les cookies depuis les paramètres de votre navigateur. La désactivation des cookies analytiques n'affectera pas les fonctionnalités essentielles de la Plateforme.</P>
-            <P style={{ fontSize: 13, color: INK_SOFT }}>Pour en savoir plus sur les cookies : <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" style={{ color: ORANGE_DEEP }}>www.allaboutcookies.org</a></P>
+            <P>In accordance with CNIL recommendations, we obtain your consent before depositing any cookie that is not strictly necessary for the operation of the service. You can withdraw your consent at any time via our cookie preference manager accessible from each page of the site.</P>
+            <P>You can also disable cookies from your browser settings. Disabling analytics cookies will not affect the essential features of the Platform.</P>
+            <P style={{ fontSize: 13, color: INK_SOFT }}>To learn more about cookies: <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" style={{ color: ORANGE_DEEP }}>www.allaboutcookies.org</a></P>
           </Section>
 
-          <Section number="11" title="Vos droits en matière de données personnelles">
-            <P>Conformément au RGPD (articles 15 à 22), vous disposez des droits suivants concernant les données personnelles que UseWok traite vous concernant :</P>
+          <Section number="11" title="Your rights regarding personal data">
+            <P>In accordance with the GDPR (Articles 15 to 22), you have the following rights regarding the personal data that UseWok processes about you:</P>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12, marginBottom: 28 }}>
               {[
-                { icon: Icon.access, title: "Droit d'accès", desc: "Obtenir confirmation que des données vous concernant sont traitées, et recevoir une copie de ces données ainsi que toutes les informations relatives à leur traitement. (Art. 15 RGPD)" },
-                { icon: Icon.rectify, title: 'Droit de rectification', desc: "Demander la correction de toute donnée inexacte, incomplète ou obsolète vous concernant. (Art. 16 RGPD)" },
-                { icon: Icon.erase, title: "Droit à l'effacement", desc: "Demander la suppression de vos données personnelles (« droit à l'oubli »), sous réserve des obligations légales de conservation qui s'imposent à UseWok. (Art. 17 RGPD)" },
-                { icon: Icon.block, title: "Droit d'opposition", desc: "Vous opposer, à tout moment, au traitement de vos données à des fins de marketing direct, ou lorsque le traitement repose sur l'intérêt légitime de UseWok. (Art. 21 RGPD)" },
-                { icon: Icon.pause, title: 'Droit à la limitation', desc: "Demander la suspension temporaire du traitement de vos données dans les cas prévus par la réglementation (ex. : contestation de l'exactitude des données). (Art. 18 RGPD)" },
-                { icon: Icon.portable, title: 'Droit à la portabilité', desc: "Recevoir vos données dans un format structuré, couramment utilisé et lisible par machine, ou les faire transmettre directement à un autre responsable de traitement. (Art. 20 RGPD)" },
+                { icon: Icon.access, title: "Right of access", desc: "Obtain confirmation that data about you is being processed, and receive a copy of that data as well as all information relating to its processing. (Art. 15 GDPR)" },
+                { icon: Icon.rectify, title: 'Right to rectification', desc: "Request the correction of any inaccurate, incomplete or obsolete data about you. (Art. 16 GDPR)" },
+                { icon: Icon.erase, title: 'Right to erasure', desc: "Request the deletion of your personal data ('right to be forgotten'), subject to the legal retention obligations that apply to UseWok. (Art. 17 GDPR)" },
+                { icon: Icon.block, title: 'Right to object', desc: "Object, at any time, to the processing of your data for direct marketing purposes, or when the processing is based on UseWok's legitimate interest. (Art. 21 GDPR)" },
+                { icon: Icon.pause, title: 'Right to restriction', desc: "Request the temporary suspension of the processing of your data in the cases provided for by regulations (e.g., contesting the accuracy of the data). (Art. 18 GDPR)" },
+                { icon: Icon.portable, title: 'Right to data portability', desc: "Receive your data in a structured, commonly used and machine-readable format, or have it transmitted directly to another data controller. (Art. 20 GDPR)" },
               ].map((r, i) => <RightCard key={i} {...r} />)}
             </div>
-            <P>Pour exercer l'un de ces droits, veuillez nous adresser votre demande par e-mail à <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>, en précisant clairement le droit que vous souhaitez exercer. Nous pourrons vous demander de justifier de votre identité pour traiter votre demande. Nous nous engageons à répondre dans un délai d'un (1) mois à compter de la réception de votre demande. Ce délai peut être prolongé de deux mois supplémentaires en cas de demande complexe ou de nombre élevé de demandes, auquel cas nous vous en informerons.</P>
-            <P>Ces droits ne sont pas absolus et peuvent être soumis aux conditions et limitations prévues par la réglementation applicable, notamment pour respecter nos obligations légales ou protéger les droits et intérêts légitimes de UseWok ou de tiers.</P>
+            <P>To exercise any of these rights, please send your request by email to <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>, clearly specifying the right you wish to exercise. We may ask you to verify your identity to process your request. We are committed to responding within one (1) month of receiving your request. This period may be extended by two additional months in the case of complex requests or a high number of requests, in which case we will inform you.</P>
+            <P>These rights are not absolute and may be subject to the conditions and limitations provided by applicable regulations, in particular to comply with our legal obligations or to protect the legitimate rights and interests of UseWok or third parties.</P>
           </Section>
 
-          <Section number="12" title="Contact et réclamations">
-            <P>Pour toute question relative à la présente politique ou à l'exercice de vos droits, veuillez contacter notre service dédié à la protection des données :</P>
+          <Section number="12" title="Contact and complaints">
+            <P>For any questions regarding this policy or the exercise of your rights, please contact our dedicated data protection service:</P>
             <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 24 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: INK, marginBottom: 12 }}>UseWok, Inc. — Protection des données personnelles</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: INK, marginBottom: 12 }}>UseWok, Inc. — Personal Data Protection</div>
               <div style={{ fontSize: 14, color: INK_SOFT, lineHeight: 2.2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.mail} <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.web} <a href="https://usewok.com" style={{ color: ORANGE_DEEP }}>https://usewok.com</a></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.pin} Libourne, Gironde, France</div>
               </div>
             </div>
-            <P>Si vous estimez, après nous avoir contactés, que le traitement de vos données personnelles par UseWok n'est pas conforme à la réglementation applicable en matière de protection des données, vous avez le droit de déposer une plainte auprès de l'autorité de contrôle compétente. En France, il s'agit de la :</P>
+            <P>If, after contacting us, you believe that the processing of your personal data by UseWok does not comply with applicable data protection regulations, you have the right to file a complaint with the competent supervisory authority. In France, this is:</P>
             <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px' }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: INK, marginBottom: 12 }}>CNIL – Commission Nationale de l'Informatique et des Libertés</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: INK, marginBottom: 12 }}>CNIL — Commission Nationale de l'Informatique et des Libertés</div>
               <div style={{ fontSize: 14, color: INK_SOFT, lineHeight: 2.2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.pin} 3 Place de Fontenoy – TSA 80715 – 75334 PARIS CEDEX 07</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{Icon.phone} +33 (0)1 53 73 22 22</div>
@@ -483,7 +483,7 @@ export default function PrivacyPolicyPage() {
         {/* Sidebar TOC */}
         <aside style={{ position: 'sticky', top: 80 }}>
           <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '20px', marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: INK_SOFT, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Sommaire</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: INK_SOFT, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Table of contents</div>
             <nav>
               {TOC.map(([num, label]) => (
                 <div key={num} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
@@ -494,7 +494,7 @@ export default function PrivacyPolicyPage() {
             </nav>
           </div>
           <div style={{ background: ORANGE_PALE, border: '1px solid rgba(196,62,20,0.16)', borderRadius: 12, padding: '16px', fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>
-            <div style={{ fontWeight: 700, color: INK, marginBottom: 6 }}>Questions ?</div>
+            <div style={{ fontWeight: 700, color: INK, marginBottom: 6 }}>Questions?</div>
             <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP, fontWeight: 600 }}>compliance@usewok.com</a>
           </div>
         </aside>
@@ -503,10 +503,10 @@ export default function PrivacyPolicyPage() {
       {/* Footer */}
       <footer style={{ background: '#fff', borderTop: '1px solid rgba(21,19,15,0.10)', padding: '24px clamp(20px, 5vw, 60px)', textAlign: 'center' }}>
         <p style={{ fontSize: 12, color: INK_SOFT, margin: 0 }}>
-          © 2026 UseWok — L'outil français de visibilité IA ·{' '}
-          <Link to="/terms" style={{ color: INK_SOFT, textDecoration: 'none' }}>CGU</Link>
+          © 2026 UseWok — The AI visibility platform ·{' '}
+          <Link to="/terms" style={{ color: INK_SOFT, textDecoration: 'none' }}>Terms</Link>
           {' '}·{' '}
-          <Link to="/" style={{ color: INK_SOFT, textDecoration: 'none' }}>Accueil</Link>
+          <Link to="/" style={{ color: INK_SOFT, textDecoration: 'none' }}>Home</Link>
         </p>
       </footer>
 

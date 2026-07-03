@@ -15,20 +15,20 @@ const WHITE = '#FFFFFF';
 
 const ERROR_CONTEXT = {
   not_connected: {
-    why: "Vous n'avez pas encore autorisé l'accès à ce compte Google.",
-    fix: 'Cliquez sur "Connecter" et autorisez l\'accès dans la fenêtre Google.',
+    why: "You haven't authorized access to this Google account yet.",
+    fix: 'Click "Connect" and authorize access in the Google popup.',
   },
   no_sites: {
-    why: "Votre compte Google Search Console n'a aucune propriété vérifiée.",
-    fix: 'Ajoutez votre site sur search.google.com/search-console et vérifiez-le d\'abord.',
+    why: "Your Google Search Console account has no verified properties.",
+    fix: 'Add your site on search.google.com/search-console and verify it first.',
   },
   no_data: {
-    why: "Votre site est connecté mais n'a pas encore généré de données (site trop récent ou trafic insuffisant).",
-    fix: 'Les données apparaissent après 48–72h d\'indexation. Vérifiez que votre sitemap est soumis.',
+    why: "Your site is connected but hasn't generated data yet (site too new or insufficient traffic).",
+    fix: 'Data appears after 48–72h of indexing. Make sure your sitemap is submitted.',
   },
   default: {
-    why: 'Une erreur est survenue lors de la récupération des données.',
-    fix: 'Déconnectez et reconnectez le compte, ou vérifiez vos permissions Google.',
+    why: 'An error occurred while fetching the data.',
+    fix: 'Disconnect and reconnect the account, or check your Google permissions.',
   }
 };
 
@@ -39,13 +39,13 @@ function ContextualHelp({ errorType }) {
     <div style={{ marginTop: 10 }}>
       <button onClick={() => setOpen(!open)}
         style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#B45309', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 7, padding: '5px 10px', cursor: 'pointer', fontFamily: F }}>
-        <Info size={11} /> Pourquoi mes données ne s'affichent-elles pas ?
+        <Info size={11} /> Why aren't my data showing?
       </button>
       {open && (
         <div style={{ marginTop: 8, padding: '12px 14px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 5px' }}>Cause probable</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 5px' }}>Likely cause</p>
           <p style={{ fontSize: 12, color: '#78350F', margin: '0 0 10px', lineHeight: 1.6 }}>{ctx.why}</p>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 5px' }}>Comment résoudre</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 5px' }}>How to fix</p>
           <p style={{ fontSize: 12, color: '#78350F', margin: 0, lineHeight: 1.6 }}>{ctx.fix}</p>
         </div>
       )}
@@ -60,12 +60,12 @@ function SiteSelector({ sites, selectedSite, onSelect, label = 'Site' }) {
 
   const display = selectedSite
     ? selectedSite.replace(/https?:\/\//, '').replace(/\/$/, '')
-    : 'Sélectionner…';
+    : 'Select…';
 
   return (
     <div style={{ marginTop: 10, position: 'relative' }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: INK3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-        {label} sélectionné
+        Selected {label.toLowerCase()}
       </div>
       <button onClick={() => setOpen(!open)}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%', padding: '7px 10px', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 8, cursor: 'pointer', fontFamily: F, fontSize: 12, color: INK }}>
@@ -199,8 +199,8 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, siteLabel, on
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{name}</span>
-            {connected && <span style={{ fontSize: 9, fontWeight: 700, color: '#059669', background: '#DCFCE7', padding: '2px 6px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Connecté</span>}
-            {connectedNoData && <span style={{ fontSize: 9, fontWeight: 700, color: '#B45309', background: '#FEF3C7', padding: '2px 6px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Données manquantes</span>}
+            {connected && <span style={{ fontSize: 9, fontWeight: 700, color: '#059669', background: '#DCFCE7', padding: '2px 6px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Connected</span>}
+            {connectedNoData && <span style={{ fontSize: 9, fontWeight: 700, color: '#B45309', background: '#FEF3C7', padding: '2px 6px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.07em' }}>No data</span>}
           </div>
           <p style={{ fontSize: 11, color: INK3, margin: 0 }}>{desc}</p>
         </div>
@@ -216,14 +216,14 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, siteLabel, on
                 </button>
                 <button onClick={handleDisconnect} disabled={loading}
                   style={{ padding: '6px 11px', borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', fontSize: 11, fontWeight: 600, color: '#DC2626', fontFamily: F }}>
-                  Déconnecter
-                </button>
+                  Disconnect
+                  </button>
               </div>
             ) : (
               <button onClick={handleConnect} disabled={loading}
                 style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: INK, color: WHITE, cursor: loading ? 'wait' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: F, display: 'flex', alignItems: 'center', gap: 6, opacity: loading ? 0.7 : 1 }}>
                 <ExternalLink size={12} />
-                {loading ? 'Connexion…' : 'Connecter'}
+                {loading ? 'Connecting…' : 'Connect'}
               </button>
             )}
           </div>
@@ -252,8 +252,8 @@ function IntegrationCard({ name, desc, logo, connectorId, fetchFn, siteLabel, on
       {connected && showMetrics && info?.data && (
         <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {[
-            { l: 'Clics', v: info.data.totalClicks?.toLocaleString('fr') || '–' },
-            { l: 'Impressions', v: info.data.totalImpressions?.toLocaleString('fr') || '–' },
+            { l: 'Clicks', v: info.data.totalClicks?.toLocaleString('en') || '–' },
+            { l: 'Impressions', v: info.data.totalImpressions?.toLocaleString('en') || '–' },
             { l: 'CTR', v: `${info.data.avgCtr ?? '–'}%` },
             { l: 'Position', v: `#${info.data.avgPosition ?? '–'}` },
           ].map((m, i) => (
@@ -282,7 +282,7 @@ export default function ConnectIntegrations({ onDataLoaded, compact = false, sho
   const integrations = [
     {
       name: 'Google Search Console',
-      desc: 'Clics, impressions, positions réelles · 28 derniers jours',
+      desc: 'Clicks, impressions, real positions · Last 28 days',
       logo: 'https://www.gstatic.com/images/branding/product/2x/search_console_512dp.png',
       connectorId: GSC_ID,
       fetchFn: 'getSearchConsoleData',
@@ -290,11 +290,11 @@ export default function ConnectIntegrations({ onDataLoaded, compact = false, sho
     },
     {
       name: 'Google Analytics',
-      desc: 'Sessions, utilisateurs, taux de rebond · 28 derniers jours',
+      desc: 'Sessions, users, bounce rate · Last 28 days',
       logo: 'https://www.gstatic.com/analytics-suite/header/suite/v2/ic_analytics.svg',
       connectorId: GA_ID,
       fetchFn: 'getAnalyticsData',
-      siteLabel: 'Propriété',
+      siteLabel: 'Property',
     },
   ];
 

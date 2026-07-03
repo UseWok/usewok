@@ -25,24 +25,24 @@ function FakeWidget({ children, style }) {
 
 const PERKS = {
   starter: [
-    '5 moteurs IA — ChatGPT, Claude, Mistral, Gemini…',
-    'Scan complet 3×/semaine',
-    'Audit technique & détection d\'erreurs',
-    '5 sites surveillés simultanément',
-    'Instructions de correction détaillées',
-    'Intégrations GSC & Analytics',
+    '5 AI engines — ChatGPT, Claude, Mistral, Gemini…',
+    'Full scan 3×/week',
+    'Technical audit & error detection',
+    '5 sites monitored simultaneously',
+    'Detailed fix instructions',
+    'GSC & Analytics integrations',
   ],
   pro: [
-    '8 moteurs IA — Perplexity, Grok, Copilot inclus',
-    'Scan complet chaque jour',
-    'Historique 365 jours',
-    '10 sites surveillés simultanément',
-    'Rapport PDF exportable',
-    '200 messages chatbot IA',
+    '8 AI engines — Perplexity, Grok, Copilot included',
+    'Full scan every day',
+    '365-day history',
+    '10 sites monitored simultaneously',
+    'Exportable PDF report',
+    '200 AI chatbot messages',
   ],
 };
 
-export default function UpgradeModal({ open, onClose, feature = 'cette fonctionnalité', requiredPlan = 'starter', description }) {
+export default function UpgradeModal({ open, onClose, feature = 'this feature', requiredPlan = 'starter', description }) {
   const navigate = useNavigate();
   if (!open) return null;
 
@@ -118,10 +118,10 @@ export default function UpgradeModal({ open, onClose, feature = 'cette fonctionn
           </div>
 
           <h2 style={{ fontSize: 26, fontWeight: 900, color: INK, margin: '0 0 12px', letterSpacing: '-0.04em', lineHeight: 1.15 }}>
-            Prenez la tête de la<br />nouvelle ère de la recherche
+            Lead the new<br />era of search
           </h2>
           <p style={{ fontSize: 13, color: INK3, margin: '0 0 24px', lineHeight: 1.7, maxWidth: 320 }}>
-            {description || `Restez en avance sur l'évolution du Web en suivant votre visibilité sur Google et dans la recherche par IA.`}
+            {description || `Stay ahead of the evolving web by tracking your visibility on Google and in AI-powered search.`}
           </p>
 
           {/* Perks */}
@@ -141,10 +141,10 @@ export default function UpgradeModal({ open, onClose, feature = 'cette fonctionn
             onClick={() => { navigate('/pricing'); onClose(); }}
             style={{ width: '100%', padding: '15px', background: INK, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}
           >
-            Passer au plan {isStarter ? 'Starter' : 'Pro'} <ArrowRight size={14} />
-          </button>
-          <button onClick={onClose} style={{ width: '100%', padding: '10px', background: 'transparent', border: 'none', borderRadius: 10, fontSize: 12, color: INK3, cursor: 'pointer', fontFamily: F }}>
-            Continuer avec le plan Gratuit
+            Upgrade to {isStarter ? 'Starter' : 'Pro'} <ArrowRight size={14} />
+            </button>
+            <button onClick={onClose} style={{ width: '100%', padding: '10px', background: 'transparent', border: 'none', borderRadius: 10, fontSize: 12, color: INK3, cursor: 'pointer', fontFamily: F }}>
+            Continue with Free plan
           </button>
         </div>
 

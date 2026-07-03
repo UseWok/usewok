@@ -34,7 +34,7 @@ function FixDrawer({ issue, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ width: 380, background: WHITE, borderLeft: `1px solid ${BORDER}`, height: '100%', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)' }}>
         <div style={{ padding: '20px 24px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>Comment corriger</p>
+            <p style={{ fontSize: 10, fontWeight: 600, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>How to fix</p>
             <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>{issue.title}</p>
           </div>
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 7, border: `1px solid ${BORDER}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -72,11 +72,11 @@ function PerfIssueRow({ issue, onFix }) {
             <button onClick={() => onFix(issue)}
               style={{ fontSize: 11, fontWeight: 600, color: WHITE, background: INK, border: 'none', borderRadius: 7, padding: '5px 11px', cursor: 'pointer', fontFamily: F }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              Corriger
+              Fix
             </button>
           </>
         ) : (
-          <span style={{ fontSize: 11, color: INK3 }}>Aucun problème</span>
+          <span style={{ fontSize: 11, color: INK3 }}>No issues</span>
         )}
       </div>
     </div>
@@ -103,8 +103,8 @@ export default function AuditPerformance({ data = {} }) {
   return (
     <div style={{ fontFamily: F }}>
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.03em' }}>Performances</p>
-        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Score global : <strong style={{ color: INK }}>{data.performance_score ?? '–'} / 100</strong></p>
+        <p style={{ fontSize: 22, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.03em' }}>Performance</p>
+        <p style={{ fontSize: 13, color: INK3, margin: 0 }}>Overall score: <strong style={{ color: INK }}>{data.performance_score ?? '–'} / 100</strong></p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
@@ -113,24 +113,24 @@ export default function AuditPerformance({ data = {} }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           <Card>
-            <Label>Vitesse de chargement</Label>
-            <SpeedRow label="< 0,5 s" pages={pFastest} maxPages={total} />
-            <SpeedRow label="0,5 – 1 s" pages={pFast} maxPages={total} />
+            <Label>Page load speed</Label>
+            <SpeedRow label="< 0.5 s" pages={pFastest} maxPages={total} />
+            <SpeedRow label="0.5 – 1 s" pages={pFast} maxPages={total} />
             <SpeedRow label="1 – 3 s" pages={pMedium} maxPages={total} />
             <SpeedRow label="> 3 s" pages={pSlow} maxPages={total} />
           </Card>
 
           <Card style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '28px 20px' }}>
-            <Label>Vitesse moy. de chargement</Label>
+            <Label>Avg. load speed</Label>
             <span style={{ fontSize: 52, fontWeight: 900, color: INK, letterSpacing: '-0.05em', lineHeight: 1 }}>
               {data.avg_page_load_seconds != null ? data.avg_page_load_seconds.toFixed(2) : '–'}
             </span>
-            <span style={{ fontSize: 14, color: INK3, fontWeight: 600 }}>secondes</span>
+            <span style={{ fontSize: 14, color: INK3, fontWeight: 600 }}>seconds</span>
           </Card>
 
           {jsFiles.length > 0 && (
             <Card>
-              <Label>Nombre de fichiers JS et CSS</Label>
+              <Label>JS & CSS file count</Label>
               <ResponsiveContainer width="100%" height={120}>
                 <BarChart data={jsFiles} margin={{ top: 4, bottom: 0 }}>
                   <XAxis dataKey="range" tick={{ fontSize: 9, fill: INK3 }} tickLine={false} axisLine={false} />
@@ -144,7 +144,7 @@ export default function AuditPerformance({ data = {} }) {
 
           {jsSize.length > 0 && (
             <Card>
-              <Label>Taille des fichiers JS et CSS</Label>
+              <Label>JS & CSS file size</Label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {jsSize.map((d, i) => {
                   const max = Math.max(...jsSize.map(x => x.count), 1);
@@ -165,18 +165,18 @@ export default function AuditPerformance({ data = {} }) {
 
         {/* Right */}
         <Card>
-          <Label>Problèmes de performance</Label>
+          <Label>Performance issues</Label>
 
           {errors.length > 0 && (
             <>
-              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>Erreurs</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>Errors</p>
               {errors.map((issue, i) => <PerfIssueRow key={i} issue={issue} onFix={setFixIssue} />)}
             </>
           )}
 
           {warnings.length > 0 && (
             <>
-              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '20px 0 6px' }}>Avertissements</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '20px 0 6px' }}>Warnings</p>
               {warnings.map((issue, i) => <PerfIssueRow key={i} issue={issue} onFix={setFixIssue} />)}
             </>
           )}
@@ -184,7 +184,7 @@ export default function AuditPerformance({ data = {} }) {
           {errors.length === 0 && warnings.length === 0 && (
             <div style={{ textAlign: 'center', padding: '32px 0' }}>
               <p style={{ fontSize: 28, margin: '0 0 8px' }}>⚡</p>
-              <p style={{ fontSize: 13, color: INK2, margin: 0 }}>Aucun problème de performance détecté.</p>
+              <p style={{ fontSize: 13, color: INK2, margin: 0 }}>No performance issues detected.</p>
             </div>
           )}
         </Card>

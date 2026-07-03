@@ -72,7 +72,7 @@ const STEPS = [
         <div className="grid grid-cols-3 gap-2">
           {[
             { label: 'Standard', cost: '1T', bg: '#f5f5f5', text: '#555' },
-            { label: 'Avancé', cost: '2T', bg: '#DDFF00', text: '#0A0A0A' },
+            { label: 'Advanced', cost: '2T', bg: '#DDFF00', text: '#0A0A0A' },
             { label: 'Expert', cost: '4T', bg: '#0A0A0A', text: 'white' },
           ].map((m, i) => (
             <motion.div key={m.label}

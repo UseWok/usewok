@@ -274,13 +274,13 @@ export default function LandingPage() {
           <h1>Your customers ask AI<br />who to <span className="hi">call.</span></h1>
           <p>UseWok measures your visibility on ChatGPT, Claude and Gemini — and gives you a clear action plan to get found.</p>
           <div className="hero-ctas">
-            <button className="btn btn-dark" onClick={goRegister}>Analyser mon site →</button>
-            <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>Voir une démo</button>
+            <button className="btn btn-dark" onClick={goRegister}>Analyze my site →</button>
+            <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>See a demo</button>
           </div>
           <div className="hero-strip">
-            <div className="strip-pill"><b>2 400+</b> marques analysées</div>
-            <div className="strip-pill"><b>30 sec</b> pour votre premier score</div>
-            <div className="strip-pill"><b>🇫🇷</b> conçu et hébergé en France</div>
+            <div className="strip-pill"><b>2,400+</b> brands analyzed</div>
+            <div className="strip-pill"><b>30 sec</b> for your first score</div>
+            <div className="strip-pill"><b>🇫🇷</b> designed and hosted in France</div>
           </div>
         </div>
       </section>

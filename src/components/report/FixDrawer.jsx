@@ -114,10 +114,10 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
           setTimeout(() => { onVerified(); }, 2500);
         }
       } else {
-        setVerifyResult({ verified: false, feedback: 'Impossible de vérifier. Réessayez dans un instant.', confidence: 0 });
+        setVerifyResult({ verified: false, feedback: 'Unable to verify. Try again in a moment.', confidence: 0 });
       }
     } catch {
-      setVerifyResult({ verified: false, feedback: 'Erreur de vérification. Réessayez.', confidence: 0 });
+      setVerifyResult({ verified: false, feedback: 'Verification error. Please retry.', confidence: 0 });
     }
     setVerifying(false);
   };
@@ -138,7 +138,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 600, color: CORAL, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                  {issue.type === 'plan' ? 'Plan d\'action' : 'Correction'}
+                  {issue.type === 'plan' ? 'Action plan' : 'Fix'}
                 </span>
               </div>
               <p style={{ fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.4, margin: 0, overflowWrap: 'anywhere' }}>{issue.text}</p>
@@ -158,7 +158,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
               )}
               {fixType && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 500, color: ORANGE_DEEP, background: ORANGE_SOFT, borderRadius: 999, padding: '5px 11px' }}>
-                  <Check size={12} /> {fixType === 'seul' ? 'Faisable seul' : 'Avec aide'}
+                  <Check size={12} /> {fixType === 'seul' ? 'Do it yourself' : 'With help'}
                 </span>
               )}
             </div>
@@ -172,13 +172,13 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
               <div style={{ width: 56, height: 56, borderRadius: 16, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <Lock size={22} color={CORAL} />
               </div>
-              <p style={{ fontSize: 17, fontWeight: 800, color: INK, letterSpacing: '-0.03em', marginBottom: 8 }}>Guide de correction Starter</p>
+              <p style={{ fontSize: 17, fontWeight: 800, color: INK, letterSpacing: '-0.03em', marginBottom: 8 }}>Starter fix guide</p>
               <p style={{ fontSize: 13, color: INK3, lineHeight: 1.7, marginBottom: 28, maxWidth: 280, margin: '0 auto 28px' }}>
-                Chaque correction génère un guide étape par étape adapté à votre business. Disponible dès le plan Starter.
+                Each fix generates a step-by-step guide tailored to your business. Available from the Starter plan.
               </p>
               <button onClick={() => { onClose(); onUpgrade(); }}
                 style={{ width: '100%', padding: 14, background: INK, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
-                Débloquer les guides — Starter
+                Unlock guides — Starter
               </button>
             </div>
           ) : loading ? (
@@ -189,8 +189,8 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
                   <circle cx="32" cy="32" r="26" fill="none" stroke={CORAL} strokeWidth="7" strokeLinecap="round" strokeDasharray="40 123" />
                 </svg>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: INK }}>L'IA prépare votre guide personnalisé…</div>
-                  <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>Adapté à votre secteur et votre site</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: INK }}>AI is preparing your personalized guide…</div>
+                  <div style={{ fontSize: 11.5, color: INK2, marginTop: 2 }}>Tailored to your industry and site</div>
                 </div>
               </div>
               <div className="lrsm-skel" style={{ height: 8, borderRadius: 4, background: CREAM_DEEP, width: '94%', marginBottom: 8 }} />
@@ -206,7 +206,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
                 <div style={{ background: ORANGE_SOFT, borderRadius: 10, padding: 13, marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                     <Sparkles size={13} color={ORANGE_DEEP} />
-                    <span style={{ fontSize: 11, fontWeight: 600, color: ORANGE_DEEP, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Pourquoi c'est important</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: ORANGE_DEEP, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Why it matters</span>
                   </div>
                   <p style={{ fontSize: 12.5, lineHeight: 1.6, color: INK, margin: 0 }}>{summary}</p>
                 </div>
@@ -215,14 +215,14 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
               {prompt && (
                 <div style={{ marginBottom: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: '#7C3AED', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    ➡️ Copie ceci dans ChatGPT ou Claude:
+                    ➡️ Copy this into ChatGPT or Claude:
                   </p>
                   <div style={{ background: SURFACE, border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: 13, fontSize: 12.5, color: INK, lineHeight: 1.6, whiteSpace: 'pre-wrap', fontFamily: 'monospace', maxHeight: 240, overflowY: 'auto' }}>
                     {prompt}
                   </div>
                   <button onClick={handleCopy}
                     style={{ marginTop: 10, width: '100%', padding: 12, background: copied ? GREEN : '#7C3AED', color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.2s' }}>
-                    {copied ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier le prompt</>}
+                    {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy prompt</>}
                   </button>
                 </div>
               )}
@@ -235,7 +235,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
 
               {steps.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: INK2, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>Ce que vous faites maintenant</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: INK2, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>What to do now</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {steps.map((step, i) => {
                       const stepText = typeof step === 'string' ? step : step.description || step.text || '';
@@ -253,7 +253,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
                             {result && (
                               <div style={{ fontSize: 11.5, color: GREEN, marginTop: 5, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
                                 <ArrowRight size={12} style={{ marginTop: 1, flexShrink: 0 }} />
-                                <span>Résultat attendu : {result}</span>
+                                <span>Expected result: {result}</span>
                               </div>
                             )}
                           </div>
@@ -269,11 +269,11 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
                   <button onClick={handleVerify} disabled={verifying}
                     style={{ width: '100%', padding: 13, background: verifying ? SURFACE : verifyResult?.verified ? GREEN : CARD_DARK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: F, transition: 'background 0.2s' }}>
                     {verifying ? (
-                      <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, borderRadius: '50%', animation: 'lrsmSpin 0.7s linear infinite' }} /> Analyse de votre site…</>
+                      <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: WHITE, borderRadius: '50%', animation: 'lrsmSpin 0.7s linear infinite' }} /> Analyzing your site…</>
                     ) : verifyResult?.verified ? (
-                      <><CheckCircle2 size={14} /> Tâche validée par l'IA ✓</>
+                      <><CheckCircle2 size={14} /> Task verified by AI ✓</>
                     ) : (
-                      <><Sparkles size={14} color={CORAL} /> Vérifier avec l'IA</>
+                      <><Sparkles size={14} color={CORAL} /> Verify with AI</>
                     )}
                   </button>
                   {verifyResult && (
@@ -281,18 +281,18 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                         {verifyResult.verified ? <CheckCircle2 size={14} color={GREEN} /> : <AlertTriangle size={14} color="#D97706" />}
                         <span style={{ fontSize: 11, fontWeight: 600, color: verifyResult.verified ? GREEN : '#D97706', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                          {verifyResult.verified ? 'Correction validée' : 'Pas encore validé'}
+                          {verifyResult.verified ? 'Fix verified' : 'Not verified yet'}
                         </span>
                         {verifyResult.confidence > 0 && (
-                          <span style={{ fontSize: 11, color: INK2, marginLeft: 'auto' }}>{verifyResult.confidence}% confiance</span>
+                          <span style={{ fontSize: 11, color: INK2, marginLeft: 'auto' }}>{verifyResult.confidence}% confidence</span>
                         )}
                       </div>
                       <p style={{ fontSize: 12.5, color: verifyResult.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{verifyResult.feedback}</p>
                       {verifyResult.what_was_found && (
-                        <p style={{ fontSize: 12, color: INK2, margin: '0 0 6px', lineHeight: 1.5 }}><strong>Trouvé:</strong> {verifyResult.what_was_found}</p>
+                        <p style={{ fontSize: 12, color: INK2, margin: '0 0 6px', lineHeight: 1.5 }}><strong>Found:</strong> {verifyResult.what_was_found}</p>
                       )}
                       {verifyResult.what_is_missing && !verifyResult.verified && (
-                        <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.5 }}><strong>Manquant:</strong> {verifyResult.what_is_missing}</p>
+                        <p style={{ fontSize: 12, color: INK2, margin: 0, lineHeight: 1.5 }}><strong>Missing:</strong> {verifyResult.what_is_missing}</p>
                       )}
                     </div>
                   )}
@@ -301,7 +301,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
             </div>
           ) : (
             <div style={{ padding: '40px 18px', textAlign: 'center' }}>
-              <p style={{ fontSize: 13, color: INK2 }}>Une erreur est survenue. Réessayez dans quelques secondes.</p>
+              <p style={{ fontSize: 13, color: INK2 }}>An error occurred. Please retry in a few seconds.</p>
             </div>
           )}
         </div>

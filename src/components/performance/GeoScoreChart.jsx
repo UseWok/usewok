@@ -56,8 +56,8 @@ export default function GeoScoreChart({ d }) {
   return (
     <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: 'hidden', marginBottom: 14, fontFamily: F }}>
       <div style={{ padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>Visibilité IA par pays</p>
-        <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>Distribution du trafic organique estimé</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>AI visibility by country</p>
+        <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>Estimated organic traffic distribution</p>
       </div>
 
       <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>

@@ -18,7 +18,7 @@ export default function SOVChart({ sov }) {
 
   const compEntries = competitors
     .filter(c => (c.name || c.domain) !== yourName)
-    .map(c => ({ name: c.name || c.domain || 'Concurrent', sov: c.voice_share_pct || 0, isYou: false }));
+    .map(c => ({ name: c.name || c.domain || 'Competitor', sov: c.voice_share_pct || 0, isYou: false }));
 
   const allBrands = [
     ...compEntries,
@@ -30,7 +30,7 @@ export default function SOVChart({ sov }) {
   return (
     <div style={{ marginBottom: 12, fontFamily: F }}>
       <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>
-        Part de voix dans votre secteur
+        Share of voice in your industry
       </p>
 
       <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '18px 20px' }}>
@@ -53,7 +53,7 @@ export default function SOVChart({ sov }) {
                     background: 'rgba(232,98,42,0.12)',
                     borderRadius: 20, padding: '2px 8px',
                     display: 'inline-block', width: 'fit-content',
-                  }}>Vous</span>
+                  }}>You</span>
                 )}
               </div>
 

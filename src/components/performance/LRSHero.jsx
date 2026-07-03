@@ -4,9 +4,9 @@ const F = 'Inter, system-ui, sans-serif';
 const WHITE = '#FFFFFF';
 const DARK = '#1A1A1A';
 const CORAL = '#E8622A';
-// Badge "Élevée" / "Bonne" / "Faible" — fond brun sombre comme l'image
+// Badge "High" / "Good" / "Low" — dark brown background as in the image
 function MetricBadge({ score }) {
-  const label = score >= 65 ? 'Élevée' : score >= 35 ? 'Bonne' : 'Faible';
+  const label = score >= 65 ? 'High' : score >= 35 ? 'Good' : 'Low';
   return (
     <span style={{
       display: 'inline-block',
@@ -35,10 +35,10 @@ export default function LRSHero({ d }) {
       {/* Page title outside the card */}
       <div style={{ marginBottom: 14 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: DARK, margin: 0, letterSpacing: '-0.02em' }}>
-          Rapport de réputation IA
-        </h1>
-        <p style={{ fontSize: 12, color: '#9B9BA8', margin: '3px 0 0' }}>
-          {domain} · Mis à jour aujourd'hui
+          AI Reputation Report
+          </h1>
+          <p style={{ fontSize: 12, color: '#9B9BA8', margin: '3px 0 0' }}>
+          {domain} · Updated today
         </p>
       </div>
 
@@ -84,13 +84,13 @@ export default function LRSHero({ d }) {
           {/* Right: mentions sectorielles */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.40)', margin: '0 0 14px', letterSpacing: '0.01em' }}>
-              Mentions sectorielles
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              Industry mentions
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
               {[
-                { label: 'Fréquence de citation', score: citation },
-                { label: 'Qualité du sentiment', score: sentiment },
-                { label: 'Précision des faits', score: accuracy },
+                { label: 'Citation frequency', score: citation },
+                { label: 'Sentiment quality', score: sentiment },
+                { label: 'Factual accuracy', score: accuracy },
               ].map(row => (
                 <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>{row.label}</span>

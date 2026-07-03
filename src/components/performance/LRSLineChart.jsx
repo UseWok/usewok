@@ -12,7 +12,7 @@ const GREEN = '#3CC660';
 
 function buildHistory(currentScore, domain) {
   if (!currentScore || currentScore === 0) return [];
-  const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
   let seed = 0;
   for (let i = 0; i < (domain || '').length; i++) seed += (domain || '').charCodeAt(i);
   const rand = (i) => { const x = Math.sin(seed + i * 9301 + 49297) * 233280; return x - Math.floor(x); };
@@ -53,13 +53,13 @@ export default function LRSLineChart({ score, domain }) {
     }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Évolution de la réputation</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Reputation trend</span>
         <span style={{
           fontSize: 11, fontWeight: 600, color: GREEN,
           background: 'rgba(60,198,96,0.12)', borderRadius: 20,
           padding: '3px 10px', border: '1px solid rgba(60,198,96,0.20)',
         }}>
-          {deltaLabel} · 6 mois
+          {deltaLabel} · 6 months
         </span>
       </div>
 

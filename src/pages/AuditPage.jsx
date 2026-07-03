@@ -14,11 +14,11 @@ import UpgradeModal from '@/components/upsell/UpgradeModal';
 
 
 const TABS = [
-  { id: 'overview',      label: 'Vue d\'ensemble' },
-  { id: 'crawlability',  label: 'Explorabilité' },
-  { id: 'issues',        label: 'Problèmes' },
-  { id: 'pages',         label: 'Pages explorées' },
-  { id: 'performance',   label: 'Performances' },
+  { id: 'overview',      label: 'Overview' },
+  { id: 'crawlability',  label: 'Crawlability' },
+  { id: 'issues',        label: 'Issues' },
+  { id: 'pages',         label: 'Pages crawled' },
+  { id: 'performance',   label: 'Performance' },
 ];
 
 const F = 'Inter, system-ui, sans-serif';
@@ -43,12 +43,12 @@ function LoadingSkeleton() {
 function ThinkingState({ url }) {
   const [step, setStep] = useState(0);
   const steps = [
-    'Récupération du HTML et des en-têtes HTTP…',
-    'Lecture du robots.txt et du sitemap.xml…',
-    'Analyse des balises SEO et de la structure…',
-    'Détection des problèmes techniques…',
-    'Simulation de crawl IA…',
-    'Génération du rapport complet…',
+    'Fetching HTML and HTTP headers…',
+    'Reading robots.txt and sitemap.xml…',
+    'Analyzing SEO tags and structure…',
+    'Detecting technical issues…',
+    'Simulating AI crawl…',
+    'Generating full report…',
   ];
   useEffect(() => {
     const iv = setInterval(() => setStep(s => Math.min(s + 1, steps.length - 1)), 2800);
@@ -59,7 +59,7 @@ function ThinkingState({ url }) {
       <div style={{ position: 'relative', width: 60, height: 60, marginBottom: 28 }}>
         <div style={{ position: 'absolute', inset: 4, borderRadius: '50%', border: '3px solid #E8E7E4', borderTopColor: INK, animation: 'spin 0.9s linear infinite' }} />
       </div>
-      <p style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Audit en cours…</p>
+      <p style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Audit in progress…</p>
       <p style={{ fontSize: 12, color: INK3, margin: '0 0 28px' }}>{url}</p>
       <div style={{ maxWidth: 320, width: '100%' }}>
         {steps.map((s, i) => (
@@ -113,16 +113,16 @@ function AuditLockedPreview({ onUpgrade }) {
           <div style={{ width: 44, height: 44, borderRadius: 12, background: `${CORAL}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
             <Lock size={20} color={CORAL} />
           </div>
-          <div style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Audit technique</div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Technical audit</div>
           <div style={{ fontSize: 12, color: INK3, lineHeight: 1.6, margin: '0 0 20px' }}>
-            Disponible à partir du plan <strong style={{ color: CORAL }}>Starter</strong>.<br />
-            Crawl complet, détection de problèmes, pages explorées et performances.
+            Available from the <strong style={{ color: CORAL }}>Starter</strong> plan.<br />
+            Full crawl, issue detection, pages crawled and performance.
           </div>
           <button onClick={onUpgrade}
             style={{ width: '100%', padding: '12px', background: INK, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
-            Débloquer l'audit complet
+            Unlock the full audit
           </button>
-          <div style={{ fontSize: 11, color: INK3, marginTop: 8 }}>Sans engagement · Annulation en 1 clic</div>
+          <div style={{ fontSize: 11, color: INK3, marginTop: 8 }}>No commitment · Cancel in 1 click</div>
         </div>
       </div>
     </div>
@@ -193,7 +193,7 @@ export default function AuditPage() {
   const siteUrl = profile?.site_url || '';
   const domain = siteUrl.replace(/https?:\/\//, '').split('/')[0];
   const analyzedAt = auditData?.analyzed_at
-    ? new Date(auditData.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    ? new Date(auditData.analyzed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : null;
 
   return (
@@ -205,11 +205,11 @@ export default function AuditPage() {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           <ClipboardCheck size={15} color={INK} />
-          <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Audit de site</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Site audit</span>
           {domain && <span style={{ fontSize: 12, color: INK3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{domain}</span>}
           {isFree && (
             <span style={{ fontSize: 10, fontWeight: 700, color: CORAL, background: `${CORAL}12`, padding: '2px 8px', borderRadius: 20, flexShrink: 0 }}>
-              Starter requis
+              Starter required
             </span>
           )}
         </div>
@@ -217,7 +217,7 @@ export default function AuditPage() {
         {phase === 'done' && (
           <button onClick={() => loadAudit(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: '#555', cursor: 'pointer', fontFamily: F, marginLeft: 8, flexShrink: 0 }}>
-            <RefreshCw size={11} /> Actualiser
+            <RefreshCw size={11} /> Refresh
           </button>
         )}
 
@@ -241,18 +241,18 @@ export default function AuditPage() {
       {phase === 'no_profile' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center', fontFamily: F }}>
           <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
-          <p style={{ fontSize: 17, fontWeight: 700, color: INK, margin: '0 0 8px' }}>Aucun site analysé</p>
-          <p style={{ fontSize: 13, color: INK3, margin: '0 0 20px' }}>Scannez votre site depuis l'accueil pour débloquer l'audit complet.</p>
-          <button onClick={() => navigate('/app')} style={{ padding: '12px 24px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Aller scanner</button>
+          <p style={{ fontSize: 17, fontWeight: 700, color: INK, margin: '0 0 8px' }}>No site analyzed</p>
+          <p style={{ fontSize: 13, color: INK3, margin: '0 0 20px' }}>Scan your site from the home page to unlock the full audit.</p>
+          <button onClick={() => navigate('/app')} style={{ padding: '12px 24px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Go scan</button>
         </div>
       )}
 
       {phase === 'error' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center', fontFamily: F }}>
           <div style={{ fontSize: 52, marginBottom: 16 }}>⚠️</div>
-          <p style={{ fontSize: 17, fontWeight: 700, color: INK, margin: '0 0 8px' }}>Audit échoué</p>
-          <p style={{ fontSize: 13, color: INK3, margin: '0 0 20px' }}>Une erreur s'est produite lors de l'analyse.</p>
-          <button onClick={() => loadAudit(true)} style={{ padding: '12px 24px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Réessayer</button>
+          <p style={{ fontSize: 17, fontWeight: 700, color: INK, margin: '0 0 8px' }}>Audit failed</p>
+          <p style={{ fontSize: 13, color: INK3, margin: '0 0 20px' }}>An error occurred during the analysis.</p>
+          <button onClick={() => loadAudit(true)} style={{ padding: '12px 24px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Retry</button>
         </div>
       )}
 
@@ -269,9 +269,9 @@ export default function AuditPage() {
       <UpgradeModal
         open={showUpgrade}
         onClose={() => setShowUpgrade(false)}
-        feature="l'audit technique complet"
+        feature="the full technical audit"
         requiredPlan="starter"
-        description="L'audit technique analyse le crawl, les problèmes SEO, les performances et les pages explorées par les IA. Disponible dès le plan Starter."
+        description="The technical audit analyzes crawl, SEO issues, performance and pages crawled by AI engines. Available from the Starter plan."
       />
     </div>
   );

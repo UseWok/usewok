@@ -51,7 +51,7 @@ export default function LRSRadarChart({ d }) {
     <div style={{ marginBottom: 12, fontFamily: F }}>
       {/* Section label on beige bg */}
       <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>
-        Radar des assistants IA
+        AI assistant radar
       </p>
 
       <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px' }}>

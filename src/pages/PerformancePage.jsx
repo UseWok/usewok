@@ -38,7 +38,7 @@ function KPICard({ label, value, delta }) {
             <path d={up ? 'M2 8 L5 2 L8 8' : 'M2 2 L5 8 L8 2'} stroke={up ? GREEN : CORAL} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span style={{ fontSize: 11, fontWeight: 600, color: up ? GREEN : CORAL }}>
-            {up ? '+' : ''}{delta}% vs mois-1
+            {up ? '+' : ''}{delta}% vs last month
           </span>
         </div>
       )}
@@ -52,7 +52,7 @@ function LeverCard({ lever, index }) {
   const isUrgent = p === 'urgent';
   const isShort = p === 'short_term';
   const isMedium = p === 'medium_term';
-  const tagLabel = isUrgent ? 'Urgent' : isShort ? 'Cette semaine' : 'Moyen terme';
+  const tagLabel = isUrgent ? 'Urgent' : isShort ? 'This week' : 'Medium term';
   // Colors: Urgent=orange solid, Cette semaine=light orange outline, Moyen terme=beige/grey
   const tagColor = isUrgent ? WHITE : isShort ? CORAL : '#6B6B6B';
   const tagBg = isUrgent ? CORAL : isShort ? 'rgba(232,98,42,0.10)' : '#EDE8DE';
@@ -83,7 +83,7 @@ function LeverCard({ lever, index }) {
         )}
       </div>
       <span style={{ fontSize: 13, fontWeight: 600, color: CORAL, flexShrink: 0, whiteSpace: 'nowrap' }}>
-        Lancer →
+        Launch →
       </span>
     </motion.div>
   );
@@ -145,7 +145,7 @@ export default function PerformancePage() {
         </div>
         {phase === 'done' && (
           <button onClick={() => loadPerf(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', border: `1px solid ${BORDER}`, borderRadius: 8, background: WHITE, fontSize: 11, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-            <RefreshCw size={11} /> Actualiser
+            <RefreshCw size={11} /> Refresh
           </button>
         )}
       </div>
@@ -165,8 +165,8 @@ export default function PerformancePage() {
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
             style={{ width: 38, height: 38, borderRadius: '50%', border: `3px solid ${BORDER}`, borderTopColor: INK, marginBottom: 18 }} />
-          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Calcul en cours…</p>
-          <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Analyse de votre LRS sur 8 assistants IA</p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Calculating…</p>
+          <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Analyzing your LRS across 8 AI assistants</p>
         </motion.div>
       )}
 
@@ -175,16 +175,16 @@ export default function PerformancePage() {
           <div style={{ width: 52, height: 52, borderRadius: 14, background: SURFACE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
             <Zap size={22} color={INK3} />
           </div>
-          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Aucun site analysé</p>
-          <p style={{ fontSize: 12, color: INK3, margin: '0 0 16px' }}>Analysez votre site depuis l'accueil.</p>
-          <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Retour</button>
+          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>No site analyzed</p>
+          <p style={{ fontSize: 12, color: INK3, margin: '0 0 16px' }}>Analyze your site from the home page.</p>
+          <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Back</button>
         </div>
       )}
 
       {phase === 'error' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center' }}>
-          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 16px' }}>Analyse impossible</p>
-          <button onClick={() => loadPerf(true)} style={{ padding: '10px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Réessayer</button>
+          <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 16px' }}>Analysis failed</p>
+          <button onClick={() => loadPerf(true)} style={{ padding: '10px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Retry</button>
         </div>
       )}
 
@@ -201,9 +201,9 @@ export default function PerformancePage() {
           {/* KPIs 3 colonnes */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {[
-              { label: 'Part de voix IA', value: `${sov?.your_brand?.voice_share_pct || 0}%`, delta: sov?.your_brand?.voice_share_delta },
-              { label: 'Perception positive', value: `${sov?.your_brand?.favorable_pct || 0}%`, delta: sov?.your_brand?.favorable_delta },
-              { label: 'Mentions IA / mois', value: richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–', delta: richData.ai_mentions_delta },
+              { label: 'AI share of voice', value: `${sov?.your_brand?.voice_share_pct || 0}%`, delta: sov?.your_brand?.voice_share_delta },
+              { label: 'Positive perception', value: `${sov?.your_brand?.favorable_pct || 0}%`, delta: sov?.your_brand?.favorable_delta },
+              { label: 'AI mentions / month', value: richData.ai_mentions_count ? `~${richData.ai_mentions_count}` : '–', delta: richData.ai_mentions_delta },
             ].map((kpi, i) => (
               <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }} style={{ flex: 1 }}>
                 <KPICard label={kpi.label} value={kpi.value} delta={kpi.delta} />
@@ -223,7 +223,7 @@ export default function PerformancePage() {
           {/* Actions recommandées */}
           {levers.length > 0 && (
             <div style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>Actions recommandées</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>Recommended actions</p>
               {levers.slice(0, 5).map((lever, i) => <LeverCard key={i} lever={lever} index={i} />)}
             </div>
           )}

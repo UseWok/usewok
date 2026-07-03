@@ -23,11 +23,11 @@ const DEMO_EVO = { mistral: 4, gemini: 2, chatgpt: 1, claude: 3, copilot: -1, pe
 function SentimentBadge({ sentiment, score }) {
   let text, color, bg;
   if (sentiment === 'positive' || (!sentiment && score >= 65)) {
-    text = 'Positif'; color = GREEN; bg = 'rgba(60,198,96,0.12)';
+    text = 'Positive'; color = GREEN; bg = 'rgba(60,198,96,0.12)';
   } else if (sentiment === 'mixed' || (!sentiment && score < 40)) {
-    text = 'Mixte'; color = CORAL; bg = 'rgba(232,98,42,0.12)';
+    text = 'Mixed'; color = CORAL; bg = 'rgba(232,98,42,0.12)';
   } else {
-    text = 'Neutre'; color = INK3; bg = '#F0EDE8';
+    text = 'Neutral'; color = INK3; bg = '#F0EDE8';
   }
   return (
     <span style={{ fontSize: 11, fontWeight: 700, color, background: bg, borderRadius: 999, padding: '4px 10px' }}>
@@ -54,7 +54,7 @@ export default function EngineScoreGrid({ d }) {
     <div style={{ marginBottom: 12, fontFamily: F }}>
       {/* Section label on beige bg */}
       <p style={{ fontSize: 10, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 10px' }}>
-        Scores par assistant IA
+        Scores by AI assistant
       </p>
 
       <div style={{ background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
@@ -63,7 +63,7 @@ export default function EngineScoreGrid({ d }) {
           <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}>Assistant</span>
           <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}>Score</span>
           <span style={{ fontSize: 11, color: INK3, fontWeight: 400 }}></span>
-          <span style={{ fontSize: 11, color: INK3, fontWeight: 400, textAlign: 'right' }}>Évolution</span>
+          <span style={{ fontSize: 11, color: INK3, fontWeight: 400, textAlign: 'right' }}>Trend</span>
           <span style={{ fontSize: 11, color: INK3, fontWeight: 400, textAlign: 'right' }}>Sentiment</span>
         </div>
 
