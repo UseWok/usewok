@@ -159,15 +159,15 @@ export const WOK_PLAN_FEATURES = new Proxy({}, {
 });
 
 export const PLAN_LABELS = {
-  free: 'Gratuit',
+  free: 'Free',
   starter: 'Starter',
   pro: 'Pro',
 };
 
 export const PLAN_PRICES = {
   free: { monthly: 0, yearly: 0 },
-  starter: { monthly: 45, yearly: 432 },
-  pro: { monthly: 85, yearly: 816 },
+  starter: { monthly: 49, yearly: 468 },
+  pro: { monthly: 99, yearly: 960 },
 };
 
 export function getWokFeatures(user) {

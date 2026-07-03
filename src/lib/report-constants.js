@@ -40,9 +40,9 @@ export const RADAR_LABELS = [
 ];
 
 export const STATUS_CFG = {
-  todo: { label: 'À faire', color: INK2, bg: WHITE, border: BORDER },
-  in_progress: { label: 'En cours', color: CORAL, bg: `${CORAL}10`, border: `${CORAL}40` },
-  done: { label: '✓ Terminé', color: WHITE, bg: INK, border: INK }
+  todo: { label: 'To do', color: INK2, bg: WHITE, border: BORDER },
+  in_progress: { label: 'In progress', color: CORAL, bg: `${CORAL}10`, border: `${CORAL}40` },
+  done: { label: '✓ Done', color: WHITE, bg: INK, border: INK }
 };
 
 // ── In-memory fix cache (module-level, shared across drawer instances) ──
@@ -90,7 +90,7 @@ export function radarLines(maxR = 70, cx = 100, cy = 100) {
 }
 
 export function getSentiment(val) {
-  if (val >= 65) return { label: 'Positif', color: GREEN, bg: GREEN_SOFT };
-  if (val >= 40) return { label: 'Neutre', color: INK2, bg: CREAM_DEEP };
-  return { label: 'Mixte', color: ORANGE_DEEP, bg: ORANGE_SOFT };
+  if (val >= 65) return { label: 'Positive', color: GREEN, bg: GREEN_SOFT };
+  if (val >= 40) return { label: 'Neutral', color: INK2, bg: CREAM_DEEP };
+  return { label: 'Mixed', color: ORANGE_DEEP, bg: ORANGE_SOFT };
 }

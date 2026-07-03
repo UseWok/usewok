@@ -1,19 +1,26 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const CORAL = '#F95738';
+const ORANGE = '#FF5A1F';
+const ORANGE_DEEP = '#C43E14';
+const ORANGE_PALE = '#FFE7D6';
+const CREAM = '#FBF8F2';
+const CREAM_2 = '#F3EEE3';
+const INK = '#15130F';
+const INK_SOFT = '#4A453B';
+const F = "'Inter', -apple-system, system-ui, sans-serif";
 
 function Section({ number, title, children }) {
   return (
     <section style={{ marginBottom: 56 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 20 }}>
         <span style={{
-          fontSize: 12, fontWeight: 700, color: CORAL,
+          fontSize: 12, fontWeight: 700, color: ORANGE_DEEP,
           letterSpacing: '0.08em', textTransform: 'uppercase',
-          background: 'rgba(249,87,56,0.10)', border: '1px solid rgba(249,87,56,0.2)',
+          background: ORANGE_PALE, border: '1px solid rgba(196,62,20,0.18)',
           borderRadius: 6, padding: '3px 9px', flexShrink: 0,
         }}>{number}</span>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: 0, lineHeight: 1.3 }}>{title}</h2>
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: 0, lineHeight: 1.3, letterSpacing: '-0.01em' }}>{title}</h2>
       </div>
       {children}
     </section>
@@ -22,7 +29,7 @@ function Section({ number, title, children }) {
 
 function P({ children, style = {} }) {
   return (
-    <p style={{ fontSize: 15, lineHeight: 1.85, color: '#374151', marginBottom: 14, ...style }}>
+    <p style={{ fontSize: 15, lineHeight: 1.85, color: INK_SOFT, marginBottom: 14, ...style }}>
       {children}
     </p>
   );
@@ -31,9 +38,9 @@ function P({ children, style = {} }) {
 function InfoCard({ children }) {
   return (
     <div style={{
-      background: 'white', border: '1px solid #E5E7EB', borderRadius: 12,
+      background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12,
       padding: '22px 26px', marginBottom: 16,
-      fontSize: 14, color: '#374151', lineHeight: 2,
+      fontSize: 14, color: INK_SOFT, lineHeight: 2,
     }}>
       {children}
     </div>
@@ -41,70 +48,81 @@ function InfoCard({ children }) {
 }
 
 const TOC = [
-  [1, "Éditeur du site"],
-  [2, "Directeur de la publication"],
-  [3, "Hébergement du site"],
-  [4, "Hébergement des données (infrastructure complémentaire)"],
-  [5, "Propriété intellectuelle"],
-  [6, "Données personnelles"],
+  [1, "Site publisher"],
+  [2, "Publication director"],
+  [3, "Website hosting"],
+  [4, "Data hosting (additional infrastructure)"],
+  [5, "Intellectual property"],
+  [6, "Personal data"],
   [7, "Cookies"],
-  [8, "Limitation de responsabilité"],
-  [9, "Droit applicable"],
-  [10, "Médiation à la consommation"],
+  [8, "Limitation of liability"],
+  [9, "Governing law"],
+  [10, "Consumer mediation"],
   [11, "Contact"],
 ];
 
 export default function LegalNoticePage() {
   return (
-    <div style={{ background: '#F8F9FA', fontFamily: "'Inter', -apple-system, system-ui, sans-serif", minHeight: '100vh' }}>
+    <div style={{ background: CREAM, fontFamily: F, minHeight: '100vh' }}>
       {/* Navbar */}
       <nav style={{
-        background: 'white', borderBottom: '1px solid #E5E7EB',
-        height: 58, display: 'flex', alignItems: 'center',
+        background: CREAM, borderBottom: '1px solid rgba(21,19,15,0.10)',
+        height: 62, display: 'flex', alignItems: 'center',
         padding: '0 clamp(20px, 5vw, 60px)', position: 'sticky', top: 0, zIndex: 100,
+        backdropFilter: 'blur(14px)',
       }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <div style={{ width: 26, height: 26, borderRadius: 7, background: CORAL, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 1L10.5 9H1.5L6 1Z" fill="white" />
+              <path d="M6 1L10.5 9H1.5L6 1Z" fill={CREAM} />
             </svg>
           </div>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>UseWok</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: INK, letterSpacing: '-0.02em' }}>UseWok</span>
         </Link>
         <div style={{ flex: 1 }} />
-        <Link to="/" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>← Retour au site</Link>
+        <Link to="/" style={{ fontSize: 13, color: INK_SOFT, textDecoration: 'none', fontWeight: 500 }}>&larr; Back to site</Link>
       </nav>
 
       {/* Hero */}
       <div style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        position: 'relative', overflow: 'hidden',
+        background: `radial-gradient(70% 90% at 15% 10%, #FFD9BE 0%, transparent 55%),
+                     radial-gradient(70% 90% at 88% 15%, #FFB98F 0%, transparent 55%),
+                     linear-gradient(180deg, #FBF8F2 0%, #FFF3E9 100%)`,
         padding: 'clamp(48px, 8vw, 80px) clamp(20px, 5vw, 60px)',
         textAlign: 'center',
       }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'radial-gradient(rgba(196,62,20,0.08) 1px, transparent 1px)',
+          backgroundSize: '26px 26px',
+          maskImage: 'radial-gradient(ellipse 60% 70% at 50% 30%, black 0%, transparent 70%)',
+        }} />
+        <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'rgba(249,87,56,0.15)', border: '1px solid rgba(249,87,56,0.3)',
-            borderRadius: 20, padding: '4px 14px', marginBottom: 20,
+            background: '#fff', border: '1px solid rgba(196,62,20,0.2)',
+            borderRadius: 20, padding: '5px 14px', marginBottom: 22,
           }}>
-            <span style={{ fontSize: 11, color: CORAL, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>LCEN – Loi n°2004-575</span>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: ORANGE, display: 'inline-block' }} />
+            <span style={{ fontSize: 11, color: ORANGE_DEEP, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>LCEN — French Law No. 2004-575</span>
           </div>
-          <h1 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 800, color: 'white', margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-            Mentions Légales
+          <h1 style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 800, color: INK, margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.08 }}>
+            Legal Notice
           </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
-            Dernière mise à jour : <strong style={{ color: 'rgba(255,255,255,0.8)' }}>29 juin 2026</strong>
-            <span style={{ margin: '0 8px', opacity: 0.3 }}>·</span>
-            <strong style={{ color: 'rgba(255,255,255,0.8)' }}>usewok.com</strong>
+          <p style={{ fontSize: 15, color: INK_SOFT, margin: 0, lineHeight: 1.6 }}>
+            Last updated: <strong style={{ color: INK }}>June 29, 2026</strong>
+            <span style={{ margin: '0 8px', opacity: 0.35 }}>·</span>
+            <strong style={{ color: INK }}>usewok.com</strong>
           </p>
         </div>
       </div>
 
       {/* Intro */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px clamp(20px, 3vw, 40px) 0' }}>
-        <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px' }}>
+        <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '24px 28px' }}>
           <P style={{ marginBottom: 0 }}>
-            Conformément aux dispositions de la loi n°2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN), il est précisé aux utilisateurs du site <strong>usewok.com</strong> l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi.
+            In accordance with the provisions of French Law No. 2004-575 of June 21, 2004 for confidence in the digital economy (LCEN), users of the site <strong>usewok.com</strong> are informed of the identity of the various parties involved in its creation and maintenance.
           </P>
         </div>
       </div>
@@ -112,98 +130,98 @@ export default function LegalNoticePage() {
       {/* Main layout */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(32px, 5vw, 48px) clamp(20px, 3vw, 40px)', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 48, alignItems: 'start' }}>
         <main>
-          <Section number="1" title="Éditeur du site">
-            <P>Le site <strong>usewok.com</strong> est édité par :</P>
+          <Section number="1" title="Site publisher">
+            <P>The site <strong>usewok.com</strong> is published by:</P>
             <InfoCard>
-              <div>👤 <strong>Nom :</strong> Antoine Valton</div>
-              <div>📋 <strong>Statut :</strong> En cours d'immatriculation</div>
-              <div>📍 <strong>Adresse :</strong> Gironde, France</div>
-              <div>📧 <strong>Email :</strong> <a href="mailto:support@usewok.com" style={{ color: CORAL }}>support@usewok.com</a></div>
-              <div>📞 <strong>Téléphone :</strong> 07.49.80.07.74</div>
+              <div><strong>Name:</strong> Antoine Valton</div>
+              <div><strong>Status:</strong> Registration in progress</div>
+              <div><strong>Address:</strong> Gironde, France</div>
+              <div><strong>Email:</strong> <a href="mailto:support@usewok.com" style={{ color: ORANGE_DEEP }}>support@usewok.com</a></div>
+              <div><strong>Phone:</strong> +33 7 49 80 07 74</div>
             </InfoCard>
           </Section>
 
-          <Section number="2" title="Directeur de la publication">
+          <Section number="2" title="Publication director">
             <InfoCard>
-              <div>👤 Valton Antoine</div>
+              <div>Antoine Valton</div>
             </InfoCard>
           </Section>
 
-          <Section number="3" title="Hébergement du site">
-            <P>Le site <strong>usewok.com</strong> est hébergé par :</P>
+          <Section number="3" title="Website hosting">
+            <P>The site <strong>usewok.com</strong> is hosted by:</P>
             <InfoCard>
-              <div>🏢 <strong>IONOS SARL</strong></div>
-              <div>📍 7 Place de la Gare, BP 70109, 57200 Sarreguemines Cedex, France</div>
-              <div>📞 0970 808 911</div>
-              <div>🌐 <a href="https://www.ionos.fr" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>www.ionos.fr</a></div>
+              <div><strong>IONOS SARL</strong></div>
+              <div>7 Place de la Gare, BP 70109, 57200 Sarreguemines Cedex, France</div>
+              <div>+33 970 808 911</div>
+              <div><a href="https://www.ionos.fr" target="_blank" rel="noopener noreferrer" style={{ color: ORANGE_DEEP }}>www.ionos.fr</a></div>
             </InfoCard>
           </Section>
 
-          <Section number="4" title="Hébergement des données (infrastructure complémentaire)">
-            <P>Certaines données peuvent également être traitées ou stockées par nos prestataires techniques tiers, notamment <strong>Stripe Payments Europe Ltd</strong> (traitement des paiements) et <strong>Google LLC</strong> (Google Analytics, authentification). Pour plus de détails sur ces traitements, consultez notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>.</P>
+          <Section number="4" title="Data hosting (additional infrastructure)">
+            <P>Some data may also be processed or stored by our third-party technical providers, including <strong>Stripe Payments Europe Ltd</strong> (payment processing) and <strong>Google LLC</strong> (Google Analytics, authentication). For more details on these processing activities, please consult our <Link to="/privacy" style={{ color: ORANGE_DEEP }}>Privacy Policy</Link>.</P>
           </Section>
 
-          <Section number="5" title="Propriété intellectuelle">
-            <P>L'ensemble du contenu du site usewok.com (textes, images, logos, code source, base de données, design) est protégé par le droit de la propriété intellectuelle et demeure la propriété exclusive de UseWok, sauf mention contraire. Toute reproduction, représentation, modification ou exploitation, totale ou partielle, sans autorisation écrite préalable, est interdite et constitue une contrefaçon sanctionnable.</P>
+          <Section number="5" title="Intellectual property">
+            <P>All content on the usewok.com site (texts, images, logos, source code, databases, design) is protected by intellectual property law and remains the exclusive property of UseWok, unless otherwise stated. Any reproduction, representation, modification or exploitation, in whole or in part, without prior written authorization, is prohibited and constitutes infringement subject to penalties.</P>
           </Section>
 
-          <Section number="6" title="Données personnelles">
-            <P>Le traitement des données personnelles collectées sur le site est décrit dans notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>. Vous pouvez exercer vos droits (accès, rectification, suppression, etc.) en nous contactant à <a href="mailto:compliance@usewok.com" style={{ color: CORAL }}>compliance@usewok.com</a>, et introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: CORAL }}>www.cnil.fr</a>).</P>
+          <Section number="6" title="Personal data">
+            <P>The processing of personal data collected on the site is described in our <Link to="/privacy" style={{ color: ORANGE_DEEP }}>Privacy Policy</Link>. You may exercise your rights (access, rectification, deletion, etc.) by contacting us at <a href="mailto:compliance@usewok.com" style={{ color: ORANGE_DEEP }}>compliance@usewok.com</a>, and file a complaint with the CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: ORANGE_DEEP }}>www.cnil.fr</a>).</P>
           </Section>
 
           <Section number="7" title="Cookies">
-            <P>Le site utilise des cookies techniques et analytiques. Pour en savoir plus, consultez la section « Cookies » de notre <Link to="/privacy" style={{ color: CORAL }}>Politique de Confidentialité</Link>.</P>
+            <P>The site uses technical and analytical cookies. For more information, please refer to the "Cookies" section of our <Link to="/privacy" style={{ color: ORANGE_DEEP }}>Privacy Policy</Link>.</P>
           </Section>
 
-          <Section number="8" title="Limitation de responsabilité">
-            <P>UseWok s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur le site, mais ne peut garantir l'exhaustivité, l'exactitude ou l'actualité de ces informations. UseWok décline toute responsabilité pour toute imprécision, inexactitude ou omission portant sur des informations disponibles sur le site.</P>
+          <Section number="8" title="Limitation of liability">
+            <P>UseWok strives to ensure the accuracy and timeliness of the information published on the site, but cannot guarantee the completeness, accuracy or currency of such information. UseWok disclaims any liability for any imprecision, inaccuracy or omission regarding information available on the site.</P>
           </Section>
 
-          <Section number="9" title="Droit applicable">
-            <P>Les présentes mentions légales sont soumises au <strong>droit français</strong>. En cas de litige, et à défaut de résolution amiable, les tribunaux français compétents seront saisis, sous réserve des dispositions impératives protectrices applicables aux consommateurs (voir nos <Link to="/terms" style={{ color: CORAL }}>Conditions Générales d'Utilisation</Link>, section 13).</P>
+          <Section number="9" title="Governing law">
+            <P>These legal notices are governed by <strong>French law</strong>. In the event of a dispute, and failing an amicable resolution, the competent French courts shall have jurisdiction, subject to mandatory consumer protection provisions (see our <Link to="/terms" style={{ color: ORANGE_DEEP }}>Terms of Service</Link>, section 13).</P>
           </Section>
 
-          <Section number="10" title="Médiation à la consommation">
-            <P>Conformément à l'article L616-1 du Code de la consommation, tout consommateur a le droit de recourir gratuitement à un médiateur de la consommation en vue de la résolution amiable d'un litige. Voir les coordonnées du médiateur désigné dans nos <Link to="/terms" style={{ color: CORAL }}>Conditions Générales d'Utilisation</Link>, section 14.</P>
+          <Section number="10" title="Consumer mediation">
+            <P>In accordance with Article L616-1 of the French Consumer Code, any consumer has the right to use a consumer mediator free of charge for the amicable resolution of a dispute. See the mediator's contact details in our <Link to="/terms" style={{ color: ORANGE_DEEP }}>Terms of Service</Link>, section 14.</P>
           </Section>
 
           <Section number="11" title="Contact">
-            <P>Pour toute question relative au site ou aux présentes mentions légales :</P>
+            <P>For any question regarding the site or these legal notices:</P>
             <InfoCard>
-              <div>📧 <a href="mailto:support@usewok.com" style={{ color: CORAL }}>support@usewok.com</a></div>
+              <div><a href="mailto:support@usewok.com" style={{ color: ORANGE_DEEP }}>support@usewok.com</a></div>
             </InfoCard>
           </Section>
         </main>
 
         {/* Sidebar TOC */}
         <aside style={{ position: 'sticky', top: 80 }}>
-          <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, padding: '20px', marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Sommaire</div>
+          <div style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 12, padding: '20px', marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: INK_SOFT, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Table of contents</div>
             <nav>
               {TOC.map(([num, label]) => (
                 <div key={num} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: CORAL, flexShrink: 0, marginTop: 2 }}>{num}.</span>
-                  <span style={{ fontSize: 12, color: '#374151', lineHeight: 1.4 }}>{label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: ORANGE_DEEP, flexShrink: 0, marginTop: 2 }}>{num}.</span>
+                  <span style={{ fontSize: 12, color: INK_SOFT, lineHeight: 1.4 }}>{label}</span>
                 </div>
               ))}
             </nav>
           </div>
-          <div style={{ background: 'rgba(249,87,56,0.06)', border: '1px solid rgba(249,87,56,0.15)', borderRadius: 12, padding: '16px', fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
-            <div style={{ fontWeight: 700, color: '#111827', marginBottom: 6 }}>Contact</div>
-            <a href="mailto:support@usewok.com" style={{ color: CORAL, fontWeight: 500, wordBreak: 'break-all' }}>support@usewok.com</a>
+          <div style={{ background: ORANGE_PALE, border: '1px solid rgba(196,62,20,0.16)', borderRadius: 12, padding: '16px', fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>
+            <div style={{ fontWeight: 700, color: INK, marginBottom: 6 }}>Contact</div>
+            <a href="mailto:support@usewok.com" style={{ color: ORANGE_DEEP, fontWeight: 600, wordBreak: 'break-all' }}>support@usewok.com</a>
           </div>
         </aside>
       </div>
 
       {/* Footer */}
-      <footer style={{ background: 'white', borderTop: '1px solid #E5E7EB', padding: '24px clamp(20px, 5vw, 60px)', textAlign: 'center' }}>
-        <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
+      <footer style={{ background: '#fff', borderTop: '1px solid rgba(21,19,15,0.10)', padding: '24px clamp(20px, 5vw, 60px)', textAlign: 'center' }}>
+        <p style={{ fontSize: 12, color: INK_SOFT, margin: 0 }}>
           © 2026 UseWok ·{' '}
-          <Link to="/privacy" style={{ color: '#6B7280', textDecoration: 'none' }}>Confidentialité</Link>
+          <Link to="/privacy" style={{ color: INK_SOFT, textDecoration: 'none' }}>Privacy</Link>
           {' '}·{' '}
-          <Link to="/terms" style={{ color: '#6B7280', textDecoration: 'none' }}>CGU</Link>
+          <Link to="/terms" style={{ color: INK_SOFT, textDecoration: 'none' }}>Terms</Link>
           {' '}·{' '}
-          <Link to="/" style={{ color: '#6B7280', textDecoration: 'none' }}>Accueil</Link>
+          <Link to="/" style={{ color: INK_SOFT, textDecoration: 'none' }}>Home</Link>
         </p>
       </footer>
 

@@ -61,18 +61,18 @@ export default function ForgotPassword() {
               <h1 style={{
                 fontWeight: 800, fontSize: 26, letterSpacing: "-0.03em",
                 marginBottom: 8,
-              }}>Email envoyé !</h1>
+              }}>Email sent!</h1>
               <p style={{
                 fontSize: 14, color: "#4A453B", lineHeight: 1.6, marginBottom: 24,
               }}>
-                Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation dans quelques minutes.
+                If an account exists with this address, you'll receive a reset link within a few minutes.
               </p>
               <Link to="/login" style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
                 fontSize: 13, color: "#C43E14", fontWeight: 600,
                 textDecoration: "underline", textUnderlineOffset: 2,
               }}>
-                <ArrowLeft size={14} /> Retour à la connexion
+                <ArrowLeft size={14} /> Back to login
               </Link>
             </div>
           ) : (
@@ -80,18 +80,18 @@ export default function ForgotPassword() {
               <h1 style={{
                 fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
                 lineHeight: 1.08, marginBottom: 12,
-              }}>Mot de passe<br />oublié ?</h1>
+              }}>Forgot<br />password?</h1>
               <p style={{
                 fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 28,
               }}>
-                Entrez votre email et nous vous enverrons un lien de réinitialisation.
+                Enter your email and we'll send you a reset link.
               </p>
 
               <form onSubmit={handleSubmit}>
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     type="email"
-                    placeholder="Entrez votre adresse e-mail"
+                    placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoFocus
@@ -128,7 +128,7 @@ export default function ForgotPassword() {
                 onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  {loading ? <><Loader2 size={16} className="animate-spin" /> Envoi en cours…</> : "Envoyer le lien"}
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Sending…</> : "Send link"}
                 </button>
               </form>
 
@@ -138,18 +138,18 @@ export default function ForgotPassword() {
                   color: "#15130F", fontWeight: 600,
                   textDecoration: "underline", textUnderlineOffset: 2,
                 }}>
-                  <ArrowLeft size={14} /> Retour à la connexion
-                </Link>
-              </p>
-            </>
-          )}
-        </div>
+                  <ArrowLeft size={14} /> Back to login
+                  </Link>
+                  </p>
+                  </>
+                  )}
+                  </div>
 
-        {/* Legal */}
-        <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
-          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
-          {" "}et{" "}
-          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+                  {/* Legal */}
+                  <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
+                  <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Privacy Policy</Link>.
         </p>
       </div>
 

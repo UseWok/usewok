@@ -4,7 +4,7 @@ import React from "react";
  * AuthRightPanel — Panneau visuel droit partagé entre toutes les pages d'auth.
  * Dégradé orange, pills flottants, prompt card au caret clignotant.
  */
-export default function AuthRightPanel({ pill1 = "Score de visibilité IA", pill2 = "8 moteurs analysés", prompt = "Analysez votre marque sur ChatGPT" }) {
+export default function AuthRightPanel({ pill1 = "AI Visibility Score", pill2 = "8 engines analyzed", prompt = "Analyze your brand on ChatGPT" }) {
   return (
     <div className="auth-right" style={{
       position: "relative", overflow: "hidden", borderRadius: 20,

@@ -16,14 +16,14 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (newPassword !== confirmPassword) { setError("Les mots de passe ne correspondent pas"); return; }
-    if (newPassword.length < 8) { setError("Le mot de passe doit contenir au moins 8 caractères"); return; }
+    if (newPassword !== confirmPassword) { setError("Passwords don't match"); return; }
+    if (newPassword.length < 8) { setError("Password must be at least 8 characters"); return; }
     setLoading(true);
     try {
       await base44.auth.resetPassword({ resetToken, newPassword });
       window.location.href = "/login";
     } catch (err) {
-      setError(err.message || "Erreur lors de la réinitialisation");
+      setError(err.message || "Error resetting password");
     } finally {
       setLoading(false);
     }
@@ -67,17 +67,17 @@ export default function ResetPassword() {
               </div>
               <h1 style={{
                 fontWeight: 800, fontSize: 26, letterSpacing: "-0.03em", marginBottom: 8,
-              }}>Lien invalide</h1>
+              }}>Invalid link</h1>
               <p style={{
                 fontSize: 14, color: "#4A453B", lineHeight: 1.6, marginBottom: 24,
               }}>
-                Ce lien de réinitialisation est manquant ou invalide.<br />Veuillez en demander un nouveau.
+                This reset link is missing or invalid.<br />Please request a new one.
               </p>
               <Link to="/forgot-password" style={{
                 color: "#15130F", fontWeight: 600, fontSize: 14,
                 textDecoration: "underline", textUnderlineOffset: 2,
               }}>
-                Demander un nouveau lien →
+                Request a new link →
               </Link>
             </div>
           ) : (
@@ -85,10 +85,10 @@ export default function ResetPassword() {
               <h1 style={{
                 fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
                 lineHeight: 1.08, marginBottom: 12,
-              }}>Nouveau<br />mot de passe</h1>
+              }}>New<br />password</h1>
               <p style={{
                 fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 28,
-              }}>Choisissez un mot de passe sécurisé.</p>
+              }}>Choose a secure password.</p>
 
               {error && (
                 <div style={{
@@ -104,7 +104,7 @@ export default function ResetPassword() {
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     type="password"
-                    placeholder="Nouveau mot de passe"
+                    placeholder="New password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     autoFocus
@@ -131,7 +131,7 @@ export default function ResetPassword() {
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     type="password"
-                    placeholder="Confirmer le mot de passe"
+                    placeholder="Confirm password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -167,7 +167,7 @@ export default function ResetPassword() {
                 onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  {loading ? <><Loader2 size={16} className="animate-spin" /> Réinitialisation…</> : "Réinitialiser le mot de passe"}
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Resetting…</> : "Reset password"}
                 </button>
               </form>
 
@@ -176,7 +176,7 @@ export default function ResetPassword() {
                   color: "#15130F", fontWeight: 600,
                   textDecoration: "underline", textUnderlineOffset: 2,
                 }}>
-                  Retour au mot de passe oublié
+                  Back to forgot password
                 </Link>
               </p>
             </>
@@ -185,9 +185,9 @@ export default function ResetPassword() {
 
         {/* Legal */}
         <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
-          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
-          {" "}et{" "}
-          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Terms of Service</Link>
+          {" "}and{" "}
+          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Privacy Policy</Link>.
         </p>
       </div>
 

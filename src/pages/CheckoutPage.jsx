@@ -95,7 +95,7 @@ export default function CheckoutPage() {
 
   const handleCheckout = () => {
     if (inIframe) {
-      alert('Le paiement est disponible uniquement depuis l\'application publiée.');
+      alert('Checkout is only available from the published app.');
       return;
     }
     const url = billing === 'yearly' ? plan?.checkout_url_yearly : plan?.checkout_url_monthly;
@@ -106,8 +106,8 @@ export default function CheckoutPage() {
   };
 
   const handlePaypal = () => {
-    if (inIframe) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; }
-    alert('PayPal — redirection vers PayPal.');
+    if (inIframe) { alert('Checkout is only available from the published app.'); return; }
+    alert('PayPal — redirecting to PayPal.');
   };
 
   if (!plan) return (
@@ -128,7 +128,7 @@ export default function CheckoutPage() {
           <button onClick={() => navigate('/pricing')}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: 13, padding: 0, marginBottom: 32, fontFamily: F }}>
             <ArrowLeft size={14} />
-            Retour
+            Back
           </button>
 
           {/* Logo */}
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
 
           {/* Plan title */}
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 6 }}>
-            S'abonner à UseWok {plan.name}
+            Subscribe to UseWok {plan.name}
           </div>
 
           {/* Price big */}
@@ -145,13 +145,13 @@ export default function CheckoutPage() {
               {billing === 'yearly' ? yearlyPrice : monthlyPrice}€
             </span>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-              {billing === 'yearly' ? '/an' : '/mois'}
+              {billing === 'yearly' ? '/year' : '/month'}
             </span>
           </div>
 
           {billing === 'yearly' && (
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
-              soit {displayPrice}€/mois
+              that's {displayPrice}€/month
             </div>
           )}
 
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
                   transition: 'all 150ms',
                   position: 'relative',
                 }}>
-                {b === 'monthly' ? 'Mensuel' : 'Annuel'}
+                {b === 'monthly' ? 'Monthly' : 'Yearly'}
                 {b === 'yearly' && discount > 0 && (
                   <span style={{
                     position: 'absolute', top: -8, right: -2,
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
               <div>
                 <div style={{ fontSize: 13, color: WHITE, fontWeight: 500 }}>UseWok {plan.name}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 1 }}>
-                  Facturation {billing === 'yearly' ? 'annuelle' : 'mensuelle'}
+                  {billing === 'yearly' ? 'Annual' : 'Monthly'} billing
                 </div>
               </div>
               <span style={{ fontSize: 13, color: WHITE }}>
@@ -197,13 +197,13 @@ export default function CheckoutPage() {
           {/* Sous-total & Total */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Sous-total</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Subtotal</span>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
                 {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total dû aujourd'hui</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total due today</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: WHITE }}>
                 {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
               </span>
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 32 }}>
             <Lock size={12} color="rgba(255,255,255,0.35)" />
             <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
-              Paiement sécurisé via Stripe
+              Secure payment via Stripe
             </span>
           </div>
         </div>
@@ -226,14 +226,14 @@ export default function CheckoutPage() {
 
           {/* Coordonnées */}
           <div style={{ marginBottom: 28 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Coordonnées</h2>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Contact details</h2>
             <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden', background: SURFACE }}>
-              <span style={{ padding: '11px 14px', fontSize: 13, color: INK3, borderRight: `1px solid ${BORDER}`, background: SURFACE, flexShrink: 0 }}>E-mail</span>
+              <span style={{ padding: '11px 14px', fontSize: 13, color: INK3, borderRight: `1px solid ${BORDER}`, background: SURFACE, flexShrink: 0 }}>Email</span>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="votre@email.com"
+                placeholder="your@email.com"
                 style={{ flex: 1, padding: '11px 14px', border: 'none', background: 'transparent', fontSize: 13, color: INK, outline: 'none', fontFamily: F }}
               />
             </div>
@@ -241,7 +241,7 @@ export default function CheckoutPage() {
 
           {/* Moyen de paiement */}
           <div>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Moyen de paiement</h2>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 14px', letterSpacing: '-0.01em' }}>Payment method</h2>
 
             {/* ── Carte + PayPal ── */}
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
@@ -265,7 +265,7 @@ export default function CheckoutPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                   <CreditCard size={15} color={INK2} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Carte bancaire</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Credit card</span>
                 </div>
                 <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                   <VisaIcon /><McIcon /><AmexIcon />
@@ -276,7 +276,7 @@ export default function CheckoutPage() {
               {payMethod === 'card' && (
                 <div style={{ padding: '16px 16px 20px', background: WHITE, display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Informations de la carte</label>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Card information</label>
                     <div style={{ border: `1px solid ${BORDER}`, borderRadius: 7, overflow: 'hidden' }}>
                       <input placeholder="1234 1234 1234 1234" style={{ width: '100%', padding: '10px 12px', border: 'none', fontSize: 13, color: INK, outline: 'none', fontFamily: F, boxSizing: 'border-box' }} />
                       <div style={{ borderTop: `1px solid ${BORDER}`, display: 'flex' }}>
@@ -287,17 +287,17 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Nom du titulaire de la carte</label>
-                    <input placeholder="Nom complet" style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 13, color: INK, outline: 'none', fontFamily: F, boxSizing: 'border-box' }} />
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Cardholder name</label>
+                    <input placeholder="Full name" style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 13, color: INK, outline: 'none', fontFamily: F, boxSizing: 'border-box' }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Pays ou région</label>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: INK3, marginBottom: 5 }}>Country or region</label>
                     <select style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 7, fontSize: 13, color: INK, outline: 'none', fontFamily: F, background: WHITE, boxSizing: 'border-box' }}>
+                      <option>United States</option>
                       <option>France</option>
-                      <option>Belgique</option>
-                      <option>Suisse</option>
+                      <option>Belgium</option>
+                      <option>Switzerland</option>
                       <option>Canada</option>
-                      <option>États-Unis</option>
                     </select>
                   </div>
                 </div>
@@ -332,7 +332,7 @@ export default function CheckoutPage() {
           {payMethod === 'paypal' && (
             <div style={{ marginTop: 16, padding: '14px 16px', background: '#FFF8E1', border: '1px solid #FFD54F', borderRadius: 8 }}>
               <p style={{ fontSize: 12, color: '#7B6200', margin: 0, lineHeight: 1.6 }}>
-                Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité.
+                You'll be redirected to PayPal to securely complete your payment.
               </p>
             </div>
           )}
@@ -341,7 +341,7 @@ export default function CheckoutPage() {
           <div style={{ marginTop: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <input type="checkbox" id="save-info" style={{ marginTop: 2, cursor: 'pointer' }} />
             <label htmlFor="save-info" style={{ fontSize: 12, color: INK2, lineHeight: 1.6, cursor: 'pointer' }}>
-              Enregistrer mes informations pour régler plus rapidement la prochaine fois
+              Save my info for faster checkout next time
             </label>
           </div>
 
@@ -361,13 +361,13 @@ export default function CheckoutPage() {
             ) : (
               <>
                 <ShieldCheck size={15} />
-                {payMethod === 'paypal' ? 'Continuer avec PayPal' : 'Payer et s\'abonner'}
+                {payMethod === 'paypal' ? 'Continue with PayPal' : 'Pay and subscribe'}
               </>
             )}
           </button>
 
           <p style={{ fontSize: 11, color: INK3, textAlign: 'center', marginTop: 10, lineHeight: 1.6 }}>
-            En vous abonnant, vous autorisez UseWok à débiter votre moyen de paiement conformément aux conditions jusqu'à résiliation.
+            By subscribing, you authorize UseWok to charge your payment method in accordance with the terms until cancellation.
           </p>
 
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>

@@ -34,14 +34,14 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (password !== confirmPassword) { setError("Les mots de passe ne correspondent pas"); return; }
-    if (password.length < 8) { setError("Le mot de passe doit contenir au moins 8 caractères"); return; }
+    if (password !== confirmPassword) { setError("Passwords don't match"); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
       setShowOtp(true);
     } catch (err) {
-      setError(err.message || "Erreur lors de la création du compte");
+      setError(err.message || "Error creating account");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function Register() {
       if (result?.access_token) base44.auth.setToken(result.access_token);
       window.location.href = "/app";
     } catch (err) {
-      setError(err.message || "Code de vérification invalide");
+      setError(err.message || "Invalid verification code");
     } finally {
       setLoading(false);
     }
@@ -65,9 +65,9 @@ export default function Register() {
     setError("");
     try {
       await base44.auth.resendOtp(email);
-      toast({ title: "Code envoyé", description: "Vérifiez votre boîte email." });
+      toast({ title: "Code sent", description: "Check your inbox." });
     } catch (err) {
-      setError(err.message || "Erreur lors du renvoi du code");
+      setError(err.message || "Error resending code");
     }
   };
 
@@ -105,11 +105,11 @@ export default function Register() {
               <h1 style={{
                 fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
                 lineHeight: 1.08, marginBottom: 12,
-              }}>Vérifiez<br />votre email</h1>
+              }}>Verify<br />your email</h1>
               <p style={{
                 fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 28,
               }}>
-                Nous avons envoyé un code à <strong style={{ color: "#15130F" }}>{email}</strong>
+                We've sent a code to <strong style={{ color: "#15130F" }}>{email}</strong>
               </p>
 
               {error && (
@@ -145,17 +145,17 @@ export default function Register() {
               onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
               onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
               >
-                {loading ? <><Loader2 size={16} className="animate-spin" /> Vérification…</> : "Vérifier"}
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Verifying…</> : "Verify"}
               </button>
 
               <p style={{ textAlign: "center", fontSize: 13, color: "#4A453B", marginTop: 20 }}>
-                Code non reçu ?{" "}
+                Didn't get a code?{" "}
                 <button onClick={handleResend} style={{
-                  color: "#C43E14", fontWeight: 600,
-                  textDecoration: "underline", textUnderlineOffset: 2,
-                  background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13,
+                 color: "#C43E14", fontWeight: 600,
+                 textDecoration: "underline", textUnderlineOffset: 2,
+                 background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13,
                 }}>
-                  Renvoyer
+                 Resend
                 </button>
               </p>
             </>
@@ -164,10 +164,10 @@ export default function Register() {
               <h1 style={{
                 fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
                 lineHeight: 1.08, marginBottom: 12,
-              }}>Créer un<br />compte</h1>
+              }}>Create<br />account</h1>
               <p style={{
                 fontSize: 14.5, color: "#4A453B", lineHeight: 1.6, marginBottom: 22,
-              }}>Gratuit · Sans carte bancaire · Sans engagement</p>
+              }}>Free · No credit card · No commitment</p>
 
               {error && (
                 <div style={{
@@ -193,7 +193,7 @@ export default function Register() {
                 onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  <GoogleLogo /> Se connecter avec Google
+                  <GoogleLogo /> Continue with Google
                 </button>
                 <button onClick={handleApple} style={{
                   height: 48, borderRadius: 12,
@@ -207,7 +207,7 @@ export default function Register() {
                 onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  <AppleIcon /> Se connecter avec Apple
+                  <AppleIcon /> Continue with Apple
                 </button>
               </div>
 
@@ -217,7 +217,7 @@ export default function Register() {
                 <span style={{
                   fontSize: 11, fontWeight: 600, letterSpacing: "0.05em",
                   textTransform: "uppercase", color: "rgba(21,19,15,0.35)",
-                }}>Ou</span>
+                }}>Or</span>
                 <div style={{ flex: 1, height: 1, background: "rgba(21,19,15,0.10)" }} />
               </div>
 
@@ -225,7 +225,7 @@ export default function Register() {
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     type="email"
-                    placeholder="Entrez votre adresse e-mail"
+                    placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoFocus
@@ -252,7 +252,7 @@ export default function Register() {
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     type="password"
-                    placeholder="Mot de passe (minimum 8 caractères)"
+                    placeholder="Password (minimum 8 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -278,7 +278,7 @@ export default function Register() {
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     type="password"
-                    placeholder="Confirmer le mot de passe"
+                    placeholder="Confirm password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -314,21 +314,21 @@ export default function Register() {
                 onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 >
-                  {loading ? <><Loader2 size={16} className="animate-spin" /> Création…</> : "Créer mon compte"}
+                  {loading ? <><Loader2 size={16} className="animate-spin" /> Creating…</> : "Create my account"}
                 </button>
               </form>
 
               <p style={{ textAlign: "center", fontSize: 12, color: "rgba(21,19,15,0.4)", marginTop: 16, lineHeight: 1.5 }}>
-                En créant un compte, vous acceptez nos{" "}
-                <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>CGU</Link>
-                {" "}et notre{" "}
-                <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Politique de confidentialité</Link>.
+                By creating an account, you agree to our{" "}
+                <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Terms</Link>
+                {" "}and{" "}
+                <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Privacy Policy</Link>.
               </p>
 
               <p style={{ textAlign: "center", fontSize: 14, color: "#4A453B", marginTop: 16 }}>
-                Déjà un compte ?{" "}
+                Already have an account?{" "}
                 <Link to="/login" style={{ color: "#15130F", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 2 }}>
-                  Se connecter
+                  Sign in
                 </Link>
               </p>
             </>
@@ -337,9 +337,9 @@ export default function Register() {
 
         {/* Legal */}
         <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
-          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
-          {" "}et{" "}
-          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Terms of Service</Link>
+          {" "}and{" "}
+          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Privacy Policy</Link>.
         </p>
       </div>
 

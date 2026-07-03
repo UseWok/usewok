@@ -10,7 +10,7 @@ const F = 'Inter, system-ui, sans-serif';
 
 function formatDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function getRenewalDate(user) {
@@ -23,7 +23,7 @@ function getRenewalDate(user) {
   return d;
 }
 
-// Compte les scans utilisés ce mois depuis le profil
+// Count scans used this month from the profile
 function getScansUsedThisMonth(user) {
   try {
     const scanHistory = JSON.parse(localStorage.getItem(`wok_scan_history_${user?.id}`) || '[]');
@@ -58,7 +58,7 @@ function UsageBar({ label, used, limit, icon: Icon, color = '#111' }) {
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0 }}>{label}</p>
           <p style={{ fontSize: 12, color: remaining === 0 ? '#ef4444' : '#888', margin: '1px 0 0' }}>
-            {remaining === 0 ? 'Quota atteint' : `${remaining} restant${remaining > 1 ? 's' : ''} ce mois`}
+            {remaining === 0 ? 'Quota reached' : `${remaining} remaining this month`}
           </p>
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>{used}<span style={{ fontWeight: 400, color: '#999', fontSize: 12 }}>/{limit}</span></span>
@@ -70,11 +70,11 @@ function UsageBar({ label, used, limit, icon: Icon, color = '#111' }) {
   );
 }
 
-// Étape 1 : Note avant de partir
+// Step 1: Rating before leaving
 const RATING_ITEMS = [
-  { key: 'quality', label: 'Qualité des analyses' },
-  { key: 'value', label: 'Rapport qualité/prix' },
-  { key: 'ux', label: 'Facilité d\'utilisation' },
+  { key: 'quality', label: 'Analysis quality' },
+  { key: 'value', label: 'Value for money' },
+  { key: 'ux', label: 'Ease of use' },
 ];
 
 function RatingStep({ ratings, setRatings, onNext, onClose }) {
@@ -82,8 +82,8 @@ function RatingStep({ ratings, setRatings, onNext, onClose }) {
   return (
     <div style={{ padding: '28px 24px 24px' }}>
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
-        <p style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '0 0 6px' }}>Avant de partir…</p>
-        <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.5 }}>Votre avis nous aide à nous améliorer.</p>
+        <p style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '0 0 6px' }}>Before you go…</p>
+        <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.5 }}>Your feedback helps us improve.</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {RATING_ITEMS.map(item => (
@@ -102,16 +102,16 @@ function RatingStep({ ratings, setRatings, onNext, onClose }) {
       </div>
       <button onClick={onNext} disabled={!allRated}
         style={{ width: '100%', marginTop: 22, padding: '12px 0', background: allRated ? '#111' : '#F0F0EE', color: allRated ? '#fff' : '#aaa', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: allRated ? 'pointer' : 'not-allowed', fontFamily: F }}>
-        Continuer →
-      </button>
-      <button onClick={onClose} style={{ width: '100%', marginTop: 8, padding: '10px 0', background: 'transparent', color: '#aaa', border: 'none', fontSize: 12, cursor: 'pointer', fontFamily: F }}>
-        Annuler
-      </button>
+        Continue →
+        </button>
+        <button onClick={onClose} style={{ width: '100%', marginTop: 8, padding: '10px 0', background: 'transparent', color: '#aaa', border: 'none', fontSize: 12, cursor: 'pointer', fontFamily: F }}>
+        Cancel
+        </button>
     </div>
   );
 }
 
-// Étape 2 : Confirmation + redirection Stripe
+// Step 2: Confirmation + Stripe redirect
 function ConfirmCancelStep({ user, userPlan, ratings, onBack, onClose }) {
   const [loading, setLoading] = useState(false);
   const renewal = user ? getRenewalDate(user) : null;
@@ -123,11 +123,11 @@ function ConfirmCancelStep({ user, userPlan, ratings, onBack, onClose }) {
       if (res?.data?.url) {
         window.location.href = res.data.url;
       } else {
-        toast.error(res?.data?.error || 'Impossible d\'accéder au portail de gestion.');
+        toast.error(res?.data?.error || 'Unable to access the management portal.');
         setLoading(false);
-      }
-    } catch (e) {
-      toast.error('Erreur de connexion. Réessayez ou contactez le support.');
+        }
+        } catch (e) {
+        toast.error('Connection error. Please try again or contact support.');
       setLoading(false);
     }
   };
@@ -138,18 +138,18 @@ function ConfirmCancelStep({ user, userPlan, ratings, onBack, onClose }) {
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
           <AlertTriangle style={{ width: 20, height: 20, color: '#ef4444' }} />
         </div>
-        <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Annuler votre abonnement</p>
+        <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Cancel your subscription</p>
         {renewal && (
           <p style={{ fontSize: 13, color: '#666', margin: 0, lineHeight: 1.6 }}>
-            Vous gardez accès à <strong>{userPlan?.name}</strong> jusqu'au <strong>{formatDate(renewal)}</strong>.<br />
-            Aucun remboursement ne sera effectué.
+            You'll keep access to <strong>{userPlan?.name}</strong> until <strong>{formatDate(renewal)}</strong>.<br />
+            No refund will be issued.
           </p>
         )}
       </div>
 
       <div style={{ background: '#FEF3EC', border: '1px solid #FDD8BF', borderRadius: 9, padding: '12px 14px', marginBottom: 18 }}>
         <p style={{ fontSize: 12, color: '#C45000', margin: 0, lineHeight: 1.6 }}>
-          ℹ️ Vous serez redirigé vers la page sécurisée de Stripe pour annuler. L'accès reste actif jusqu'à la fin de votre période payée.
+          ℹ️ You'll be redirected to Stripe's secure page to cancel. Access remains active until the end of your paid period.
         </p>
       </div>
 
@@ -158,13 +158,13 @@ function ConfirmCancelStep({ user, userPlan, ratings, onBack, onClose }) {
         {loading ? (
           <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#aaa', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Redirection…</>
         ) : (
-          <><ExternalLink style={{ width: 14, height: 14 }} />Annuler sur Stripe</>
+          <><ExternalLink style={{ width: 14, height: 14 }} />Cancel on Stripe</>
         )}
-      </button>
-      <button onClick={onBack}
+        </button>
+        <button onClick={onBack}
         style={{ width: '100%', padding: '10px 0', background: 'transparent', color: '#888', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 9, fontSize: 13, cursor: 'pointer', fontFamily: F }}>
-        Retour
-      </button>
+        Back
+        </button>
     </div>
   );
 }
@@ -211,7 +211,7 @@ export default function ManagePlanPage() {
       if (res?.data?.url) {
         window.location.href = res.data.url;
       } else {
-        toast.error(res?.data?.error || 'Impossible d\'accéder à la gestion d\'abonnement.');
+        toast.error(res?.data?.error || 'Unable to access subscription management.');
       }
     } catch {
       toast.error('Erreur. Contactez le support si le problème persiste.');
@@ -236,15 +236,15 @@ export default function ManagePlanPage() {
             style={{ width: 32, height: 32, borderRadius: 8, background: '#fff', border: '1px solid rgba(0,0,0,0.09)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
             <ArrowLeft style={{ width: 14, height: 14 }} />
           </button>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: 0 }}>Mon abonnement</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: 0 }}>My subscription</h1>
         </div>
 
         {/* Plan actuel */}
         <div style={{ background: '#111', borderRadius: 14, padding: '20px 20px', marginBottom: 14, color: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Plan actuel</p>
-              <p style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{userPlan?.name || 'Gratuit'}</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Current plan</p>
+              <p style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{userPlan?.name || 'Free'}</p>
             </div>
             <div style={{ textAlign: 'right' }}>
               {isPaid ? (
@@ -252,10 +252,10 @@ export default function ManagePlanPage() {
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 2px' }}>
                     {isYearly ? `${PLAN_PRICES[userPlan?.id]?.yearly || '—'}€` : `${userPlan?.price_monthly || '—'}€`}
                   </p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>/{isYearly ? 'an' : 'mois'}</p>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>/{isYearly ? 'year' : 'month'}</p>
                 </>
               ) : (
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Gratuit</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Free</span>
               )}
             </div>
           </div>
@@ -263,7 +263,7 @@ export default function ManagePlanPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 7, background: 'rgba(255,255,255,0.07)' }}>
               <Clock style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-                {isPaid ? 'Prochain renouvellement' : 'Actif depuis'} : <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{formatDate(renewalDate)}</span>
+                {isPaid ? 'Next renewal' : 'Active since'} : <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{formatDate(renewalDate)}</span>
               </p>
             </div>
           )}
@@ -272,20 +272,20 @@ export default function ManagePlanPage() {
         {/* Utilisation ce mois */}
         <div style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 14, padding: '18px 20px', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>Utilisation ce mois</p>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#999' }}>{new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
-          </div>
-          <p style={{ fontSize: 12, color: '#999', margin: '0 0 16px', lineHeight: 1.5 }}>Votre consommation par rapport aux limites de votre plan.</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>Usage this month</p>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#999' }}>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+            </div>
+            <p style={{ fontSize: 12, color: '#999', margin: '0 0 16px', lineHeight: 1.5 }}>Your consumption relative to your plan limits.</p>
 
-          <UsageBar label="Analyses de site" used={scansUsed} limit={scanLimit} icon={Scan} color="#111" />
-          <UsageBar label="Messages WOK AI" used={chatsUsed} limit={chatLimit} icon={MessageSquare} color="#111" />
-          <UsageBar label="Sites surveillés" used={sitesUsed} limit={siteLimit} icon={Globe} color="#111" />
+            <UsageBar label="Site analyses" used={scansUsed} limit={scanLimit} icon={Scan} color="#111" />
+            <UsageBar label="WOK AI messages" used={chatsUsed} limit={chatLimit} icon={MessageSquare} color="#111" />
+            <UsageBar label="Monitored sites" used={sitesUsed} limit={siteLimit} icon={Globe} color="#111" />
         </div>
 
         {/* Actions */}
         <p style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '20px 0 10px' }}>Actions</p>
 
-        {/* Passer Pro */}
+        {/* Upgrade */}
         <button onClick={() => navigate('/pricing')}
           style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', marginBottom: 10, background: '#F95738', border: 'none', borderRadius: 11, cursor: 'pointer', fontFamily: F }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.92'}
@@ -293,8 +293,8 @@ export default function ManagePlanPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <TrendingUp style={{ width: 15, height: 15, color: '#fff' }} />
             <div style={{ textAlign: 'left' }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0 }}>Changer de plan</p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', margin: 0 }}>Voir tous les plans disponibles</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0 }}>Change plan</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', margin: 0 }}>See all available plans</p>
             </div>
           </div>
           <ChevronRight style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.7)' }} />
@@ -312,8 +312,8 @@ export default function ManagePlanPage() {
                 : <BarChart2 style={{ width: 15, height: 15, color: '#555' }} />
               }
               <div style={{ textAlign: 'left' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0 }}>Gérer la facturation</p>
-                <p style={{ fontSize: 11, color: '#999', margin: 0 }}>Factures, moyen de paiement, reçus</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0 }}>Manage billing</p>
+                <p style={{ fontSize: 11, color: '#999', margin: 0 }}>Invoices, payment method, receipts</p>
               </div>
             </div>
             <ExternalLink style={{ width: 13, height: 13, color: '#bbb' }} />
@@ -327,15 +327,15 @@ export default function ManagePlanPage() {
             onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = '#bbb'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.09)'; }}>
             <X style={{ width: 13, height: 13 }} />
-            Annuler l'abonnement
+            Cancel subscription
           </button>
         )}
 
         {!isPaid && (
           <div style={{ padding: '14px 16px', background: '#fff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 11, marginBottom: 10 }}>
             <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.6, textAlign: 'center' }}>
-              Vous êtes sur le plan <strong style={{ color: '#111' }}>Gratuit</strong>.<br />
-              Passez à Starter ou Pro pour débloquer plus de fonctionnalités.
+              You're on the <strong style={{ color: '#111' }}>Free</strong> plan.<br />
+              Upgrade to Starter or Pro to unlock more features.
             </p>
           </div>
         )}

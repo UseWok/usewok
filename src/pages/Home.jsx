@@ -25,7 +25,7 @@ const BORDER  = 'rgba(21,19,15,0.12)';
 const CORAL   = '#FF5A1F';
 
 const getDomain    = (url) => (url || '').replace(/https?:\/\//, '').split('/')[0];
-const getFirstName = (n)   => (n || '').split(' ')[0] || 'vous';
+const getFirstName = (n)   => (n || '').split(' ')[0] || 'there';
 
 const AV_COLORS = ['#9CA3AF', CORAL, '#4B83DB', '#22A87A', '#8B5CF6', '#D97706'];
 function avatarBg(str) {
@@ -108,7 +108,7 @@ function MicButton({ onTranscript }) {
     } catch {}
 
     const rec = new SpeechRecognition();
-    rec.lang = 'fr-FR';
+    rec.lang = 'en-US';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
@@ -353,7 +353,7 @@ function ModuleCard({ label, sub, Icon, onClick }) {
 // ── Scan loader ────────────────────────────────────────────────────────────────
 function ScanLoader({ url }) {
   const [step, setStep] = useState(0);
-  const steps = ['Récupération du site…', 'Simulation IA en cours…', 'Calcul du LRS…', 'Génération du rapport…'];
+  const steps = ['Fetching site…', 'AI simulation in progress…', 'Calculating LRS…', 'Generating report…'];
   useEffect(() => {
     const iv = setInterval(() => setStep(s => Math.min(s + 1, steps.length - 1)), 8000);
     return () => clearInterval(iv);
@@ -361,8 +361,8 @@ function ScanLoader({ url }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: CARD_BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: F }}>
       <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite', marginBottom: 18 }} />
-      <div style={{ fontSize: 19, fontWeight: 700, color: WHITE, marginBottom: 5 }}>Analyse de <span style={{ color: CORAL }}>{getDomain(url)}</span></div>
-      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>8 moteurs IA · ~60 secondes</div>
+      <div style={{ fontSize: 19, fontWeight: 700, color: WHITE, marginBottom: 5 }}>Analyzing <span style={{ color: CORAL }}>{getDomain(url)}</span></div>
+      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>8 AI engines · ~60 seconds</div>
       <div style={{ width: '100%', maxWidth: 320, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '14px 18px' }}>
         {steps.map((s, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', opacity: i <= step ? 1 : 0.2, transition: 'opacity 0.5s' }}>
@@ -384,19 +384,19 @@ function ScanHero({ onScan }) {
   const [url, setUrl] = useState('');
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', fontFamily: F, background: BG }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em', textAlign: 'center' }}>Êtes-vous recommandé par les IA ?</h1>
-      <p style={{ fontSize: 14, color: INK3, margin: '0 0 28px', textAlign: 'center' }}>Votre score LRS en 60 secondes — 8 moteurs IA analysés.</p>
+      <h1 style={{ fontSize: 24, fontWeight: 600, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em', textAlign: 'center' }}>Are you recommended by AI?</h1>
+      <p style={{ fontSize: 14, color: INK3, margin: '0 0 28px', textAlign: 'center' }}>Your LRS score in 60 seconds — 8 AI engines analyzed.</p>
       <div style={{ width: '100%', maxWidth: 480, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, display: 'flex', alignItems: 'center', padding: '9px 9px 9px 16px', gap: 8 }}>
         <Plus size={14} color={INK3} strokeWidth={1.7} style={{ flexShrink: 0 }} />
         <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && url.trim() && onScan(url.trim())}
-          placeholder="Rechercher un domaine, lancer une analyse…" autoFocus
+          placeholder="Search a domain, launch an analysis…" autoFocus
           style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F }} />
         <button onClick={() => url.trim() && onScan(url.trim())}
           style={{ width: 34, height: 34, borderRadius: '50%', background: CORAL, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ArrowUp size={14} color={WHITE} strokeWidth={2.2} />
         </button>
       </div>
-      <p style={{ fontSize: 11, color: INK3, marginTop: 10 }}>Gratuit · Résultat instantané · Aucune carte requise</p>
+      <p style={{ fontSize: 11, color: INK3, marginTop: 10 }}>Free · Instant result · No card required</p>
     </div>
   );
 }
@@ -416,18 +416,18 @@ function PlanLimitModal({ onClose, onUpgrade, maxSites, planName }) {
             <Lock size={22} color={CORAL} strokeWidth={1.8} />
           </div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: WHITE, margin: '0 0 8px', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
-            Limite de sites atteinte
+            Site limit reached
           </h2>
           <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.6 }}>
-            Votre forfait <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{planName}</strong> permet de surveiller <strong style={{ color: CORAL }}>{maxSites} site{maxSites > 1 ? 's' : ''}</strong> simultanément.
+            Your <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{planName}</strong> plan allows monitoring <strong style={{ color: CORAL }}>{maxSites} site{maxSites > 1 ? 's' : ''}</strong> simultaneously.
           </p>
         </div>
         <div style={{ padding: '24px 28px' }}>
           <div style={{ background: BG, borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: INK2, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ce que vous débloquez</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: INK2, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>What you unlock</p>
             {[
-              { plan: 'Starter', sites: '5 sites', extra: '5 moteurs IA actifs + export PDF' },
-              { plan: 'Pro', sites: '10 sites', extra: 'Tous les moteurs IA + scan quotidien' },
+              { plan: 'Starter', sites: '5 sites', extra: '5 active AI engines + PDF export' },
+              { plan: 'Pro', sites: '10 sites', extra: 'All AI engines + daily scan' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: i > 0 ? `1px solid ${BORDER}` : 'none' }}>
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: CORAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -442,11 +442,11 @@ function PlanLimitModal({ onClose, onUpgrade, maxSites, planName }) {
           </div>
           <button onClick={onUpgrade}
             style={{ width: '100%', padding: '14px', background: CORAL, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <Zap size={14} color={WHITE} /> Passer à un plan supérieur
+            <Zap size={14} color={WHITE} /> Upgrade plan
           </button>
           <button onClick={onClose}
             style={{ width: '100%', padding: '12px', background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 13, fontWeight: 500, color: INK2, cursor: 'pointer', fontFamily: F }}>
-            Supprimer un site existant
+            Remove an existing site
           </button>
         </div>
       </motion.div>
@@ -586,7 +586,7 @@ export default function Home() {
   const planFeatures = user ? getWokFeatures(user) : getWokFeatures(null);
   const maxDomains = planFeatures?.max_sites || 1;
   const planId = user ? getWokPlanId(user) : 'free';
-  const planLabel = planId === 'pro' ? 'Pro' : planId === 'starter' ? 'Starter' : 'Gratuit';
+  const planLabel = planId === 'pro' ? 'Pro' : planId === 'starter' ? 'Starter' : 'Free';
 
   const startScan = async (cleanUrl) => {
     // ── HARD QUOTA: scan limit per period ──
@@ -739,7 +739,7 @@ export default function Home() {
 
   const activeProfile = profiles.find(p => p.site_url === activeUrl) || profiles[0];
   const lrs = Math.round(activeProfile?.lrs_score || activeProfile?.score_overall || 0);
-  const lrsLabel = lrs >= 65 ? 'Bonne visibilité' : lrs >= 30 ? 'Visibilité partielle' : 'Faible visibilité';
+  const lrsLabel = lrs >= 65 ? 'Good visibility' : lrs >= 30 ? 'Partial visibility' : 'Low visibility';
   const isScanningActive = !!scanningUrls[activeProfile?.site_url];
   const hasData = !!(activeProfile?.score_overall > 0 || activeProfile?.lrs_score > 0);
 
@@ -750,10 +750,10 @@ export default function Home() {
   ];
 
   const MODULES = [
-    { label: 'Rapport IA',  sub: 'LRS · moteurs',      Icon: BarChart2,      route: '/ai-report' },
-    { label: 'Audit',       sub: 'Technique et crawl', Icon: ClipboardCheck,  route: '/audit' },
-    { label: 'Performance', sub: 'Part de voix',       Icon: TrendingUp,      route: '/performance' },
-    { label: 'Connexions',  sub: 'GSC · Analytics',    Icon: Link2,           route: '/connections' },
+    { label: 'AI Report',   sub: 'LRS · engines',      Icon: BarChart2,      route: '/ai-report' },
+    { label: 'Audit',       sub: 'Technical & crawl',  Icon: ClipboardCheck,  route: '/audit' },
+    { label: 'Performance', sub: 'Share of voice',     Icon: TrendingUp,      route: '/performance' },
+    { label: 'Connections', sub: 'GSC · Analytics',    Icon: Link2,           route: '/connections' },
   ];
 
   return (
@@ -763,9 +763,9 @@ export default function Home() {
         {/* ── Header ── */}
         <div style={{ marginBottom: 18 }}>
           <h1 style={{ fontSize: 25, fontWeight: 600, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>
-            Bonjour {getFirstName(user?.full_name)}.
+            Hi {getFirstName(user?.full_name)}.
           </h1>
-          <p style={{ fontSize: 13.5, color: INK2, margin: 0 }}>Que souhaitez-vous analyser aujourd'hui ?</p>
+          <p style={{ fontSize: 13.5, color: INK2, margin: 0 }}>What would you like to analyze today?</p>
         </div>
 
         {/* ── Barre de recherche ── */}
@@ -781,7 +781,7 @@ export default function Home() {
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setTrollError(false); }}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmitSearch(); } }}
-              placeholder={mode === 'scan' ? "Rechercher un domaine, lancer une analyse…" : "Poser une question, demander de l'aide..."}
+              placeholder={mode === 'scan' ? "Search a domain, launch an analysis…" : "Ask a question, get help..."}
               rows={1}
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
@@ -820,7 +820,7 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 style={{ padding: '5px 12px 0', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <AlertCircle size={12} color="#EF4444" />
-                <span style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 500 }}>Impossible d'identifier un site web. Essayez avec un lien direct ou un nom de domaine.</span>
+                <span style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 500 }}>Couldn't identify a website. Try a direct link or domain name.</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -842,8 +842,8 @@ export default function Home() {
           {isScanningActive ? (
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite' }} />
-              <p style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.82)', margin: 0 }}>Analyse de {getDomain(activeProfile?.site_url)}…</p>
-              <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60s · Vous pouvez naviguer</p>
+              <p style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.82)', margin: 0 }}>Analyzing {getDomain(activeProfile?.site_url)}…</p>
+              <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 AI engines · ~60s · Feel free to navigate</p>
             </div>
           ) : hasData ? (
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', position: 'relative' }}
@@ -873,7 +873,7 @@ export default function Home() {
               <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.40)', margin: '0 0 12px', lineHeight: 1.65 }}>
                 {activeProfile?.shock_insight
                   ? activeProfile.shock_insight.slice(0, 130) + (activeProfile.shock_insight.length > 130 ? '…' : '')
-                  : 'Analysez votre visibilité sur les 8 moteurs IA — ChatGPT, Gemini, Claude et plus.'}
+                  : 'Analyze your visibility across 8 AI engines — ChatGPT, Gemini, Claude and more.'}
               </p>
 
               <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 12 }} />
@@ -899,7 +899,7 @@ export default function Home() {
 
               {/* ── Footer: voir rapport ── */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 400, color: CORAL }}>Voir le rapport complet</span>
+                <span style={{ fontSize: 12.5, fontWeight: 400, color: CORAL }}>View full report</span>
                 <ArrowRight size={12} color={CORAL} strokeWidth={1.8} />
               </div>
             </div>
@@ -907,12 +907,12 @@ export default function Home() {
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
               <AlertCircle size={18} color="rgba(255,255,255,0.4)" strokeWidth={1.7} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Aucune analyse pour ce domaine</p>
-                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Lancez une analyse — 8 moteurs IA en parallèle</p>
+                <p style={{ fontSize: 13.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>No analysis for this domain</p>
+                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Run an analysis — 8 AI engines in parallel</p>
               </div>
               <button onClick={() => startScan(activeProfile.site_url)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', background: CORAL, borderRadius: 8, fontSize: 12.5, fontWeight: 700, color: WHITE, border: 'none', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
-                <Zap size={12} strokeWidth={2} /> Analyser
+                <Zap size={12} strokeWidth={2} /> Analyze
               </button>
             </div>
           )}
@@ -928,11 +928,11 @@ export default function Home() {
         {/* ── Mes domaines ── */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>Mes domaines · {profiles.length}/{maxDomains}</span>
+            <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>My domains · {profiles.length}/{maxDomains}</span>
             <button onClick={() => setShowAddModal(true)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#272522', fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.82)', cursor: 'pointer', fontFamily: F }}>
               <Zap size={12} color={WHITE} strokeWidth={2} />
-              Analyser
+              Analyze
             </button>
           </div>
 
@@ -960,7 +960,7 @@ export default function Home() {
                   {isScanning ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 9px', background: `${CORAL}15`, borderRadius: 20, flexShrink: 0 }}>
                       <Loader size={10} color={CORAL} style={{ animation: 'spin 1s linear infinite' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: CORAL }}>Analyse…</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: CORAL }}>Analyzing…</span>
                     </div>
                   ) : score > 0 ? (
                     <SmallDonut score={score} />
@@ -993,8 +993,8 @@ export default function Home() {
                 style={{ position: 'absolute', top: 13, right: 13, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 7, border: `1px solid ${BORDER}`, background: BG, cursor: 'pointer' }}>
                 <X size={11} color={INK3} />
               </button>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>Nouveau domaine</h2>
-              <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>L'IA va analyser ce site et calculer son score LRS.</p>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>New domain</h2>
+              <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>The AI will analyze this site and calculate its LRS score.</p>
               <AddDomainForm onSubmit={(url) => { startScan(url); setShowAddModal(false); }} />
             </motion.div>
           </motion.div>
@@ -1030,7 +1030,7 @@ export default function Home() {
               <div style={{ background: WHITE, borderRadius: 20, overflow: 'hidden' }}>
                 {/* Site preview header */}
                 <div style={{ background: CARD_BG, padding: '24px 24px 20px' }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Site identifié</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Site identified</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Globe size={18} color="rgba(255,255,255,0.6)" />
@@ -1050,11 +1050,11 @@ export default function Home() {
                   <button onClick={() => confirmAndScan(confirmSite.url)}
                     style={{ width: '100%', padding: '13px', background: CARD_BG, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <Zap size={13} color={CORAL} />
-                    Analyser ce site
+                    Analyze this site
                   </button>
                   <button onClick={() => setConfirmSite(null)}
                     style={{ width: '100%', padding: '11px', background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 13, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-                    Ce n'est pas le bon site
+                    Not the right site
                   </button>
                 </div>
               </div>
@@ -1074,12 +1074,12 @@ function AddDomainForm({ onSubmit }) {
   return (
     <div>
       <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && url.trim() && onSubmit(clean())} autoFocus
-        placeholder="https://votre-site.com"
+        placeholder="https://your-site.com"
         style={{ width: '100%', padding: '10px 13px', fontSize: 13.5, border: `1px solid rgba(21,19,15,0.15)`, borderRadius: 9, outline: 'none', boxSizing: 'border-box', marginBottom: 12, fontFamily: F, color: INK, background: '#EEE5D2' }} />
       <button onClick={() => url.trim() && onSubmit(clean())} disabled={!url.trim()}
         style={{ width: '100%', padding: '11px', fontSize: 13.5, fontWeight: 700, color: WHITE, background: url.trim() ? CORAL : '#ccc', border: 'none', borderRadius: 9, cursor: url.trim() ? 'pointer' : 'not-allowed', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
         <Zap size={13} />
-        Lancer l'analyse
+        Launch analysis
       </button>
     </div>
   );

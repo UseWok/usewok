@@ -153,9 +153,9 @@ export default function AIVisibilityReport() {
   const plan = data.injection_plan || [];
   const businessName = data.identity_name || domainLabel;
 
-  const freqLabel = scoreVis >= 60 ? 'Élevée' : scoreVis >= 30 ? 'Modérée' : 'Faible';
-  const sentimentLabel = scoreClarity >= 60 ? 'Bonne' : scoreClarity >= 30 ? 'Moyenne' : 'À améliorer';
-  const precisionLabel = scoreCommerce >= 60 ? 'Bonne' : scoreCommerce >= 30 ? 'Moyenne' : 'À améliorer';
+  const freqLabel = scoreVis >= 60 ? 'High' : scoreVis >= 30 ? 'Moderate' : 'Low';
+  const sentimentLabel = scoreClarity >= 60 ? 'Good' : scoreClarity >= 30 ? 'Average' : 'Needs work';
+  const precisionLabel = scoreCommerce >= 60 ? 'Good' : scoreCommerce >= 30 ? 'Average' : 'Needs work';
 
   const engineScores = {};
   ALL_ENGINES.forEach(e => { engineScores[e] = data[`${e}_score`] || 0; });
@@ -180,11 +180,11 @@ export default function AIVisibilityReport() {
   })();
 
   const technical = [
-    { id: 'schema', label: 'Fiche business lisible par les IA', desc: 'Les IA comprennent qui vous êtes et ce que vous vendez', ok: data.has_schema_markup, fix: 'Les IA ne savent pas qui vous êtes. Quand un client demande "recommande-moi un X", vous n\'êtes pas dans leur réponse.', urgency: 'high' },
-    { id: 'gmb', label: 'Présence Google Maps complète', desc: 'Vous apparaissez dans les recherches locales', ok: data.has_google_business, fix: 'Votre fiche Google est incomplète ou absente. Vous perdez des clients locaux qui cherchent votre type de service.', urgency: 'high' },
-    { id: 'ssl', label: 'Site sécurisé (HTTPS)', desc: 'Les IA font confiance à votre site', ok: data.has_ssl, fix: 'Votre site n\'est pas sécurisé. Les IA évitent de recommander des sites non sécurisés.', urgency: 'medium' },
-    { id: 'mobile', label: 'Site adapté aux téléphones', desc: '80% des recherches IA se font sur mobile', ok: data.has_mobile_friendly, fix: 'Votre site n\'est pas adapté aux téléphones. La majorité de vos clients potentiels vivent une mauvaise expérience.', urgency: 'medium' },
-    { id: 'sitemap', label: 'Pages accessibles aux IA', desc: 'Toutes vos pages sont découvertes et indexées', ok: data.has_sitemap, fix: 'Les IA ne voient pas toutes vos pages. Une partie de votre contenu est invisible pour ChatGPT et Gemini.', urgency: 'low' },
+    { id: 'schema', label: 'Business profile readable by AI', desc: 'AI understands who you are and what you sell', ok: data.has_schema_markup, fix: 'AI doesn\'t know who you are. When a customer asks "recommend a X", you\'re not in their response.', urgency: 'high' },
+    { id: 'gmb', label: 'Complete Google Maps presence', desc: 'You show up in local searches', ok: data.has_google_business, fix: 'Your Google profile is incomplete or missing. You\'re losing local customers searching for your type of service.', urgency: 'high' },
+    { id: 'ssl', label: 'Secure site (HTTPS)', desc: 'AI trusts your site', ok: data.has_ssl, fix: 'Your site isn\'t secure. AI avoids recommending unsecured sites.', urgency: 'medium' },
+    { id: 'mobile', label: 'Mobile-friendly site', desc: '80% of AI searches happen on mobile', ok: data.has_mobile_friendly, fix: 'Your site isn\'t mobile-friendly. Most of your potential customers have a poor experience.', urgency: 'medium' },
+    { id: 'sitemap', label: 'Pages accessible to AI', desc: 'All your pages are discovered and indexed', ok: data.has_sitemap, fix: 'AI doesn\'t see all your pages. Part of your content is invisible to ChatGPT and Gemini.', urgency: 'low' },
   ].filter((t) => t.ok !== null && t.ok !== undefined);
   const technicalBad = technical.filter((t) => t.ok === false);
 
@@ -193,10 +193,10 @@ export default function AIVisibilityReport() {
     allActions.push({ key: `tech_${t.id}`, action_title: t.label, impact: t.desc, gap: t.fix, urgency: 'Urgent', type: 'fix', text: t.fix });
   });
   issues.forEach((issue, i) => {
-    allActions.push({ key: `issue_${i}`, action_title: issue.problem || issue.text, impact: issue.impact || '', urgency: 'Cette semaine', type: 'fix', text: issue.problem || issue.text });
+    allActions.push({ key: `issue_${i}`, action_title: issue.problem || issue.text, impact: issue.impact || '', urgency: 'This week', type: 'fix', text: issue.problem || issue.text });
   });
   plan.forEach((item, i) => {
-    allActions.push({ key: `plan_${i}`, action_title: item.action_title, impact: item.gap || `${item.engine} · ${item.platform || ''}`, urgency: item.effort === 'low' ? 'Court terme' : 'Moyen terme', type: 'plan', text: item.action_title + (item.action_detail ? ' — ' + item.action_detail : ''), planIndex: i, item });
+    allActions.push({ key: `plan_${i}`, action_title: item.action_title, impact: item.gap || `${item.engine} · ${item.platform || ''}`, urgency: item.effort === 'low' ? 'Short term' : 'Medium term', type: 'plan', text: item.action_title + (item.action_detail ? ' — ' + item.action_detail : ''), planIndex: i, item });
   });
 
   const doneTasks = plan.filter((_, i) => tasks[i]?.status === 'done').length;
@@ -225,31 +225,31 @@ export default function AIVisibilityReport() {
         {/* ── Top bar ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <button className="lrs-icon-btn lrs-back" onClick={() => navigate('/app')}>
-            <ArrowLeft size={13} /> Tableau de bord
+            <ArrowLeft size={13} /> Dashboard
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isFree && (
               <button onClick={() => setShowUpgrade(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 11px', background: ORANGE_SOFT, border: 'none', borderRadius: 999, fontSize: 11, fontWeight: 700, color: ORANGE_DEEP, cursor: 'pointer', fontFamily: F }}>
-                <Zap size={10} /> Starter
+                <Zap size={10} /> Upgrade
               </button>
             )}
             <button onClick={handleRescan} disabled={scanning} className="lrs-icon-btn" style={{ opacity: scanning ? 0.5 : 1 }}>
               <motion.span animate={{ rotate: scanning ? 360 : 0 }} transition={{ duration: 0.8, repeat: scanning ? Infinity : 0, ease: 'linear' }}>
                 <RefreshCw size={13} />
               </motion.span>
-              {scanning ? 'Analyse…' : 'Actualiser'}
+              {scanning ? 'Analyzing…' : 'Refresh'}
             </button>
             <button className="lrs-icon-btn" onClick={() => window.print()}>
-              <Download size={13} /> Exporter
+              <Download size={13} /> Export
             </button>
           </div>
         </div>
 
         {/* ── Title ── */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 21, fontWeight: 500, color: INK }}>Rapport de réputation IA</div>
-          <div style={{ fontSize: 13, color: INK2, marginTop: 3 }}>{domainLabel} · Mis à jour {data.last_scan ? new Date(data.last_scan).toLocaleDateString('fr') : "aujourd'hui"}</div>
+          <div style={{ fontSize: 21, fontWeight: 500, color: INK }}>AI Reputation Report</div>
+          <div style={{ fontSize: 13, color: INK2, marginTop: 3 }}>{domainLabel} · Updated {data.last_scan ? new Date(data.last_scan).toLocaleDateString('en-US') : "today"}</div>
         </div>
 
         {/* ── Dark hero: score ring + mentions ── */}
@@ -265,11 +265,11 @@ export default function AIVisibilityReport() {
               )}
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'rgba(247,242,233,0.55)', marginBottom: 10 }}>Mentions sectorielles</div>
+              <div style={{ fontSize: 12, color: 'rgba(247,242,233,0.55)', marginBottom: 10 }}>Industry mentions</div>
               {[
-                { label: 'Fréquence de citation', val: freqLabel },
-                { label: 'Qualité du sentiment', val: sentimentLabel },
-                { label: 'Précision des faits', val: precisionLabel },
+                { label: 'Citation frequency', val: freqLabel },
+                { label: 'Sentiment quality', val: sentimentLabel },
+                { label: 'Factual accuracy', val: precisionLabel },
               ].map((m, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid rgba(247,242,233,0.1)' }}>
                   <span style={{ fontSize: 13, color: 'rgba(247,242,233,0.75)' }}>{m.label}</span>
@@ -284,9 +284,9 @@ export default function AIVisibilityReport() {
         <FadeUp delay={0.06}>
           <div className="lrs-card" style={{ padding: 18, marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Évolution de la réputation</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: INK }}>Reputation trend</span>
               <span style={{ fontSize: 12, fontWeight: 500, color: GREEN, background: GREEN_SOFT, padding: '3px 9px', borderRadius: 999 }}>
-                {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 11}% · 6 mois
+                {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 11}% · 6 months
               </span>
             </div>
             <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
@@ -294,7 +294,7 @@ export default function AIVisibilityReport() {
               <circle cx="300" cy={70 - (score / 100) * 55} r="4" fill={CORAL} />
             </svg>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: INK2, marginTop: 4 }}>
-              <span>Jan</span><span>Fév</span><span>Mar</span><span>Avr</span><span>Mai</span><span>Juin</span>
+              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
             </div>
           </div>
         </FadeUp>
@@ -303,24 +303,24 @@ export default function AIVisibilityReport() {
         <FadeUp delay={0.10}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 24 }}>
             <div className="lrs-card" style={{ padding: 14 }}>
-              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Part de voix IA</div>
+              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>AI share of voice</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{scoreVis}%</div>
               <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <ArrowUpRight size={12} /> {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 3}% vs mois -1
+                <ArrowUpRight size={12} /> {scoreDelta >= 0 ? '+' : ''}{scoreDelta || 3}% vs last month
               </div>
             </div>
             <div className="lrs-card" style={{ padding: 14 }}>
-              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Perception positive</div>
+              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Positive perception</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>{scoreClarity}%</div>
               <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <ArrowUpRight size={12} /> +5% vs mois -1
+                <ArrowUpRight size={12} /> +5% vs last month
               </div>
             </div>
             <div className="lrs-card" style={{ padding: 14 }}>
-              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>Mentions IA / mois</div>
+              <div style={{ fontSize: 12, color: INK2, marginBottom: 6 }}>AI mentions / month</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: INK }}>~{fmt(data.organic_traffic || 420)}</div>
               <div style={{ fontSize: 11, color: GREEN, marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
-                <ArrowUpRight size={12} /> +18% vs mois -1
+                <ArrowUpRight size={12} /> +18% vs last month
               </div>
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function AIVisibilityReport() {
 
         {/* ── Radar ── */}
         <FadeUp delay={0.14}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Radar des assistants IA</div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>AI assistant radar</div>
           <div className="lrs-card" style={{ padding: 18, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap', position: 'relative' }}>
             <svg width="190" height="190" viewBox="0 0 200 200" style={{ filter: isFree ? 'blur(3px)' : 'none' }}>
               <polygon points={radarOuter()} fill="none" stroke={BORDER} strokeWidth="1" />
@@ -347,7 +347,7 @@ export default function AIVisibilityReport() {
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <button onClick={handleLockedAction}
                   style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 20px', background: INK, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-                  <Lock size={12} color={CORAL} /> Débloquer — Starter
+                  <Lock size={12} color={CORAL} /> Unlock — Starter
                 </button>
               </div>
             )}
@@ -356,10 +356,10 @@ export default function AIVisibilityReport() {
 
         {/* ── Scores table ── */}
         <FadeUp delay={0.18}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Scores par assistant IA</div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Scores by AI assistant</div>
           <div className="lrs-card" style={{ marginBottom: 24, position: 'relative' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr auto auto', gap: 8, padding: '10px 16px', fontSize: 11, color: INK2, borderBottom: `0.5px solid ${BORDER}` }}>
-              <span>Assistant</span><span>Score</span><span>Évolution</span><span>Sentiment</span>
+              <span>Assistant</span><span>Score</span><span>Trend</span><span>Sentiment</span>
             </div>
             {ALL_ENGINES.map((e) => {
               const val = engineScores[e];
@@ -419,7 +419,7 @@ export default function AIVisibilityReport() {
               <div style={{ padding: '12px 16px' }}>
                 <button onClick={() => setShowUpgrade(true)}
                   style={{ width: '100%', padding: '10px', border: `1px solid ${BORDER}`, borderRadius: 9, background: SURFACE, fontSize: 12, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Lock size={11} /> {isFree ? 'Débloquer les 7 autres moteurs — Starter' : 'Débloquer Mistral, Copilot, Grok — Pro'}
+                  <Lock size={11} /> {isFree ? 'Unlock 7 more engines — Starter' : 'Unlock Mistral, Copilot, Grok — Pro'}
                 </button>
               </div>
             )}
@@ -429,7 +429,7 @@ export default function AIVisibilityReport() {
         {/* ── Part de voix sectorielle ── */}
         {data.competitors && Array.isArray(data.competitors) && data.competitors.length > 0 && (
           <FadeUp delay={0.22}>
-            <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Part de voix dans votre secteur</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Share of voice in your industry</div>
             <div className="lrs-card" style={{ padding: 16, marginBottom: 24 }}>
               {data.competitors.map((comp, i) => {
                 const isYou = comp.name === businessName || comp.is_you;
@@ -437,7 +437,7 @@ export default function AIVisibilityReport() {
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: i < data.competitors.length - 1 ? 12 : 0 }}>
                     <span style={{ width: 84, fontSize: 13, color: isYou ? ORANGE_DEEP : INK, fontWeight: isYou ? 600 : 400 }}>
-                      {comp.name}{isYou && <span style={{ fontSize: 10, fontWeight: 500, background: ORANGE_SOFT, padding: '1px 6px', borderRadius: 999, marginLeft: 4 }}>Vous</span>}
+                      {comp.name}{isYou && <span style={{ fontSize: 10, fontWeight: 500, background: ORANGE_SOFT, padding: '1px 6px', borderRadius: 999, marginLeft: 4 }}>You</span>}
                     </span>
                     <div style={{ flex: 1, height: 8, borderRadius: 999, background: CREAM_DEEP }}>
                       <div style={{ width: `${pct}%`, height: 8, borderRadius: 999, background: isYou ? CORAL : INK }} />
@@ -452,7 +452,7 @@ export default function AIVisibilityReport() {
 
         {/* ── Actions recommandées ── */}
         <FadeUp delay={0.26}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Actions recommandées</div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: INK2, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>Recommended actions</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}>
             {isFree ? (
               <>
@@ -464,7 +464,7 @@ export default function AIVisibilityReport() {
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <button onClick={() => setShowUpgrade(true)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 24px', background: CARD_DARK, color: WHITE, border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
-                    <Sparkles size={14} color={CORAL} /> Débloquer mon plan personnalisé
+                    <Sparkles size={14} color={CORAL} /> Unlock my personalized plan
                   </button>
                 </div>
               </>
@@ -489,10 +489,10 @@ export default function AIVisibilityReport() {
                 })}
                 {plan.length > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, padding: '8px 16px' }}>
-                    <span style={{ fontSize: 12, color: INK2 }}>{doneTasks}/{plan.length} actions réalisées</span>
+                    <span style={{ fontSize: 12, color: INK2 }}>{doneTasks}/{plan.length} actions completed</span>
                     {doneTasks > 0 && (
                       <span style={{ fontSize: 11.5, fontWeight: 700, color: GREEN, background: GREEN_SOFT, padding: '5px 12px', borderRadius: 999 }}>
-                        {Math.round(doneTasks / plan.length * 100)}% accompli
+                        {Math.round(doneTasks / plan.length * 100)}% complete
                       </span>
                     )}
                   </div>
@@ -509,8 +509,8 @@ export default function AIVisibilityReport() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}>
           <div style={{ background: WHITE, borderRadius: 18, padding: '28px 32px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', minWidth: 240 }}>
             <div style={{ width: 36, height: 36, borderRadius: '50%', border: `3px solid rgba(0,0,0,0.08)`, borderTopColor: CORAL, animation: 'spin 0.8s linear infinite', margin: '0 auto 14px' }} />
-            <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Chargement…</p>
-            <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Vérification de votre abonnement</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Loading…</p>
+            <p style={{ fontSize: 12, color: INK3, margin: 0 }}>Checking your subscription</p>
           </div>
         </div>
       )}
@@ -528,8 +528,8 @@ export default function AIVisibilityReport() {
       )}
 
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)}
-        feature="l'analyse complète" requiredPlan="starter"
-        description="Débloquez les 7 moteurs IA manquants, le plan d'actions personnalisé et les guides de correction." />
+        feature="the full analysis" requiredPlan="starter"
+        description="Unlock the 7 missing AI engines, the personalized action plan and fix guides." />
     </div>
   );
 }

@@ -40,7 +40,7 @@ export default function Login() {
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = "/app";
     } catch (err) {
-      setError(err.message || "Identifiants incorrects");
+      setError(err.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export default function Login() {
             fontWeight: 800, fontSize: 38, letterSpacing: "-0.03em",
             lineHeight: 1.08, marginBottom: 34,
           }}>
-            Bienvenue<br />sur UseWok
+            Welcome<br />to UseWok
           </h1>
 
           {error && (
@@ -118,7 +118,7 @@ export default function Login() {
             onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
             >
               <GoogleLogo />
-              Se connecter avec Google
+              Continue with Google
             </button>
             <button onClick={handleApple} style={{
               height: 48, borderRadius: 12,
@@ -134,7 +134,7 @@ export default function Login() {
             onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
             >
               <AppleIcon />
-              Se connecter avec Apple
+              Continue with Apple
             </button>
           </div>
 
@@ -146,7 +146,7 @@ export default function Login() {
             <span style={{
               fontSize: 11, fontWeight: 600, letterSpacing: "0.05em",
               textTransform: "uppercase", color: "rgba(21,19,15,0.35)",
-            }}>Ou</span>
+            }}>Or</span>
             <div style={{ flex: 1, height: 1, background: "rgba(21,19,15,0.10)" }} />
           </div>
 
@@ -155,7 +155,7 @@ export default function Login() {
             <div style={{ position: "relative", marginBottom: 12 }}>
               <input
                 type="email"
-                placeholder="Entrez votre adresse e-mail"
+                placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoFocus
@@ -187,7 +187,7 @@ export default function Login() {
                   color: "#C43E14", background: "#FFE7D6",
                   padding: "0 12px", borderRadius: 8, pointerEvents: "none",
                 }}>
-                  Dernière utilisation
+                  Last used
                 </span>
               )}
             </div>
@@ -196,7 +196,7 @@ export default function Login() {
             <div style={{ position: "relative", marginBottom: 12 }}>
               <input
                 type="password"
-                placeholder="Mot de passe"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -223,7 +223,7 @@ export default function Login() {
                 fontSize: 12, fontWeight: 500, color: "#C43E14",
                 textDecoration: "underline", textUnderlineOffset: 2,
               }}>
-                Oublié ?
+                Forgot?
               </Link>
             </div>
 
@@ -241,23 +241,23 @@ export default function Login() {
             onMouseDown={e => { if (!loading) e.currentTarget.style.transform = "scale(0.98)"; }}
             onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
             >
-              {loading ? <><Loader2 size={16} className="animate-spin" /> Connexion…</> : "Continuer avec l'e-mail"}
+              {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in…</> : "Continue with email"}
             </button>
           </form>
 
           <p style={{ textAlign: "center", fontSize: 14, color: "#4A453B", marginTop: 24 }}>
-            Vous n'avez pas de compte ?{" "}
+            Don't have an account?{" "}
             <Link to="/register" style={{ color: "#15130F", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 2 }}>
-              S'inscrire
+              Sign up
             </Link>
           </p>
         </div>
 
         {/* Legal */}
         <p style={{ fontSize: 12, color: "rgba(21,19,15,0.4)" }}>
-          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Conditions d'utilisation</Link>
-          {" "}et{" "}
-          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>politique de confidentialité</Link>.
+          <Link to="/terms" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Terms of Service</Link>
+          {" "}and{" "}
+          <Link to="/privacy" style={{ color: "rgba(21,19,15,0.6)", textDecoration: "underline", textUnderlineOffset: 2 }}>Privacy Policy</Link>.
         </p>
       </div>
 

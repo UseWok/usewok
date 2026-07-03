@@ -30,28 +30,28 @@ const ContactModal = ({ onClose }) => {
             <div style={{ width: 48, height: 48, borderRadius: 14, background: '#EBF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
               <Check size={22} color="#1E7A4C" />
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#15130F', marginBottom: 8 }}>Message reçu</h3>
-            <p style={{ fontSize: 13, color: '#4A453B', lineHeight: 1.6 }}>Notre équipe vous répondra sous 24h.</p>
-            <button onClick={onClose} style={{ marginTop: 18, padding: '10px 24px', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: WIX }}>Fermer</button>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#15130F', marginBottom: 8 }}>Message received</h3>
+            <p style={{ fontSize: 13, color: '#4A453B', lineHeight: 1.6 }}>Our team will get back to you within 24 hours.</p>
+            <button onClick={onClose} style={{ marginTop: 18, padding: '10px 24px', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: WIX }}>Close</button>
           </div>
         ) : (
           <>
-            <h2 style={{ fontFamily: SERIF, fontWeight: 500, fontSize: 20, color: '#15130F', margin: '0 0 4px', letterSpacing: '-0.01em' }}>Nous contacter</h2>
-            <p style={{ fontSize: 13, color: '#4A453B', margin: '0 0 18px' }}>Réponse garantie sous 24h.</p>
+            <h2 style={{ fontFamily: SERIF, fontWeight: 500, fontSize: 20, color: '#15130F', margin: '0 0 4px', letterSpacing: '-0.01em' }}>Contact us</h2>
+            <p style={{ fontSize: 13, color: '#4A453B', margin: '0 0 18px' }}>Guaranteed response within 24 hours.</p>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-                {[['first_name', 'Prénom'], ['last_name', 'Nom']].map(([k, l]) => (
+                {[['first_name', 'First name'], ['last_name', 'Last name']].map(([k, l]) => (
                   <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required value={form[k]} onChange={set(k)} style={inp} /></div>
                 ))}
               </div>
-              {[['email', 'Email', 'email'], ['website', 'Site web', 'text'], ['role', 'Votre rôle', 'text']].map(([k, l, t]) => (
+              {[['email', 'Email', 'email'], ['website', 'Website', 'text'], ['role', 'Your role', 'text']].map(([k, l, t]) => (
                 <div key={k}><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>{l}</label><input required type={t} value={form[k]} onChange={set(k)} style={inp} /></div>
               ))}
               <div><label style={{ display: 'block', fontSize: 11, color: '#4A453B', marginBottom: 3, fontWeight: 600 }}>Message</label><textarea required value={form.message} onChange={set('message')} rows={3} style={{ ...inp, resize: 'none' }} /></div>
               <button type="submit" style={{ padding: '11px 0', background: '#15130F', color: '#FBF8F2', border: 'none', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4, fontFamily: WIX }}
                 onMouseEnter={e => e.currentTarget.style.background = '#C43E14'}
                 onMouseLeave={e => e.currentTarget.style.background = '#15130F'}>
-                Envoyer
+                Send
               </button>
             </form>
           </>
@@ -89,7 +89,7 @@ export default function PricingPage() {
   }, [authUser]);
 
   const handleUpgrade = async (plan) => {
-    try { if (window.self !== window.top) { alert('Le paiement est disponible uniquement depuis l\'application publiée.'); return; } } catch {}
+    try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
     const priceId = billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
     const directUrl = billing === 'yearly' ? plan.checkout_url_yearly : plan.checkout_url_monthly;
     if (directUrl?.startsWith('http')) { window.location.href = directUrl; return; }
@@ -194,13 +194,13 @@ export default function PricingPage() {
         {/* HERO */}
         <section className="p-hero">
           <div className="wrap">
-            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 14 }}><span className="dot"></span>Tarifs simples</span>
-            <h1>Choisir votre plan</h1>
-            <p>Vous êtes sur le plan <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong>. Changez ou annulez à tout moment.</p>
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 14 }}><span className="dot"></span>Simple pricing</span>
+            <h1>Choose your plan</h1>
+            <p>You're on the <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong> plan. Change or cancel anytime.</p>
             <div className="toggle-wrap">
               <div className="toggle">
-                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Mensuel</button>
-                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Annuel {discount > 0 && <span className="save">-{discount}%</span>}</button>
+                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>
+                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Yearly {discount > 0 && <span className="save">-{discount}%</span>}</button>
               </div>
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function PricingPage() {
                     isCurrent={curr}
                     loading={loadingPlanId === plan.id}
                     onCta={() => free ? navigate('/app') : handleUpgrade(plan)}
-                    ctaLabel={free ? 'Commencer gratuitement' : `Choisir ${plan.name}`}
+                    ctaLabel={free ? 'Start for free' : `Choose ${plan.name}`}
                   />
                 );
               })}
@@ -234,11 +234,11 @@ export default function PricingPage() {
           <div className="wrap">
             <div className="ent-strip">
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#15130F', marginBottom: 4 }}>Besoin d'un plan sur mesure ?</div>
-                <div style={{ fontSize: 13, color: 'rgba(21,19,15,0.55)' }}>Pour les agences, grandes équipes ou contrats personnalisés.</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#15130F', marginBottom: 4 }}>Need a custom plan?</div>
+                <div style={{ fontSize: 13, color: 'rgba(21,19,15,0.55)' }}>For agencies, large teams or custom contracts.</div>
               </div>
               <button onClick={() => setShowContact(true)} className="ent-btn">
-                Contacter l'équipe <ArrowRight size={13} />
+                Contact the team <ArrowRight size={13} />
               </button>
             </div>
           </div>
@@ -248,22 +248,22 @@ export default function PricingPage() {
         <section>
           <div className="wrap">
             <div className="faq-wrap">
-              <h2>Questions fréquentes</h2>
+              <h2>Frequently asked questions</h2>
               <details open>
-                <summary>Qu'est-ce que UseWok ?</summary>
-                <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini.</p>
+                <summary>What is UseWok?</summary>
+                <p>UseWok is an AI visibility platform that shows where and how your brand appears in AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini.</p>
               </details>
               <details>
-                <summary>Quels moteurs IA puis-je suivre ?</summary>
-                <p>UseWok suit les principaux moteurs IA : ChatGPT, Perplexity, Google AI Overviews, Claude, Microsoft Copilot et Gemini.</p>
+                <summary>Which AI engines can I track?</summary>
+                <p>UseWok tracks the major AI engines: ChatGPT, Perplexity, Google AI Overviews, Claude, Microsoft Copilot and Gemini.</p>
               </details>
               <details>
-                <summary>Puis-je changer de formule à tout moment ?</summary>
-                <p>Oui, vous pouvez changer de plan ou annuler à tout moment, sans engagement.</p>
+                <summary>Can I change plans at any time?</summary>
+                <p>Yes, you can change plans or cancel at any time, with no commitment.</p>
               </details>
               <details>
-                <summary>Mes données sont-elles hébergées en France ?</summary>
-                <p>Oui — UseWok est conçu et hébergé en France, dans le respect du RGPD.</p>
+                <summary>Is my data hosted in France?</summary>
+                <p>Yes — UseWok is built and hosted in France, in compliance with GDPR.</p>
               </details>
             </div>
           </div>

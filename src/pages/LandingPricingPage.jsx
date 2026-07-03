@@ -127,14 +127,14 @@ export default function LandingPricingPage() {
               <span>UseWok</span>
             </div>
             <div className="navlinks">
-              <button onClick={goHome}>Produit</button>
-              <button onClick={goHome}>Cas d'usage</button>
-              <button className="active">Tarifs</button>
-              <button onClick={goBlog}>Ressources</button>
+              <button onClick={goHome}>Product</button>
+              <button onClick={goHome}>Use cases</button>
+              <button className="active">Pricing</button>
+              <button onClick={goBlog}>Resources</button>
             </div>
             <div className="navright">
-              <button className="btn btn-outline" onClick={goLogin}>Se connecter</button>
-              <button className="btn btn-dark" onClick={goRegister}>Commencer</button>
+              <button className="btn btn-outline" onClick={goLogin}>Log in</button>
+              <button className="btn btn-dark" onClick={goRegister}>Get started</button>
             </div>
           </div>
         </nav>
@@ -142,13 +142,13 @@ export default function LandingPricingPage() {
         {/* HERO */}
         <section className="p-hero">
           <div className="wrap">
-            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 16 }}><span className="dot"></span>Tarifs simples</span>
-            <h1>Des tarifs flexibles</h1>
-            <p>Commencez gratuitement. Changez de formule ou annulez à tout moment.</p>
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 16 }}><span className="dot"></span>Simple pricing</span>
+            <h1>Flexible pricing</h1>
+            <p>Start for free. Change plans or cancel anytime.</p>
             <div className="toggle-wrap">
               <div className="toggle">
-                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Mensuel</button>
-                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Annuel {discount > 0 && <span className="save">-{discount}%</span>}</button>
+                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>
+                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Yearly {discount > 0 && <span className="save">-{discount}%</span>}</button>
               </div>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function LandingPricingPage() {
                   billing={billing}
                   isCurrent={false}
                   onCta={goRegister}
-                  ctaLabel={!plan.price_monthly || plan.price_monthly === 0 ? 'Commencer gratuitement' : `Choisir ${plan.name}`}
+                  ctaLabel={!plan.price_monthly || plan.price_monthly === 0 ? 'Start for free' : `Choose ${plan.name}`}
                 />
               ))}
             </div>
@@ -175,7 +175,7 @@ export default function LandingPricingPage() {
         {/* TRUST BAR */}
         <div className="trustbar">
           <div className="wrap">
-            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>Ils suivent déjà leur visibilité IA</span>
+            <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>Already tracking their AI visibility</span>
             <div className="trustlogos">
               <div className="tlogo"><span className="ic">N</span><span>Norea</span></div>
               <div className="tlogo"><span className="ic">K</span><span>Klarcy</span></div>
@@ -193,8 +193,8 @@ export default function LandingPricingPage() {
             <div className="testi">
               <div className="av"></div>
               <div>
-                <blockquote>« UseWok ne nous a pas juste donné des données, ça nous a donné une direction. On sait exactement où on peut gagner et quoi prioriser. »</blockquote>
-                <cite>Responsable Marketing, PME digitale</cite>
+                <blockquote>"UseWok didn't just give us data — it gave us direction. We know exactly where we can win and what to prioritize."</blockquote>
+                <cite>Marketing Lead, Digital SMB</cite>
               </div>
             </div>
           </div>
@@ -204,12 +204,12 @@ export default function LandingPricingPage() {
         <section>
           <div className="wrap">
             <div className="cta-band">
-              <h2 className="serif">10x votre visibilité IA sans devenir expert GEO</h2>
+              <h2 className="serif">10x your AI visibility without becoming a GEO expert</h2>
               <div className="cta-btns">
-                <button className="btn btn-dark" onClick={goRegister}>Essai gratuit 14 jours</button>
-                <button className="btn btn-outline" style={{ background: '#fff' }} onClick={goHome}>Voir une démo</button>
+                <button className="btn btn-dark" onClick={goRegister}>14-day free trial</button>
+                <button className="btn btn-outline" style={{ background: '#fff' }} onClick={goHome}>See a demo</button>
               </div>
-              <p className="noc">Sans carte bancaire · Gratuit 14 jours · Votre score en moins de 3 minutes</p>
+              <p className="noc">No credit card · 14 days free · Your score in under 3 minutes</p>
             </div>
           </div>
         </section>
@@ -218,26 +218,26 @@ export default function LandingPricingPage() {
         <section>
           <div className="wrap">
             <div className="faq-wrap">
-              <h2>Questions fréquentes</h2>
+              <h2>Frequently asked questions</h2>
               <details open>
-                <summary>Qu'est-ce que UseWok ?</summary>
-                <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini. UseWok va plus loin et vous montre comment agir sur vos données pour apparaître dans les futures réponses des IA.</p>
+                <summary>What is UseWok?</summary>
+                <p>UseWok is an AI visibility platform that shows where and how your brand appears in AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini. UseWok goes further and shows you how to act on your data to appear in future AI responses.</p>
               </details>
               <details>
-                <summary>Quels moteurs IA puis-je suivre ?</summary>
-                <p>UseWok suit les principaux moteurs IA : ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot et Gemini.</p>
+                <summary>Which AI engines can I track?</summary>
+                <p>UseWok tracks the major AI engines: ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot and Gemini.</p>
               </details>
               <details>
-                <summary>Puis-je changer de formule à tout moment ?</summary>
-                <p>Oui, vous pouvez changer de plan ou annuler à tout moment, sans engagement.</p>
+                <summary>Can I change plans at any time?</summary>
+                <p>Yes, you can change plans or cancel at any time, with no commitment.</p>
               </details>
               <details>
-                <summary>Mes données sont-elles hébergées en France ?</summary>
-                <p>Oui — UseWok est conçu et hébergé en France, dans le respect du RGPD.</p>
+                <summary>Is my data hosted in France?</summary>
+                <p>Yes — UseWok is built and hosted in France, in compliance with GDPR.</p>
               </details>
               <details>
-                <summary>Combien de temps pour voir des résultats en AEO ?</summary>
-                <p>Nous avons vu des résultats en AEO en 7 jours seulement avec nos clients. La visibilité IA peut être influencée beaucoup plus rapidement qu'avec le SEO traditionnel.</p>
+                <summary>How long to see AEO results?</summary>
+                <p>We've seen AEO results in as little as 7 days with our clients. AI visibility can be influenced much faster than with traditional SEO.</p>
               </details>
             </div>
           </div>
@@ -249,7 +249,7 @@ export default function LandingPricingPage() {
             <div className="foot-top">
               <div className="foot-brand">
                 <div className="brand" onClick={goHome}><div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div><span>UseWok</span></div>
-                <p>UseWok est la plateforme française qui mesure et améliore votre visibilité sur les moteurs IA.</p>
+                <p>UseWok is the platform that measures and improves your visibility on AI engines.</p>
                 <div className="foot-social">
                   <a href="https://x.com/usewok" target="_blank" rel="noopener noreferrer">𝕏</a>
                   <a href="https://linkedin.com/company/usewok" target="_blank" rel="noopener noreferrer">in</a>
@@ -257,27 +257,27 @@ export default function LandingPricingPage() {
                 </div>
               </div>
               <div className="foot-col">
-                <h5>Produit</h5>
-                <button onClick={goHome}>Fonctionnalités</button>
-                <button onClick={() => {}}>Tarifs</button>
-                <button onClick={goHome}>Intégrations</button>
+                <h5>Product</h5>
+                <button onClick={goHome}>Features</button>
+                <button onClick={() => {}}>Pricing</button>
+                <button onClick={goHome}>Integrations</button>
               </div>
               <div className="foot-col">
-                <h5>Ressources</h5>
+                <h5>Resources</h5>
                 <button onClick={goBlog}>Documentation</button>
                 <button onClick={goBlog}>Blog</button>
-                <button onClick={goBlog}>Communauté</button>
+                <button onClick={goBlog}>Community</button>
               </div>
               <div className="foot-col">
-                <h5>Légal</h5>
-                <button onClick={() => navigate('/privacy')}>Confidentialité</button>
-                <button onClick={() => navigate('/terms')}>Conditions</button>
-                <button onClick={() => navigate('/legal')}>Sécurité</button>
+                <h5>Legal</h5>
+                <button onClick={() => navigate('/privacy')}>Privacy</button>
+                <button onClick={() => navigate('/terms')}>Terms</button>
+                <button onClick={() => navigate('/legal')}>Legal</button>
               </div>
             </div>
             <div className="foot-bottom">
-              <span>© 2026 UseWok. Tous droits réservés.</span>
-              <span className="fr"><span className="flag"></span>Conçu en France</span>
+              <span>© 2026 UseWok. All rights reserved.</span>
+              <span className="fr"><span className="flag"></span>Made in France</span>
             </div>
           </div>
         </footer>

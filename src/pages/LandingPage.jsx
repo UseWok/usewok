@@ -254,15 +254,15 @@ export default function LandingPage() {
             <span>UseWok</span>
           </div>
           <div className="navlinks">
-            <button onClick={() => scrollTo(featuresRef)}>Produit</button>
-            <button onClick={() => scrollTo(howRef)}>Cas d'usage</button>
-            <button onClick={goBlog}>Ressources</button>
-            <button onClick={goPricing}>Tarifs</button>
-            <button onClick={() => scrollTo(stackRef)}>Entreprise</button>
+            <button onClick={() => scrollTo(featuresRef)}>Product</button>
+            <button onClick={() => scrollTo(howRef)}>Use cases</button>
+            <button onClick={goBlog}>Resources</button>
+            <button onClick={goPricing}>Pricing</button>
+            <button onClick={() => scrollTo(stackRef)}>Company</button>
           </div>
           <div className="navright">
-            <button className="nav-login" onClick={goLogin}>Se connecter</button>
-            <button className="btn btn-dark" onClick={goRegister}>Commencer</button>
+            <button className="nav-login" onClick={goLogin}>Log in</button>
+            <button className="btn btn-dark" onClick={goRegister}>Get started</button>
           </div>
         </div>
       </nav>
@@ -270,9 +270,9 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="hero">
         <div className="wrap hero-inner">
-          <span className="eyebrow"><span className="dot"></span>8 moteurs IA analysés</span>
-          <h1>Vos clients demandent à l'IA<br />qui <span className="hi">appeler.</span></h1>
-          <p>UseWok mesure votre visibilité sur ChatGPT, Claude et Gemini — et vous donne un plan d'action clair pour être trouvé.</p>
+          <span className="eyebrow"><span className="dot"></span>8 AI engines analyzed</span>
+          <h1>Your customers ask AI<br />who to <span className="hi">call.</span></h1>
+          <p>UseWok measures your visibility on ChatGPT, Claude and Gemini — and gives you a clear action plan to get found.</p>
           <div className="hero-ctas">
             <button className="btn btn-dark" onClick={goRegister}>Analyser mon site →</button>
             <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>Voir une démo</button>
@@ -288,7 +288,7 @@ export default function LandingPage() {
       {/* TRUSTED BY */}
       <div className="trustbar">
         <div className="wrap">
-          <span className="eyebrow" style={{justifyContent:'center', display:'flex'}}>Ils suivent déjà leur visibilité IA</span>
+          <span className="eyebrow" style={{justifyContent:'center', display:'flex'}}>Already tracking their AI visibility</span>
           <div className="trustlogos">
             <span>Norea</span><span>Klarcy</span><span>Mio One</span><span>Iberia Digital</span><span>Embat</span><span>Presqu'Île</span>
           </div>
@@ -300,23 +300,23 @@ export default function LandingPage() {
         <div className="wrap">
           <div className="panels">
             <div className="panel panel-light">
-              <div className="k">Comprendre</div>
-              <h3>Sachez enfin ce que l'IA dit de vous</h3>
+              <div className="k">Understand</div>
+              <h3>Know what AI says about you</h3>
               <div className="feat">
-                <b>Repérez les trous de visibilité</b>
-                <p>Découvrez les requêtes où vos concurrents sortent à votre place sur ChatGPT, Claude et Gemini.</p>
+                <b>Spot visibility gaps</b>
+                <p>Discover the queries where competitors show up instead of you on ChatGPT, Claude and Gemini.</p>
               </div>
               <div className="feat">
-                <b>Priorisez sans deviner</b>
-                <p>Un plan d'action clair, classé par impact, pour reprendre le terrain sur les moteurs IA.</p>
+                <b>Prioritize without guessing</b>
+                <p>A clear action plan, ranked by impact, to win ground on AI engines.</p>
               </div>
             </div>
             <div className="panel panel-glow">
               <div className="prompt-card">
-                <p>Analysez la visibilité de <b>usewok.com</b> sur ChatGPT<span className="caret"></span></p>
+                <p>Analyze the visibility of <b>usewok.com</b> on ChatGPT<span className="caret"></span></p>
                 <div className="prompt-actions">
-                  <span className="a">＋ Ajouter un domaine</span>
-                  <span className="a">✦ Comparer un concurrent</span>
+                  <span className="a">＋ Add a domain</span>
+                  <span className="a">✦ Compare a competitor</span>
                   <div className="send" onClick={goRegister}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                   </div>
@@ -332,19 +332,19 @@ export default function LandingPage() {
               <div className="score-row"><div className="ic">C</div><div className="name">Claude</div><div className="bar"><i style={{width:'51%'}}></i></div><div className="val">51</div></div>
             </div>
             <div className="panel-check">
-              <h3>Fiabilité sans compromis</h3>
-              <p>Des données de visibilité vérifiées, mises à jour en continu, sur une infrastructure hébergée en France.</p>
+              <h3>Reliability without compromise</h3>
+              <p>Verified visibility data, continuously updated, on infrastructure hosted in France.</p>
               <div className="check-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                <div><b>Analyse multi-moteurs</b><span>ChatGPT, Claude, Gemini et 5 autres moteurs suivis en continu.</span></div>
+                <div><b>Multi-engine analysis</b><span>ChatGPT, Claude, Gemini and 5 other engines tracked continuously.</span></div>
               </div>
               <div className="check-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                <div><b>Audit technique complet</b><span>Crawl, structure de données et signaux d'autorité de votre site.</span></div>
+                <div><b>Complete technical audit</b><span>Crawl, data structure and authority signals from your site.</span></div>
               </div>
               <div className="check-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                <div><b>Suivi de performance</b><span>Mesurez votre part de voix face à vos concurrents, semaine après semaine.</span></div>
+                <div><b>Performance tracking</b><span>Measure your share of voice against competitors, week after week.</span></div>
               </div>
             </div>
           </div>
@@ -355,18 +355,18 @@ export default function LandingPage() {
       <section ref={howRef}>
         <div className="wrap">
           <div className="explain-head">
-            <span className="eyebrow" style={{justifyContent:'center', display:'flex', marginBottom:14}}><span className="dot"></span>Comment ça marche</span>
-            <h2>Transformez vos données de visibilité en plan d'action, sans être expert IA</h2>
+            <span className="eyebrow" style={{justifyContent:'center', display:'flex', marginBottom:14}}><span className="dot"></span>How it works</span>
+            <h2>Turn your visibility data into an action plan, without being an AI expert</h2>
           </div>
           <div className="explain-grid">
             <div className="explain-col">
               <div className="explain-item">
-                <b>UseWok trouve pourquoi vous êtes invisible</b>
-                <p>La raison pour laquelle l'IA cite une autre marque que vous se cache dans les données de citation. On la déterre pour vous.</p>
+                <b>UseWok finds why you're invisible</b>
+                <p>The reason AI cites another brand instead of you is hidden in citation data. We dig it up for you.</p>
               </div>
               <div className="explain-item">
-                <b>Et construit votre plan d'action</b>
-                <p>Vous savez enfin sur quoi agir cette semaine — UseWok priorise les actions qui comptent vraiment.</p>
+                <b>And builds your action plan</b>
+                <p>You finally know what to act on this week — UseWok prioritizes the actions that truly matter.</p>
               </div>
             </div>
             <div className="explain-center">
@@ -374,12 +374,12 @@ export default function LandingPage() {
             </div>
             <div className="explain-col right">
               <div className="explain-item right">
-                <b>Vous gardez la main</b>
-                <p>Vous validez chaque action avant publication — UseWok prépare, vous décidez.</p>
+                <b>You stay in control</b>
+                <p>You validate every action before publishing — UseWok prepares, you decide.</p>
               </div>
               <div className="explain-item right">
-                <b>Et vous regardez votre score grimper</b>
-                <p>Chaque action est reliée à un impact mesurable sur votre part de voix IA.</p>
+                <b>And watch your score climb</b>
+                <p>Every action is tied to measurable impact on your AI share of voice.</p>
               </div>
             </div>
           </div>
@@ -390,16 +390,16 @@ export default function LandingPage() {
       <section>
         <div className="wrap">
           <div className="confidence-top">
-            <h2>Construisez votre autorité en toute confiance</h2>
+            <h2>Build your authority with confidence</h2>
             <div>
-              <p>Suivez chaque progrès, partagez les résultats avec votre équipe et gardez une vision claire de votre trajectoire.</p>
-              <button className="btn btn-dark" onClick={goRegister}>Voir les fonctionnalités</button>
+              <p>Track every improvement, share results with your team, and keep a clear view of your trajectory.</p>
+              <button className="btn btn-dark" onClick={goRegister}>See features</button>
             </div>
           </div>
           <div className="cards3">
-            <div className="card3"><h4>Historique complet du score</h4><p>Revenez sur chaque évolution et mesurez l'impact réel de vos actions.</p></div>
-            <div className="card3"><h4>Espaces d'équipe partagés</h4><p>Centralisez le suivi et gardez toute l'équipe alignée sur la même vision.</p></div>
-            <div className="card3"><h4>Plan d'action guidé</h4><p>Un chemin clair, étape par étape, du diagnostic jusqu'à la visibilité.</p></div>
+            <div className="card3"><h4>Full score history</h4><p>Look back at every change and measure the real impact of your actions.</p></div>
+            <div className="card3"><h4>Shared team spaces</h4><p>Centralize tracking and keep everyone aligned on the same vision.</p></div>
+            <div className="card3"><h4>Guided action plan</h4><p>A clear path, step by step, from diagnosis to visibility.</p></div>
           </div>
         </div>
       </section>
@@ -408,8 +408,8 @@ export default function LandingPage() {
       <section ref={stackRef}>
         <div className="wrap">
           <div className="stackband">
-            <h2>Pensé pour <span className="hi">vos outils</span></h2>
-            <p>UseWok se connecte à votre stack existante — Google Search Console, Analytics et vos outils d'équipe préférés.</p>
+            <h2>Built for <span className="hi">your tools</span></h2>
+            <p>UseWok connects to your existing stack — Google Search Console, Analytics and your favorite team tools.</p>
             <div className="logos">
               <div className="lg"><span className="sw">🔍</span>Search Console</div>
               <div className="lg"><span className="sw">📊</span>Analytics</div>
@@ -427,24 +427,24 @@ export default function LandingPage() {
           <div className="test-grid">
             <div className="test-card">
               <div className="stars">★★★★★</div>
-              <p>Un outil clair pour comprendre où on est cité par les IA, et où on ne l'est pas encore.</p>
-              <div className="test-who"><div className="av"></div><div><b>Camille Aubert</b><span>Responsable Marketing</span></div></div>
+              <p>A clear tool to understand where we're cited by AI, and where we're not yet.</p>
+              <div className="test-who"><div className="av"></div><div><b>Camille Aubert</b><span>Marketing Lead</span></div></div>
             </div>
             <div className="test-card">
               <div className="stars">★★★★★</div>
-              <p>Le point de départ idéal pour prioriser nos actions de visibilité IA sans y passer des semaines.</p>
+              <p>The perfect starting point to prioritize our AI visibility actions without spending weeks on it.</p>
               <div className="test-who"><div className="av"></div><div><b>Julien Roze</b><span>Growth Lead</span></div></div>
             </div>
             <div className="test-card">
               <div className="stars">★★★★★</div>
-              <p>On a enfin une vision de notre part de voix face à nos concurrents sur ChatGPT et Claude.</p>
-              <div className="test-who"><div className="av"></div><div><b>Sarah Nizan</b><span>Stratégie & Ops</span></div></div>
+              <p>We finally have a view of our share of voice against competitors on ChatGPT and Claude.</p>
+              <div className="test-who"><div className="av"></div><div><b>Sarah Nizan</b><span>Strategy & Ops</span></div></div>
             </div>
           </div>
           <div className="stat-grid">
-            <div className="stat-card stat-1"><span className="big">+38%</span><span className="lbl">de trafic depuis la recherche IA</span></div>
-            <div className="stat-card stat-2"><span className="big">30 sec</span><span className="lbl">pour votre premier score</span></div>
-            <div className="stat-card stat-3"><span className="big">8</span><span className="lbl">moteurs IA suivis en continu</span></div>
+            <div className="stat-card stat-1"><span className="big">+38%</span><span className="lbl">traffic from AI search</span></div>
+            <div className="stat-card stat-2"><span className="big">30 sec</span><span className="lbl">to your first score</span></div>
+            <div className="stat-card stat-3"><span className="big">8</span><span className="lbl">AI engines tracked continuously</span></div>
           </div>
         </div>
       </section>
@@ -453,34 +453,34 @@ export default function LandingPage() {
       <section>
         <div className="wrap">
           <div className="faq-wrap">
-            <h2>Questions fréquentes</h2>
+            <h2>Frequently asked questions</h2>
             <details open>
-              <summary>Qu'est-ce que UseWok ?</summary>
-              <p>UseWok est une plateforme de visibilité IA qui montre où et comment votre marque apparaît dans les moteurs IA comme ChatGPT, Perplexity, Google AI Overviews, Claude et Gemini. Contrairement à la plupart des outils de visibilité IA, UseWok va plus loin et vous montre comment agir sur vos données pour apparaître dans les futures réponses des IA.</p>
+              <summary>What is UseWok?</summary>
+              <p>UseWok is an AI visibility platform that shows where and how your brand appears in AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini. Unlike most AI visibility tools, UseWok goes further and shows you how to act on your data to appear in future AI responses.</p>
             </details>
             <details>
-              <summary>Quels moteurs IA puis-je suivre avec UseWok ?</summary>
-              <p>UseWok suit les principaux moteurs IA : ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot et Gemini.</p>
+              <summary>Which AI engines can I track with UseWok?</summary>
+              <p>UseWok tracks the major AI engines: ChatGPT, Perplexity, Google AI Overviews, Google AI mode, Claude, Microsoft Copilot and Gemini.</p>
             </details>
             <details>
-              <summary>À quelle fréquence UseWok suit-il les prompts et rafraîchit les données ?</summary>
-              <p>UseWok suit les prompts toutes les 24 heures pour repérer les changements dans les IA au moment où ils se produisent. Nos clients voient des résultats en 7 jours seulement, et le suivi quotidien de UseWok vous offre des boucles de feedback rapides pour agir.</p>
+              <summary>How often does UseWok track prompts and refresh data?</summary>
+              <p>UseWok tracks prompts every 24 hours to catch changes in AI responses as they happen. Our clients see results in as little as 7 days, and UseWok's daily tracking gives you fast feedback loops to act on.</p>
             </details>
             <details>
-              <summary>Comment savoir si l'IA recommande mon produit ?</summary>
-              <p>UseWok exécute des prompts pour découvrir et vous montrer si votre marque est mentionnée dans les réponses des IA, y compris comment vous vous comparez à vos concurrents.</p>
+              <summary>How do I know if AI recommends my product?</summary>
+              <p>UseWok runs prompts to discover and show you whether your brand is mentioned in AI responses, including how you compare to your competitors.</p>
             </details>
             <details>
-              <summary>Comment UseWok suit-il les mentions de marque dans les réponses IA ?</summary>
-              <p>UseWok imite le comportement réel des utilisateurs en exécutant des prompts que les gens tapent pour découvrir votre catégorie et votre produit.</p>
+              <summary>How does UseWok track brand mentions in AI responses?</summary>
+              <p>UseWok mimics real user behavior by running prompts that people type to discover your category and product.</p>
             </details>
             <details>
-              <summary>En quoi l'AEO diffère-t-il du SEO ?</summary>
-              <p>Le SEO optimise pour les clics depuis les résultats de recherche. L'AEO optimise pour les mentions et recommandations à l'intérieur des réponses des IA, souvent sans clic.</p>
+              <summary>How is AEO different from SEO?</summary>
+              <p>SEO optimizes for clicks from search results. AEO optimizes for mentions and recommendations inside AI responses, often without a click.</p>
             </details>
             <details>
-              <summary>Combien de temps pour voir des résultats en AEO ?</summary>
-              <p>Nous avons vu des résultats en AEO en 7 jours seulement avec nos clients. Contrairement au SEO qui prend souvent des mois, la visibilité IA peut être modifiée et influencée beaucoup plus rapidement avec UseWok.</p>
+              <summary>How long to see AEO results?</summary>
+              <p>We've seen AEO results in as little as 7 days with our clients. Unlike SEO which often takes months, AI visibility can be influenced much faster with UseWok.</p>
             </details>
           </div>
         </div>
@@ -491,8 +491,8 @@ export default function LandingPage() {
         <div className="wrap">
           <div className="finalcta">
             <div className="cta-card">
-              <h3 className="serif">Alors, on analyse quoi ?</h3>
-              <button className="btn btn-dark" onClick={goRegister}>Commencer l'analyse →</button>
+              <h3 className="serif">So, what are we analyzing?</h3>
+              <button className="btn btn-dark" onClick={goRegister}>Start analyzing →</button>
             </div>
           </div>
         </div>
@@ -504,7 +504,7 @@ export default function LandingPage() {
           <div className="foot-top">
             <div className="foot-brand">
               <div className="brand" onClick={goRegister}><div className="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#FBF8F2"/></svg></div><span>UseWok</span></div>
-              <p>UseWok est la plateforme française qui mesure et améliore votre visibilité sur les moteurs IA — ChatGPT, Claude, Gemini et bien d'autres.</p>
+              <p>UseWok is the platform that measures and improves your visibility on AI engines — ChatGPT, Claude, Gemini and many more.</p>
               <div className="foot-social">
                 <a href="https://x.com/usewok" target="_blank" rel="noopener noreferrer">𝕏</a>
                 <a href="https://linkedin.com/company/usewok" target="_blank" rel="noopener noreferrer">in</a>
@@ -512,28 +512,28 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="foot-col">
-              <h5>Produit</h5>
-              <button onClick={() => scrollTo(featuresRef)}>Fonctionnalités</button>
-              <button onClick={() => scrollTo(stackRef)}>Intégrations</button>
-              <button onClick={goPricing}>Tarifs</button>
-              <button onClick={goBlog}>Nouveautés</button>
+              <h5>Product</h5>
+              <button onClick={() => scrollTo(featuresRef)}>Features</button>
+              <button onClick={() => scrollTo(stackRef)}>Integrations</button>
+              <button onClick={goPricing}>Pricing</button>
+              <button onClick={goBlog}>What's new</button>
             </div>
             <div className="foot-col">
-              <h5>Ressources</h5>
+              <h5>Resources</h5>
               <button onClick={goBlog}>Documentation</button>
-              <button onClick={goBlog}>Communauté</button>
+              <button onClick={goBlog}>Community</button>
               <button onClick={goBlog}>Blog</button>
             </div>
             <div className="foot-col">
-              <h5>Légal</h5>
-              <button onClick={() => navigate('/privacy')}>Confidentialité</button>
-              <button onClick={() => navigate('/terms')}>Conditions</button>
-              <button onClick={() => navigate('/legal')}>Sécurité</button>
+              <h5>Legal</h5>
+              <button onClick={() => navigate('/privacy')}>Privacy</button>
+              <button onClick={() => navigate('/terms')}>Terms</button>
+              <button onClick={() => navigate('/legal')}>Legal</button>
             </div>
           </div>
           <div className="foot-bottom">
-            <span>© 2026 UseWok. Tous droits réservés.</span>
-            <span className="fr"><span className="flag"></span>Conçu en France</span>
+            <span>© 2026 UseWok. All rights reserved.</span>
+            <span className="fr"><span className="flag"></span>Made in France</span>
           </div>
         </div>
       </footer>
