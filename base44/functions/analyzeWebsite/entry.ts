@@ -370,34 +370,7 @@ Deno.serve(async (req) => {
       return home.hasPerson || subs.some(s => s.signals.hasPerson);
     }
 
-    // ── Compact audit for LLM (trim verbose fields = ~40% fewer input tokens) ──
-    const compactAudit = {
-      url: cleanUrl,
-      ssl: homeSignals.isSSL,
-      crawlable: !!homeHtml,
-      home: {
-        h1: homeSignals.h1Tags.slice(0, 2),
-        h2Count: homeSignals.h2Count,
-        metaDesc: (homeSignals.metaDesc || '(missing)').slice(0, 120),
-        metaDescLen: homeSignals.metaDescLength,
-        canonical: homeSignals.canonical ? 'present' : 'missing',
-        canonicalOk: canonicalMatchesUrl,
-        words: homeSignals.wordCount,
-        ogImg: homeSignals.ogImage ? 'yes' : 'no',
-        mobile: homeSignals.hasMobileViewport,
-        phone: homeSignals.hasPhone,
-        email: homeSignals.hasEmail,
-        address: homeSignals.hasAddress,
-        navLinks: homeSignals.navLinkCount,
-      },
-      schemas: { types: allSchemaTypesFound, org: homeSignals.hasOrganization, faq: homeSignals.hasFaqPage || subSignals.some(s => s.signals.hasFaqPage), product: homeSignals.hasProduct, breadcrumb: homeSignals.hasBreadcrumb, person: hasPerson(homeSignals, subSignals) },
-      pages: { about: !!aboutPage?.crawled, aboutAuthor: aboutPage?.signals?.hasAuthorMeta || aboutPage?.signals?.hasAuthorInText || false, blog: !!blogPage?.crawled, faq: !!faqPage?.crawled, faqSchema: faqPage?.signals?.hasFaqPage || false, contact: !!contactPage?.crawled },
-      sitemap: { present: sitemapData.hasSitemap, urls: sitemapData.urlCountInSitemap, robots: sitemapData.hasRobots, blocked: sitemapData.robotsBlocksAll },
-      author: hasAnyAuthor,
-      hreflang: homeSignals.hreflang.length > 0,
-    };
-
-    console.log(`[analyzeWebsite] Technical audit built. Schemas: ${allSchemaTypesFound.join(',') || 'none'}`);
+    console.log(`[analyzeWebsite] Technical audit built. Schemas found: ${allSchemaTypesFound.join(', ') || 'none'}`);
 
     // ── Step 2: LLM analysis on REAL crawled data ─────────────────────────────
     // COST-OPTIMIZED: 1 single gemini_3_1_pro call (full scan, merged SEO+LRS+plan)
@@ -407,18 +380,63 @@ Deno.serve(async (req) => {
 
       // FULL SCAN — single gemini_3_1_pro call: SEO scores + issues + LRS + action plan
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `AEO expert. REAL crawl of ${cleanUrl}. Data: ${JSON.stringify(compactAudit)}
+        prompt: `You are an SEO and AI visibility (AEO) expert. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
 
-Calculate: ai_visibility_score(0-100), message_clarity_score(0-100), commercial_presence_score(0-100), overall_score(0-100).
-Provide: business_name, business_type(real industry), city, country(ISO2), organic_traffic, organic_keywords, backlinks, authority_score(0-100), shock_insight(1 punchy sentence on what they lose).
+REAL CRAWLED DATA:
+${JSON.stringify(technicalAudit, null, 2)}
 
-Generate max 5 ISSUES from crawl data only. Each: problem(simple English), impact, urgency(high/medium/low), page.
+Based on this REAL data, calculate:
+- ai_visibility_score: 0-100 (AI presence — schemas, mentions, citations)
+- message_clarity_score: 0-100 (message clarity — H1, meta desc, words)
+- commercial_presence_score: 0-100 (business signals — phone, address, likely Google listing)
+- overall_score: 0-100 (weighted average)
 
-Calculate LRS: lrs_score, lrs_citation_score, lrs_sentiment_score, lrs_accuracy_score(0-100), lrs_trend(rising/stable/declining), lrs_vs_industry.
+Also provide (from your knowledge + web):
+- business_name: string
+- business_type: string (actual industry of the business)
+- city: string
+- country: string (2-letter ISO code)
+- organic_traffic: number (monthly estimate)
+- organic_keywords: number
+- backlinks: number
+- authority_score: number 0-100
+- shock_insight: string (a short, punchy English sentence about what this site is concretely losing)
 
-Generate 3-5 ACTION PLAN items (injection_plan). Each: engine, action_title, action_detail, page_url, element, gap, platform, impact, effort(low/medium/high). Name exact page+element.
+THEN generate ultra-specific ISSUES based ONLY on what the crawl revealed.
+Each issue must:
+- cite the exact page concerned if possible (e.g.: "on your homepage", "on /contact", "on your /blog page")
+- be written in simple English for a non-technical person
+- have an urgency: "high" | "medium" | "low"
+- have an impact: string (what it concretely costs you)
 
-English. JSON only.`,
+Examples of GOOD issues based on real data:
+- If hasOrganization=false → "Your homepage contains no structured information about your business — ChatGPT and Gemini don't know who you are when a customer asks them about your industry."
+- If aboutPageFound=false → "No 'About' page detected — AI engines cannot identify who runs this business or build the trust needed to recommend you."
+- If metaDescLength=0 → "Your homepage has no description — Google and AI engines see a page with no context, reducing your chances of appearing in response to a question."
+- If hasFaqSchema=false and questionMarksInText>0 → "Your site contains questions but no structured FAQ markup — Perplexity and Google show your competitors in featured snippets instead of you."
+
+Only generate issues based on what the crawl ACTUALLY found or didn't find. Maximum 5 issues, sorted by decreasing urgency.
+
+ALSO calculate the LLM Resonance Score (LRS) from the same real data:
+- lrs_score, lrs_citation_score, lrs_sentiment_score, lrs_accuracy_score (0-100 each)
+- lrs_trend: "rising" | "stable" | "declining"
+- lrs_vs_industry: number (delta vs industry average)
+
+AND generate AN ACTION PLAN (injection_plan) with 3 to 5 CONCRETE and SPECIFIC actions.
+Each action must:
+- Name the EXACT page to modify (e.g.: "/", "/about", "/blog/my-article")
+- Name the EXACT element to add/modify (e.g.: "JSON-LD Organization block", "<meta name='description'> tag", "FAQ section with 6 questions in FAQPage schema")
+- Explain in 1 sentence WHY it will change AI recommendations (gap)
+- Estimate real effort (low = < 1h, medium = 2-4h, high = 1 day+)
+
+EXAMPLES OF CONCRETE ACTIONS:
+- If hasOrganization=false: "Add a JSON-LD Organization block on the homepage (/) with name, url, description, sameAs (social media)"
+- If aboutPageFound=false: "Create an /about page with the founder's name and photo + Person schema"
+- If hasFaqSchema=false: "Turn existing questions into FAQPage JSON-LD block on /faq — Perplexity directly cites structured FAQs"
+- If metaDescLength < 50: "Write a 155-character meta description on / including your activity, city, and main benefit"
+- If canonicalMatchesUrl=false: "Fix the canonical tag on / that points to ${homeSignals.canonical} instead of ${cleanUrl}"
+
+All content in English. Return valid JSON only.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {

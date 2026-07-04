@@ -338,35 +338,43 @@ function buildContext(user, profile, activeDomain) {
   const name = user?.full_name || user?.email?.split('@')[0] || 'user';
   const url = activeDomain?.url || profile?.site_url || '';
 
-  let ctx = `WOK AI assistant for ${name}. Reply in English, 3-5 sentences max, no tables/intros. Cite exact numbers. Say "action plan" if relevant.\nDATA ${name} (${url}):\n`;
+  let ctx = `You are WOK AI, the AI assistant for ${name}.\n\n`;
+  ctx += `## STRICT RULES\n`;
+  ctx += `1. Respond in English, short and direct. 3-5 sentences max unless a full plan is requested.\n`;
+  ctx += `2. NEVER use tables. NEVER use intros or conclusions. Get straight to the point.\n`;
+  ctx += `3. If the user asks for an action: 2-3 concrete numbered steps max.\n`;
+  ctx += `4. Cite exact numbers if available below.\n`;
+  ctx += `5. Start directly with the answer.\n`;
+  ctx += `6. IMPORTANT: When you mention the action plan or recommend viewing it, make sure your response contains the words "action plan" or "detailed plan" — this will automatically display a link for the user.\n\n`;
+  ctx += `## DATA — ${name} (${url})\n`;
 
   if (!profile) {
-    ctx += `No site data. Tell user to click "Analyze".\n`;
+    ctx += `No site data available. If the user asks for site info → tell them to click "Analyze" on the home page.\n`;
     return ctx;
   }
 
   const score = profile.score_overall || profile.lrs_score;
-  if (score) ctx += `Score:${score}/100 `;
-  if (profile.score_ai_visibility) ctx += `AIvis:${profile.score_ai_visibility} `;
-  if (profile.score_message_clarity) ctx += `Clarity:${profile.score_message_clarity} `;
-  if (profile.score_commercial_signal) ctx += `Comm:${profile.score_commercial_signal}\n`;
+  if (score) ctx += `Overall score: ${score}/100\n`;
+  if (profile.score_ai_visibility) ctx += `AI visibility: ${profile.score_ai_visibility}/100\n`;
+  if (profile.score_message_clarity) ctx += `Message clarity: ${profile.score_message_clarity}/100\n`;
+  if (profile.score_commercial_signal) ctx += `Commercial signal: ${profile.score_commercial_signal}/100\n`;
 
   const engines = ['chatgpt', 'gemini', 'claude', 'perplexity', 'mistral', 'grok'];
-  const engScores = engines.filter(k => profile[`${k}_score`] != null).map(k => `${k}:${profile[`${k}_score`]}`);
-  if (engScores.length) ctx += `Engines: ${engScores.join(' ')}\n`;
+  const engScores = engines.filter(k => profile[`${k}_score`] != null).map(k => `${k}: ${profile[`${k}_score`]}`);
+  if (engScores.length) ctx += `AI engines: ${engScores.join(' | ')}\n`;
 
-  if (profile.identity_name) ctx += `Biz: ${profile.identity_name}${profile.identity_industry ? ` (${profile.identity_industry})` : ''}\n`;
+  if (profile.identity_name) ctx += `Business: ${profile.identity_name}${profile.identity_industry ? ` (${profile.identity_industry})` : ''}\n`;
   if (profile.shock_insight) ctx += `Insight: "${profile.shock_insight}"\n`;
 
   if (profile.action_plan?.length) {
-    ctx += `Plan: `;
-    profile.action_plan.slice(0, 4).forEach((a, i) => ctx += `${i+1}.${a.title || a} `);
-    ctx += `\n`;
+    ctx += `Action plan (${profile.action_plan.length} actions):\n`;
+    profile.action_plan.slice(0, 6).forEach((a, i) => ctx += `${i+1}. ${a.title || a}\n`);
   }
 
   const issues = profile.technical_issues || profile.issues || [];
-  if (issues.length) ctx += `Issues: ${issues.slice(0,3).map(i => i.title || i.name || i).join(', ')}\n`;
+  if (issues.length) ctx += `Issues (${issues.length}): ${issues.slice(0,4).map(i => i.title || i.name || i).join(', ')}\n`;
 
+  if (profile.last_scan) ctx += `Last scan: ${new Date(profile.last_scan).toLocaleDateString('en-US')}\n`;
   return ctx;
 }
 
@@ -532,7 +540,7 @@ export default function WokAIPage({ user: userProp }) {
     setLoading(true);
 
     try {
-      const history = messages.slice(-6).map(m => `${m.role === 'user' ? 'USER' : 'WOK_AI'}: ${m.content}`).join('\n');
+      const history = messages.slice(-8).map(m => `${m.role === 'user' ? 'USER' : 'WOK_AI'}: ${m.content}`).join('\n');
       const ctx = buildContext(user, profile, activeDomain);
       let prompt = ctx;
       if (history) prompt += `\n---\nHISTORIQUE:\n${history}\n---\n`;
