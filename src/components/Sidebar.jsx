@@ -68,10 +68,13 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
   })();
 
   useEffect(() => {
+    if (!open) return;
     const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, []);
+    const esc = e => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', h);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('keydown', esc); };
+  }, [open]);
 
   const initials = (user?.full_name || user?.email || '?').slice(0, 2).toUpperCase();
 
@@ -104,8 +107,8 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.14 }}
+            initial={{ opacity: 0, y: -4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.08 }}
             onClick={e => e.stopPropagation()}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 6,
@@ -562,7 +565,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
           background: '#FFFFFF',
-          borderRight: 'none',
+          borderRight: '1px solid #FFFFFF',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}

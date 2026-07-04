@@ -77,10 +77,26 @@ export default function HistoryPage() {
   const cutoff = Date.now() - effectiveDays * 86400000;
   const visible = records.filter(r => new Date(r.created_date).getTime() >= cutoff);
 
-  const current = visible.length ? Math.round(visible[visible.length - 1].score_overall || 0) : Math.round(profile?.score_overall || 0);
-  const first = visible.length ? Math.round(visible[0].score_overall || 0) : current;
+  // Fallback: if no ScanRecord in range but the profile holds real scan data, build points from it
+  let points = visible;
+  if (points.length === 0 && (profile?.score_overall > 0) && profile?.last_scan && new Date(profile.last_scan).getTime() >= cutoff) {
+    points = [];
+    if (profile.score_previous > 0) {
+      points.push({ id: '_prev', created_date: new Date(new Date(profile.last_scan).getTime() - 7 * 86400000).toISOString(), score_overall: profile.score_previous, scan_type: 'full' });
+    }
+    points.push({ id: '_last', created_date: profile.last_scan, score_overall: profile.score_overall, score_ai_visibility: profile.score_ai_visibility, score_message_clarity: profile.score_message_clarity, score_commercial_signal: profile.score_commercial_signal, scan_type: 'full' });
+  }
+
+  const current = points.length ? Math.round(points[points.length - 1].score_overall || 0) : Math.round(profile?.score_overall || 0);
+  const first = points.length ? Math.round(points[0].score_overall || 0) : current;
   const delta = current - first;
-  const best = visible.reduce((m, r) => Math.max(m, Math.round(r.score_overall || 0)), current);
+  const best = points.reduce((m, r) => Math.max(m, Math.round(r.score_overall || 0)), current);
+
+  // Next milestone (progress motivation)
+  const MILESTONES = [25, 40, 55, 70, 85, 100];
+  const nextMilestone = MILESTONES.find(m => m > current) || 100;
+  const prevMilestone = [...MILESTONES].reverse().find(m => m <= current) || 0;
+  const milestonePct = nextMilestone > prevMilestone ? Math.min(100, Math.round(((current - prevMilestone) / (nextMilestone - prevMilestone)) * 100)) : 100;
 
   const trophies = computeAchievements({ profile, doneTasksCount: doneTasks.length, accountCreatedDate: user?.created_date });
   const unlockedCount = trophies.filter(t => t.unlocked).length;
@@ -117,23 +133,40 @@ export default function HistoryPage() {
         {/* KPIs */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
           <KPI label="Current score" value={`${current}/100`} />
-          <KPI label="Change" value={delta > 0 ? `+${delta}` : `${delta}`} sub={`over ${rangeDef.label}`} />
+          <KPI label="Change" value={<span style={{ color: delta > 0 ? '#16A34A' : delta < 0 ? '#DC2626' : INK }}>{delta > 0 ? `+${delta}` : `${delta}`}</span>} sub={`over ${rangeDef.label}`} />
           <KPI label="Best score" value={`${best}/100`} />
-          <KPI label="Scans" value={visible.length} sub={`over ${rangeDef.label}`} />
+          <KPI label="Scans" value={points.length} sub={`over ${rangeDef.label}`} />
         </div>
+
+        {/* Next milestone */}
+        {current > 0 && current < 100 && (
+          <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, padding: '14px 16px', marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(21,19,15,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next milestone</span>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: CORAL }}>{nextMilestone - current} pts to reach {nextMilestone}</span>
+            </div>
+            <div style={{ height: 8, borderRadius: 100, background: 'rgba(21,19,15,0.08)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${milestonePct}%`, borderRadius: 100, background: `linear-gradient(90deg, ${CORAL}, #C43E14)`, transition: 'width 600ms ease' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
+              <span style={{ fontSize: 10.5, color: 'rgba(21,19,15,0.4)', fontWeight: 600 }}>{prevMilestone}</span>
+              <span style={{ fontSize: 10.5, color: 'rgba(21,19,15,0.4)', fontWeight: 600 }}>{nextMilestone}</span>
+            </div>
+          </div>
+        )}
 
         {/* Score timeline */}
         <div style={{ marginBottom: 24 }}>
-          <ScoreTimeline records={visible} />
+          <ScoreTimeline records={points} />
         </div>
 
         {/* Scan timeline list */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Clock size={16} color={INK} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: INK, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Scan history ({visible.length})</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: INK, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Scan history ({points.length})</span>
           </div>
-          <ScanList records={visible} />
+          <ScanList records={points} />
         </div>
 
         {/* Trophies */}
