@@ -29,35 +29,9 @@ Deno.serve(async (req) => {
     // Un seul appel LLM avec internet search — gemini_3_flash ne supporte pas
     // response_json_schema + add_context_from_internet, donc on parse la réponse string
     const raw = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Tu es un expert en visibilité IA. Analyse ce site web : ${cleanUrl}
-
-Lis le contenu réel du site, puis retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks) avec ces champs :
-
-{
-  "overall_score": number 0-100,
-  "ai_visibility_score": number 0-100,
-  "message_clarity_score": number 0-100,
-  "commercial_presence_score": number 0-100,
-  "business_name": "string",
-  "business_type": "string (activité réelle, pas le nom de domaine)",
-  "city": "string",
-  "country": "code ISO 2 lettres",
-  "gemini_score": number 0-100,
-  "gemini_sentiment": "positive|neutral|negative",
-  "lrs_score": number 0-100,
-  "lrs_trend": "rising|stable|declining",
-  "issues": [{"problem": "en français simple non-technique", "severity": "error|warning"}],
-  "shock_insight": "une phrase percutante en français sur ce que l'entreprise perd",
-  "has_schema_markup": boolean,
-  "has_ssl": boolean,
-  "has_google_business": boolean
-}
-
-RÈGLES :
-- issues : max 3, en français pour un non-technicien (pas de jargon technique)
-- Ne déduis jamais business_type du nom de domaine ou de la marque — lis le contenu réel du site
-- shock_insight : 1 phrase percutante en français sur ce que l'entreprise perd concrètement
-- Retourne UNIQUEMENT le JSON, rien d'autre`,
+      prompt: `Expert visibilité IA. Analyse ${cleanUrl}. Retourne UNIQUEMENT un JSON valide:
+{"overall_score":0-100,"ai_visibility_score":0-100,"message_clarity_score":0-100,"commercial_presence_score":0-100,"business_name":"","business_type":"(activité réelle, pas le domaine)","city":"","country":"ISO2","gemini_score":0-100,"gemini_sentiment":"positive|neutral|negative","lrs_score":0-100,"lrs_trend":"rising|stable|declining","issues":[{"problem":"français simple non-tech","severity":"error|warning"}],"shock_insight":"1 phrase percutante sur ce qu'ils perdent","has_schema_markup":false,"has_ssl":false,"has_google_business":false}
+RÈGLES: max 3 issues en français simple. Ne déduis pas business_type du domaine. JSON seul.`,
       add_context_from_internet: true,
       model: 'gemini_3_flash',
     });
