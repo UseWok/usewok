@@ -14,7 +14,7 @@ import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
 
 // ── Design System — LRS palette + Anthropic Sans ──────────────────────────────
 const F       = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-const BG      = '#FFFFFF';
+const BG      = '#F7F5F0';
 const CARD_BG = '#15130F';
 const WHITE   = '#FFFFFF';
 const INK     = '#1A1814';

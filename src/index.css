@@ -7,7 +7,7 @@
 
 /* ── Global artistic background ── */
 body {
-  background-color: #F8F7F4 !important;
+  background-color: #F7F5F0 !important;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -47,7 +47,7 @@ body {
     ════════════════════════════════════════ */
 
     /* Backgrounds */
-    --background: 50 20% 97%;         /* #F8F7F4 — blanc cassé légèrement jaune */
+    --background: 43 30% 95%;         /* #F7F5F0 — warm off-white */
     --foreground: 0 0% 10%;           /* #1A1A1A — near-black */
 
     /* Cards / surfaces */
@@ -87,7 +87,7 @@ body {
     --radius: 0.75rem;
 
     /* Sidebar — même blanc cassé jaune */
-    --sidebar-background: 50 20% 97%; /* #F8F7F4 */
+    --sidebar-background: 43 30% 95%; /* #F7F5F0 */
     --sidebar-foreground: 0 0% 10%;
     --sidebar-primary: 50 20% 97%;
     --sidebar-primary-foreground: 0 0% 10%;

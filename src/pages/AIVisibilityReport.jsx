@@ -354,7 +354,7 @@ export default function AIVisibilityReport() {
                     </div>
                     <span style={{ fontSize: 12, fontWeight: 500, color: INK, width: 20 }}>{val}</span>
                   </div>
-                  <span style={{ fontSize: 12, color: INK2, display: 'flex', alignItems: 'center', gap: 2 }}><Minus size={11} />—</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: GREEN, display: 'flex', alignItems: 'center', gap: 2 }}><ArrowUpRight size={11} />+{val}</span>
                   <span style={{ fontSize: 11, fontWeight: 500, color: sent.color, background: sent.bg, padding: '2px 8px', borderRadius: 999, width: 'fit-content' }}>{sent.label}</span>
                 </div>
               );

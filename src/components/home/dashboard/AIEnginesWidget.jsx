@@ -53,10 +53,10 @@ function EngineAvatar({ name }) {
 
 export default function AIEnginesWidget({ data }) {
   const engines = [
-    { name: 'ChatGPT', score: data.chatgpt_score || 0, mentions: null, delta: null },
-    { name: 'Perplexity', score: data.perplexity_score || 0, mentions: null, delta: null },
-    { name: 'Google AI Overview', score: data.google_ai_score || 0, mentions: null, delta: null },
-    { name: 'Gemini', score: data.gemini_score || 0, mentions: null, delta: null },
+    { name: 'ChatGPT', score: data.chatgpt_score || 0, mentions: null, delta: data.chatgpt_score || 0 },
+    { name: 'Perplexity', score: data.perplexity_score || 0, mentions: null, delta: data.perplexity_score || 0 },
+    { name: 'Google AI Overview', score: data.google_ai_score || 0, mentions: null, delta: data.google_ai_score || 0 },
+    { name: 'Gemini', score: data.gemini_score || 0, mentions: null, delta: data.gemini_score || 0 },
   ];
 
   return (
