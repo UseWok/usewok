@@ -1,11 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 // Server-side authoritative quota enforcement — cannot be bypassed from the frontend.
-const PLAN_DEFAULTS = {
-  free:    { scans_per_period: 1,  scan_period: 'month', max_sites: 1,  chatbot_messages: 5,   history_days: 30 },
-  starter: { scans_per_period: 12, scan_period: 'month', max_sites: 5,  chatbot_messages: 50,  history_days: 180 },
-  pro:     { scans_per_period: 1,  scan_period: 'day',   max_sites: 10, chatbot_messages: 200, history_days: 365 },
-};
+// Fallback defaults, only used if a plan has no explicit value set in plans_config.
+const FALLBACK_DEFAULTS = { scans_per_period: 1, scan_period: 'month', max_sites: 1, chatbot_messages: 5, history_days: 30 };
 
 Deno.serve(async (req) => {
   try {
@@ -19,10 +16,24 @@ Deno.serve(async (req) => {
 
     const isAdmin = user.role === 'admin';
     const rawPlan = user.subscription_plan || 'free';
-    const planId = isAdmin ? 'pro' : (['free', 'starter', 'pro'].includes(rawPlan) ? rawPlan : 'free');
+    const planId = isAdmin ? 'pro' : rawPlan;
 
-    // Merge admin overrides (AppSettings key: plan_limits) over defaults
-    let features = { ...PLAN_DEFAULTS[planId] };
+    // ── Real-time source of truth: the actual plans list managed in Admin > Plans ──
+    // This supports ANY plan id (including newly created ones), read fresh on every call.
+    let planEntry = null;
+    try {
+      const settings = await base44.asServiceRole.entities.AppSettings.filter({ key: 'plans_config' });
+      if (settings.length > 0) {
+        const plans = JSON.parse(settings[0].value || '[]');
+        planEntry = (plans || []).find(p => p.id === planId) || (isAdmin ? (plans || []).find(p => p.id === 'pro') : null);
+      }
+    } catch (e) {
+      console.log('quotaGuard: plans_config load failed:', e.message);
+    }
+
+    let features = { ...FALLBACK_DEFAULTS, ...(planEntry || {}) };
+
+    // Legacy admin overrides (AppSettings key: plan_limits) still supported for free/starter/pro
     try {
       const settings = await base44.asServiceRole.entities.AppSettings.filter({ key: 'plan_limits' });
       if (settings.length > 0) {
@@ -31,6 +42,11 @@ Deno.serve(async (req) => {
       }
     } catch (e) {
       console.log('quotaGuard: plan_limits load failed:', e.message);
+    }
+
+    // Unknown plan id with no config anywhere → treat as free-tier limits (fail-safe, not fail-open)
+    if (!planEntry && !isAdmin && !['free', 'starter', 'pro'].includes(planId)) {
+      features = { ...FALLBACK_DEFAULTS };
     }
 
     if (action === 'history') {

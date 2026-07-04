@@ -42,6 +42,11 @@ export const DEFAULT_PLANS = [
       { text: '3 monitored questions' },
       { text: '30-day history' },
     ],
+    chatbot_messages: 5,
+    scans_per_period: 1,
+    scan_period: 'month',
+    max_sites: 1,
+    history_days: 30,
   },
   {
     id: 'starter',
@@ -63,6 +68,11 @@ export const DEFAULT_PLANS = [
       { text: 'Technical SEO audit' },
       { text: '50 chatbot messages/month' },
     ],
+    chatbot_messages: 50,
+    scans_per_period: 12,
+    scan_period: 'month',
+    max_sites: 5,
+    history_days: 180,
   },
   {
     id: 'pro',
@@ -84,6 +94,11 @@ export const DEFAULT_PLANS = [
       { text: 'Search Console integrations' },
       { text: '12-month history' },
     ],
+    chatbot_messages: 200,
+    scans_per_period: 1,
+    scan_period: 'day',
+    max_sites: 10,
+    history_days: 365,
   },
 ];
 

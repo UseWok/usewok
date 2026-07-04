@@ -14,6 +14,11 @@ const EMPTY_PLAN = {
   price_monthly: 0,
   price_yearly: 0,
   credits_limit: 150000,
+  chatbot_messages: 5,
+  scans_per_period: 1,
+  scan_period: 'month',
+  max_sites: 1,
+  history_days: 30,
   stripe_price_id_monthly: '',
   stripe_price_id_yearly: '',
   checkout_url_monthly: '',
@@ -146,6 +151,35 @@ function PlanForm({ plan, onChange, onDelete, subscriberCount, isNew }) {
               <Field label="Crédits / mois">
                 <input type="number" min="0" value={plan.credits_limit} onChange={e => setField('credits_limit', parseInt(e.target.value) || 0)} style={inp} />
               </Field>
+
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#AAA', letterSpacing: '0.08em', textTransform: 'uppercase', margin: '16px 0 12px', fontFamily: F }}>
+                Limites réellement appliquées
+              </p>
+              <div style={{ background: '#FFF8F6', border: '1px solid #FFD5CC', borderRadius: 8, padding: '10px 12px', marginBottom: 14, fontSize: 11, color: '#B24B30', lineHeight: 1.6, fontFamily: F }}>
+                <AlertCircle size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                Ces valeurs bloquent réellement les utilisateurs (chatbot, scans, sites, historique) — contrairement aux "fonctionnalités affichées" ci-dessous qui ne sont que du texte marketing.
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <Field label="Messages chatbot / mois">
+                  <input type="number" min="0" value={plan.chatbot_messages ?? 0} onChange={e => setField('chatbot_messages', parseInt(e.target.value) || 0)} style={inp} />
+                </Field>
+                <Field label="Sites surveillés max">
+                  <input type="number" min="1" value={plan.max_sites ?? 1} onChange={e => setField('max_sites', parseInt(e.target.value) || 1)} style={inp} />
+                </Field>
+                <Field label="Scans autorisés / période">
+                  <input type="number" min="0" value={plan.scans_per_period ?? 1} onChange={e => setField('scans_per_period', parseInt(e.target.value) || 0)} style={inp} />
+                </Field>
+                <Field label="Période du quota scan">
+                  <select value={plan.scan_period || 'month'} onChange={e => setField('scan_period', e.target.value)} style={inp}>
+                    <option value="day">Jour</option>
+                    <option value="week">Semaine</option>
+                    <option value="month">Mois</option>
+                  </select>
+                </Field>
+                <Field label="Historique conservé (jours)">
+                  <input type="number" min="1" value={plan.history_days ?? 30} onChange={e => setField('history_days', parseInt(e.target.value) || 30)} style={inp} />
+                </Field>
+              </div>
             </div>
 
             {/* Col droite */}
