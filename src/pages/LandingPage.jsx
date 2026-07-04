@@ -333,9 +333,9 @@ export default function LandingPage() {
             <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>See a demo</button>
           </div>
           <div className="hero-strip">
-            <div className="strip-pill"><b>From $20/mo</b> — transparent pricing</div>
+            <div className="strip-pill"><b>From $49/mo</b> — transparent pricing</div>
             <div className="strip-pill"><b>30 sec</b> for your first score</div>
-            <div className="strip-pill"><b>🇫🇷</b> designed and hosted in France</div>
+            <div className="strip-pill"><span className="flag-fr" style={{width:16, height:12, borderRadius:2, background:'linear-gradient(90deg,#002395 33%,#fff 33%,#fff 66%,#ED2939 66%)', display:'inline-block', flexShrink:0}}></span> designed and hosted in France</div>
           </div>
         </div>
       </section>
@@ -510,21 +510,19 @@ export default function LandingPage() {
         <div className="wrap">
           <div className="explain-head">
             <span className="eyebrow" style={{justifyContent:'center', display:'flex', marginBottom:14}}><span className="dot"></span>Simple, transparent pricing</span>
-            <h2>Start at $20/mo — no hidden costs</h2>
-            <p style={{fontSize:15, color:'var(--ink-faint)', marginTop:14, lineHeight:1.6}}>An agency specializing in AI visibility typically charges $100+/mo and assumes you already have in-house expertise. UseWok replaces all of that.</p>
+            <h2>$49/mo — everything you need</h2>
+            <p style={{fontSize:15, color:'var(--ink-faint)', marginTop:14, lineHeight:1.6}}>An agency specializing in AI visibility typically charges $100+/mo and assumes you already have in-house expertise. UseWok replaces all of that — for less than half the cost.</p>
           </div>
-          <div className="cards3" style={{maxWidth:820, margin:'0 auto'}}>
-            <div className="card3" style={{background:'linear-gradient(165deg, #fff 0%, var(--cream-2) 100%)', border:'1px solid var(--line)'}}>
-              <h4>Starter — $20/mo</h4>
-              <p>AI visibility score, action plan, daily tracking on 5 AI engines. Perfect for solo founders and small businesses.</p>
-            </div>
-            <div className="card3" style={{background:'linear-gradient(165deg, var(--orange-pale) 0%, var(--cream-2) 100%)', border:'1px solid var(--orange)'}}>
-              <h4>Core — $49/mo</h4>
-              <p>Full score history, guided fix instructions, competitor benchmarking. For growing teams that need depth.</p>
-            </div>
-            <div className="card3" style={{background:'linear-gradient(165deg, #fff 0%, var(--cream-2) 100%)', border:'1px solid var(--line)'}}>
-              <h4>Pro — $99/mo</h4>
-              <p>Multi-site monitoring, competitor analysis, all 8 AI engines, priority support. For agencies and scaling businesses.</p>
+          <div style={{maxWidth:440, margin:'0 auto'}}>
+            <div className="card3" style={{background:'linear-gradient(165deg, var(--orange-pale) 0%, var(--cream-2) 100%)', border:'1px solid var(--orange)', minHeight:'auto'}}>
+              <div>
+                <h4 style={{fontSize:24}}>UseWok — $49/mo</h4>
+                <p style={{marginTop:14}}>Full AI visibility score, action plan, guided fix instructions, competitor benchmarking, and tracking on all 8 AI engines. For startups, agencies and local businesses that want to win AI recommendations.</p>
+              </div>
+              <div style={{marginTop:24, display:'flex', gap:8}}>
+                <button className="btn btn-dark" onClick={() => setShowAnalyze(true)}>Start analyzing →</button>
+                <button className="btn btn-outline" onClick={goPricing}>See full plan</button>
+              </div>
             </div>
           </div>
           <div style={{textAlign:'center', marginTop:32}}>
@@ -622,7 +620,7 @@ export default function LandingPage() {
           </div>
           <div className="foot-bottom">
             <span>© 2026 UseWok. All rights reserved.</span>
-            <span className="fr"><span className="flag"></span>Made in France</span>
+            <span className="fr"><span className="flag" style={{width:14, height:11, borderRadius:2, background:'linear-gradient(90deg,#002395 33%,#fff 33%,#fff 66%,#ED2939 66%)', display:'inline-block'}}></span>Made in France</span>
           </div>
         </div>
       </footer>
