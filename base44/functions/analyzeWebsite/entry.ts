@@ -373,9 +373,12 @@ Deno.serve(async (req) => {
     console.log(`[analyzeWebsite] Technical audit built. Schemas found: ${allSchemaTypesFound.join(', ') || 'none'}`);
 
     // ── Step 2: LLM analysis on REAL crawled data ─────────────────────────────
-    const [seoResult, aiEnginesResult, lrsResult] = await Promise.all([
+    // COST-OPTIMIZED: 1 single gemini_3_1_pro call (full scan, merged SEO+LRS+plan)
+    // + gpt_5_mini probe (REAL GPT model = authentic ChatGPT visibility test)
+    // + gemini_3_flash for other engine estimates. Was: 2× pro + 1× flash.
+    const [seoResult, aiEnginesResult, chatgptProbe] = await Promise.all([
 
-      // SEO + AI scores — give LLM the REAL technical audit
+      // FULL SCAN — single gemini_3_1_pro call: SEO scores + issues + LRS + action plan
       base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are an SEO and AI visibility (AEO) expert. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
 
@@ -414,7 +417,26 @@ Examples of GOOD issues based on real data:
 
 Only generate issues based on what the crawl ACTUALLY found or didn't find. Maximum 5 issues, sorted by decreasing urgency.
 
-Return valid JSON only.`,
+ALSO calculate the LLM Resonance Score (LRS) from the same real data:
+- lrs_score, lrs_citation_score, lrs_sentiment_score, lrs_accuracy_score (0-100 each)
+- lrs_trend: "rising" | "stable" | "declining"
+- lrs_vs_industry: number (delta vs industry average)
+
+AND generate AN ACTION PLAN (injection_plan) with 3 to 5 CONCRETE and SPECIFIC actions.
+Each action must:
+- Name the EXACT page to modify (e.g.: "/", "/about", "/blog/my-article")
+- Name the EXACT element to add/modify (e.g.: "JSON-LD Organization block", "<meta name='description'> tag", "FAQ section with 6 questions in FAQPage schema")
+- Explain in 1 sentence WHY it will change AI recommendations (gap)
+- Estimate real effort (low = < 1h, medium = 2-4h, high = 1 day+)
+
+EXAMPLES OF CONCRETE ACTIONS:
+- If hasOrganization=false: "Add a JSON-LD Organization block on the homepage (/) with name, url, description, sameAs (social media)"
+- If aboutPageFound=false: "Create an /about page with the founder's name and photo + Person schema"
+- If hasFaqSchema=false: "Turn existing questions into FAQPage JSON-LD block on /faq — Perplexity directly cites structured FAQs"
+- If metaDescLength < 50: "Write a 155-character meta description on / including your activity, city, and main benefit"
+- If canonicalMatchesUrl=false: "Fix the canonical tag on / that points to ${homeSignals.canonical} instead of ${cleanUrl}"
+
+All content in English. Return valid JSON only.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {
@@ -445,61 +467,6 @@ Return valid JSON only.`,
                 }
               }
             },
-          }
-        }
-      }),
-
-      // AI engines scores
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Estimate AI visibility scores for ${cleanUrl} on each engine (0-100).
-A well-known site = 60-90. A local SMB with no online presence = 5-20.
-Return only valid JSON.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            chatgpt_score: { type: 'number' },
-            gemini_score: { type: 'number' },
-            claude_score: { type: 'number' },
-            mistral_score: { type: 'number' },
-            llama_score: { type: 'number' },
-            perplexity_score: { type: 'number' },
-            grok_score: { type: 'number' },
-            copilot_score: { type: 'number' },
-            ai_mentions_count: { type: 'number' },
-          }
-        }
-      }),
-
-      // LRS + Action plan — ANCHORED in real crawl data
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an AEO (Answer Engine Optimization) expert. Here is the REAL crawl of ${cleanUrl}:
-
-${JSON.stringify(technicalAudit, null, 2)}
-
-Calculate the LLM Resonance Score (LRS) based on this real data.
-
-Then generate AN ACTION PLAN with 3 to 5 CONCRETE and SPECIFIC actions.
-Each action must:
-- Name the EXACT page to modify (e.g.: "/", "/about", "/blog/my-article")
-- Name the EXACT element to add/modify (e.g.: "JSON-LD Organization block", "<meta name='description'> tag", "FAQ section with 6 questions in FAQPage schema")
-- Explain in 1 sentence WHY it will change AI recommendations
-- Estimate real effort (low = < 1h, medium = 2-4h, high = 1 day+)
-
-EXAMPLES OF CONCRETE ACTIONS:
-- If hasOrganization=false: "Add a JSON-LD Organization block on the homepage (/) with name, url, description, sameAs (social media)"
-- If aboutPageFound=false: "Create an /about page with the founder's name and photo + Person schema"
-- If hasFaqSchema=false: "Turn existing questions into FAQPage JSON-LD block on /faq — Perplexity directly cites structured FAQs"
-- If metaDescLength < 50: "Write a 155-character meta description on / including your activity, city, and main benefit"
-- If canonicalMatchesUrl=false: "Fix the canonical tag on / that points to ${homeSignals.canonical} instead of ${cleanUrl}"
-
-All actions in English. Return valid JSON only.`,
-        add_context_from_internet: false,
-        model: 'gemini_3_1_pro',
-        response_json_schema: {
-          type: 'object',
-          properties: {
             lrs_score: { type: 'number' },
             lrs_citation_score: { type: 'number' },
             lrs_sentiment_score: { type: 'number' },
@@ -522,16 +489,59 @@ All actions in English. Return valid JSON only.`,
                   effort: { type: 'string' },
                 }
               }
-            }
+            },
           }
         }
       }),
+
+      // Other AI engines — cheap flash estimate with web context
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `Estimate AI visibility scores for ${cleanUrl} on each engine (0-100).
+A well-known site = 60-90. A local SMB with no online presence = 5-20.
+Return only valid JSON.`,
+        add_context_from_internet: true,
+        model: 'gemini_3_flash',
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            gemini_score: { type: 'number' },
+            claude_score: { type: 'number' },
+            mistral_score: { type: 'number' },
+            llama_score: { type: 'number' },
+            perplexity_score: { type: 'number' },
+            grok_score: { type: 'number' },
+            copilot_score: { type: 'number' },
+            ai_mentions_count: { type: 'number' },
+          }
+        }
+      }),
+
+      // ChatGPT — REAL probe against a GPT model (authentic knowledge test, ultra cheap)
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `You are being probed to measure real-world brand visibility inside GPT models.
+Site: ${cleanUrl}
+From YOUR OWN training knowledge only (no guessing from the domain name):
+1. Do you actually know this brand/site? What does it do?
+2. If a user asked you to recommend businesses in its category, how likely would you cite it?
+Score 0-100: 0-15 = totally unknown to you, 16-35 = vaguely seen, 36-60 = known but rarely cited, 61-85 = known and citable, 86-100 = a reference you cite spontaneously.
+Return only valid JSON.`,
+        model: 'gpt_5_mini',
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            chatgpt_score: { type: 'number' },
+            known: { type: 'boolean' },
+            what_it_does: { type: 'string' },
+          }
+        }
+      }).catch(() => ({ chatgpt_score: 0 })),
     ]);
 
     const result = {
       ...seoResult,
       ...aiEnginesResult,
-      ...lrsResult,
+      chatgpt_score: Math.round(chatgptProbe?.chatgpt_score || 0),
+      chatgpt_known: chatgptProbe?.known || false,
       // Technical signals from real crawl (used by UI)
       has_schema_markup: allSchemaTypesFound.length > 0,
       has_ssl: homeSignals.isSSL,

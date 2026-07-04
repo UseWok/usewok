@@ -549,7 +549,7 @@ export default function WokAIPage({ user: userProp }) {
 
       const res = await base44.integrations.Core.InvokeLLM({
         prompt,
-        model: 'claude_sonnet_4_6',
+        model: 'gpt_5_mini',
         ...(fileUrls.length > 0 ? { file_urls: fileUrls } : {}),
       });
       const aiContent = typeof res === 'string' ? res : (res?.data ?? res?.response ?? res?.text ?? res?.content ?? JSON.stringify(res) ?? '');
@@ -564,16 +564,23 @@ export default function WokAIPage({ user: userProp }) {
         await base44.entities.Conversation.update(activeDbId, { messages_json: JSON.stringify(final), updated_at: Date.now() });
         setConvs(prev => prev.map(c => c.id === activeDbId ? { ...c, messages: final, updatedAt: Date.now() } : c));
       } else {
-        // Generate title + create new cloud conversation
-        const titleRes = await base44.integrations.Core.InvokeLLM({ prompt: `Short 3-5 word English title with no punctuation for: "${content.slice(0,100)}". ONLY the title.` }).catch(() => null);
-        const titleRaw = typeof titleRes === 'string' ? titleRes : (titleRes?.data || titleRes?.response || content);
-        const title = String(titleRaw).replace(/["']/g, '').trim().slice(0, 48) || content.slice(0, 40);
-        const created = await base44.entities.Conversation.create({ title, site_url: activeDomain?.url || '', messages_json: JSON.stringify(final), updated_at: Date.now() });
-        const newConv = { id: created.id, title, messages: final, site_url: activeDomain?.url || '', updatedAt: Date.now() };
+        // Create conversation instantly with a provisional title (no blocking LLM call)
+        const provisionalTitle = content.slice(0, 40).trim() || 'New conversation';
+        const created = await base44.entities.Conversation.create({ title: provisionalTitle, site_url: activeDomain?.url || '', messages_json: JSON.stringify(final), updated_at: Date.now() });
+        const newConv = { id: created.id, title: provisionalTitle, messages: final, site_url: activeDomain?.url || '', updatedAt: Date.now() };
         setActiveConvId(created.id);
         setActiveDbId(created.id);
         setConvs(prev => [newConv, ...prev]);
         window.history.replaceState({}, '', `/wok-ai?conv=${created.id}`);
+        // Generate a clean title in the background (fire-and-forget, default cheap model)
+        base44.integrations.Core.InvokeLLM({ prompt: `Short 3-5 word English title with no punctuation for: "${content.slice(0,100)}". ONLY the title.` })
+          .then(titleRes => {
+            const titleRaw = typeof titleRes === 'string' ? titleRes : (titleRes?.data || titleRes?.response || '');
+            const title = String(titleRaw).replace(/["']/g, '').trim().slice(0, 48);
+            if (!title) return;
+            base44.entities.Conversation.update(created.id, { title }).catch(() => {});
+            setConvs(prev => prev.map(c => c.id === created.id ? { ...c, title } : c));
+          }).catch(() => {});
       }
     } catch {
       setMessages(m => [...m, { role: 'assistant', content: "I couldn't respond — check your connection and try again.", ts: Date.now(), isError: true }]);
