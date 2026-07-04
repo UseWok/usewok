@@ -166,8 +166,8 @@ Based on this real data AND your knowledge of this domain, return a complete aud
     "category": string (one of: "Meta tags", "Content", "Crawlability", "CSS", "Security", "Links", "AI"),
     "severity": "error"|"warning"|"notice",
     "count": number (pages affected),
-    "description": string (2-3 sentences in simple English, what is the problem and why it matters),
-    "fix_steps": array of 3-4 strings in English (concrete actionable steps)
+    "description": string (2-3 sentences in PLAIN English a non-technical business owner understands. NO jargon like "crawl budget", "link equity", "indexation", "canonical". Explain what is broken and why it hurts their business in everyday words),
+    "fix_steps": array of 3-4 strings in PLAIN English (concrete, actionable steps. NO tool names like "Screaming Frog", "Ahrefs", "Google Search Console" unless absolutely necessary. NO technical jargon. Say "check your site for broken links" not "crawl your full site with Screaming Frog". Each step must be doable by a non-technical person or clearly say when to ask a developer)
   },
   "top_pages": array of max 15 objects {
     "url": string (full URL),
@@ -207,7 +207,19 @@ Based on this real data AND your knowledge of this domain, return a complete aud
   }
 }
 
-Be realistic. Base numbers on actual site size. A small startup site has ~20-80 pages. A large e-commerce has 1000+.`,
+Be realistic. Base numbers on actual site size. A small startup site has ~20-80 pages. A large e-commerce has 1000+.
+
+CRITICAL LANGUAGE RULE: The audience is non-technical business owners (restaurant owners, freelancers, local shops). Write ALL descriptions and fix_steps in plain everyday English. Replace every technical term with its plain meaning:
+- "crawl budget" → "AI and Google waste time on broken pages"
+- "link equity" → "your pages lose authority"
+- "indexation" → "Google and AI can't find your pages"
+- "canonical" → "tell Google which page is the main one"
+- "301 redirect" → "forward old pages to new ones"
+- "4xx/5xx errors" → "broken pages that don't load"
+- "href" → "link"
+- "DOM" / "render" → skip, not relevant
+- "schema markup" → "structured data that helps AI understand your business"
+Never name tools (Screaming Frog, Ahrefs, Semrush) — describe the action instead ("check all your pages for broken links"). If a step requires a developer, say "ask your developer to" in plain words.`,
         add_context_from_internet: true,
         model: 'gemini_3_1_pro',
         response_json_schema: {
