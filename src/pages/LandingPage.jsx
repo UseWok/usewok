@@ -327,13 +327,13 @@ export default function LandingPage() {
         <div className="wrap hero-inner">
           <span className="eyebrow"><span className="dot"></span>8 AI engines analyzed</span>
           <h1>Your customers ask AI<br />who to <span className="hi">call.</span></h1>
-          <p>UseWok measures your visibility on ChatGPT, Claude and Gemini — and gives you a clear action plan to get found.</p>
+          <p>The new standard beyond SEO. Be recommended by ChatGPT, Gemini and Claude — not just found in search results. Built for startups, agencies and local businesses that need AI visibility without a full marketing team.</p>
           <div className="hero-ctas">
             <button className="btn btn-dark" onClick={() => setShowAnalyze(true)}>Analyze my site →</button>
             <button className="btn btn-outline" onClick={() => scrollTo(howRef)}>See a demo</button>
           </div>
           <div className="hero-strip">
-            <div className="strip-pill"><b>2,400+</b> brands analyzed</div>
+            <div className="strip-pill"><b>From $20/mo</b> — transparent pricing</div>
             <div className="strip-pill"><b>30 sec</b> for your first score</div>
             <div className="strip-pill"><b>🇫🇷</b> designed and hosted in France</div>
           </div>
@@ -412,6 +412,7 @@ export default function LandingPage() {
           <div className="explain-head">
             <span className="eyebrow" style={{justifyContent:'center', display:'flex', marginBottom:14}}><span className="dot"></span>How it works</span>
             <h2>Turn your visibility data into an action plan, without being an AI expert</h2>
+            <p style={{fontSize:15, color:'var(--ink-faint)', marginTop:14, lineHeight:1.6}}><b style={{color:'var(--ink)'}}>SEO</b> optimizes clicks from search results. <b style={{color:'var(--orange-deep)'}}>AEO</b> optimizes mentions and recommendations inside AI responses — often without a single click. UseWok helps you win both.</p>
           </div>
           <div className="explain-grid">
             <div className="explain-col">
@@ -500,6 +501,34 @@ export default function LandingPage() {
             <div className="stat-card stat-1"><span className="big">+38%</span><span className="lbl">traffic from AI search</span></div>
             <div className="stat-card stat-2"><span className="big">30 sec</span><span className="lbl">to your first score</span></div>
             <div className="stat-card stat-3"><span className="big">8</span><span className="lbl">AI engines tracked continuously</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING TEASER */}
+      <section>
+        <div className="wrap">
+          <div className="explain-head">
+            <span className="eyebrow" style={{justifyContent:'center', display:'flex', marginBottom:14}}><span className="dot"></span>Simple, transparent pricing</span>
+            <h2>Start at $20/mo — no hidden costs</h2>
+            <p style={{fontSize:15, color:'var(--ink-faint)', marginTop:14, lineHeight:1.6}}>An agency specializing in AI visibility typically charges $100+/mo and assumes you already have in-house expertise. UseWok replaces all of that.</p>
+          </div>
+          <div className="cards3" style={{maxWidth:820, margin:'0 auto'}}>
+            <div className="card3" style={{background:'linear-gradient(165deg, #fff 0%, var(--cream-2) 100%)', border:'1px solid var(--line)'}}>
+              <h4>Starter — $20/mo</h4>
+              <p>AI visibility score, action plan, daily tracking on 5 AI engines. Perfect for solo founders and small businesses.</p>
+            </div>
+            <div className="card3" style={{background:'linear-gradient(165deg, var(--orange-pale) 0%, var(--cream-2) 100%)', border:'1px solid var(--orange)'}}>
+              <h4>Core — $49/mo</h4>
+              <p>Full score history, guided fix instructions, competitor benchmarking. For growing teams that need depth.</p>
+            </div>
+            <div className="card3" style={{background:'linear-gradient(165deg, #fff 0%, var(--cream-2) 100%)', border:'1px solid var(--line)'}}>
+              <h4>Pro — $99/mo</h4>
+              <p>Multi-site monitoring, competitor analysis, all 8 AI engines, priority support. For agencies and scaling businesses.</p>
+            </div>
+          </div>
+          <div style={{textAlign:'center', marginTop:32}}>
+            <button className="btn btn-dark" onClick={goPricing}>Compare all plans →</button>
           </div>
         </div>
       </section>
