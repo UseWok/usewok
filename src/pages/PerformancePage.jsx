@@ -12,6 +12,7 @@ import LRSRadarChart from '@/components/performance/LRSRadarChart';
 import GeoScoreChart from '@/components/performance/GeoScoreChart';
 import SOVChart from '@/components/performance/SOVChart';
 import CitationTracker from '@/components/performance/CitationTracker';
+import CitationGaps from '@/components/performance/CitationGaps';
 import { FeatureGate } from '@/lib/usePlanFeatures.jsx';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
@@ -217,6 +218,9 @@ export default function PerformancePage() {
 
           {/* LRS+ — Live citation tracker + contextual sentiment */}
           <CitationTracker profile={profile} />
+
+          {/* Cross-competitor citation gaps */}
+          <CitationGaps profile={profile} />
 
           {/* Scores par assistant */}
           <EngineScoreGrid d={richData} />
