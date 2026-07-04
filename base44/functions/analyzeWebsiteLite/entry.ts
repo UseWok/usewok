@@ -26,52 +26,58 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Quota exceeded', reason: guardRes?.data?.reason || 'scan_limit', quota: guardRes?.data || null }, { status: 429 });
     }
 
-    // Un seul appel LLM avec internet search — gemini_3_flash ne supporte pas
-    // response_json_schema + add_context_from_internet, donc on parse la réponse string
-    const raw = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Tu es un expert en visibilité IA. Analyse ce site web : ${cleanUrl}
+    // ── Gemini 3.1 Pro — scan ultra-réaliste avec internet search ──
+    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: `Tu es le meilleur expert mondial en visibilité IA (AEO) et SEO. Analyse CE site web avec une rigueur d'auditrice professionnelle : ${cleanUrl}
 
-Lis le contenu réel du site, puis retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks) avec ces champs :
+## INSTRUCTIONS CRITIQUES — RÉALISME ABSOLU
 
-{
-  "overall_score": number 0-100,
-  "ai_visibility_score": number 0-100,
-  "message_clarity_score": number 0-100,
-  "commercial_presence_score": number 0-100,
-  "business_name": "string",
-  "business_type": "string (activité réelle, pas le nom de domaine)",
-  "city": "string",
-  "country": "code ISO 2 lettres",
-  "gemini_score": number 0-100,
-  "gemini_sentiment": "positive|neutral|negative",
-  "lrs_score": number 0-100,
-  "lrs_trend": "rising|stable|declining",
-  "issues": [{"problem": "en français simple non-technique", "severity": "error|warning"}],
-  "shock_insight": "une phrase percutante en français sur ce que l'entreprise perd",
-  "has_schema_markup": boolean,
-  "has_ssl": boolean,
-  "has_google_business": boolean
-}
+1. NAVIGUE RÉELLEMENT sur le site. Lis le contenu, les balises, la structure. Ne suppose RIEN à partir du nom de domaine.
+2. business_type doit refléter l'ACTIVITÉ RÉELLE lue sur le site (ex: "plombier" pas "site web de plombier"). Si le site est un e-commerce de chaussures → "e-commerce de chaussures".
+3. Les scores doivent être RÉALISTES et DIFFÉRENCIÉS :
+   - Un site local inconnu sans schema, sans Google Business → overall_score 15-35, pas 60+
+   - Un site bien optimisé avec schema, FAQ, Google Business → 55-80
+   - Un site national reconnu → 70-95
+   - Ne mets JAMAIS 80+ à un site que tu ne connais pas réellement
+4. Pour gemini_score : demande-toi "Est-ce que Gemini connaîtrait ce site ?". Un site local inconnu = 5-20. Une marque nationale = 50-80.
+5. issues : sois ULTRA-SPÉCIFIQUE. Pas "manque de contenu" mais "Aucune page 'À propos' détectée — les moteurs IA ne peuvent pas identifier qui gère cette entreprise". Cite la page exacte quand possible.
+6. shock_insight : 1 phrase CHOC en français sur ce que l'entreprise perd concrètement (clients, ventes, visibilité). Sois direct, presque agressif. Ex: "ChatGPT recommande vos concurrents locaux parce qu'il ne sait pas que vous existez."
 
-RÈGLES :
-- issues : max 3, en français pour un non-technicien (pas de jargon technique)
-- Ne déduis jamais business_type du nom de domaine ou de la marque — lis le contenu réel du site
-- shock_insight : 1 phrase percutante en français sur ce que l'entreprise perd concrètement
-- Retourne UNIQUEMENT le JSON, rien d'autre`,
+Retourne UNIQUEMENT un objet JSON valide.`,
       add_context_from_internet: true,
-      model: 'gemini_3_flash',
+      model: 'gemini_3_1_pro',
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          overall_score: { type: 'number' },
+          ai_visibility_score: { type: 'number' },
+          message_clarity_score: { type: 'number' },
+          commercial_presence_score: { type: 'number' },
+          business_name: { type: 'string' },
+          business_type: { type: 'string' },
+          city: { type: 'string' },
+          country: { type: 'string' },
+          gemini_score: { type: 'number' },
+          gemini_sentiment: { type: 'string' },
+          lrs_score: { type: 'number' },
+          lrs_trend: { type: 'string' },
+          issues: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                problem: { type: 'string' },
+                severity: { type: 'string' },
+              }
+            }
+          },
+          shock_insight: { type: 'string' },
+          has_schema_markup: { type: 'boolean' },
+          has_ssl: { type: 'boolean' },
+          has_google_business: { type: 'boolean' },
+        }
+      }
     });
-
-    // Parse la réponse string en JSON
-    let result = {};
-    try {
-      const str = typeof raw === 'string' ? raw : JSON.stringify(raw);
-      const match = str.match(/\{[\s\S]*\}/);
-      if (match) result = JSON.parse(match[0]);
-      else result = typeof raw === 'object' ? raw : {};
-    } catch {
-      result = typeof raw === 'object' ? raw : {};
-    }
 
     const finalResult = {
       ...result,

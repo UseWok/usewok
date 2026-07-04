@@ -380,10 +380,35 @@ Deno.serve(async (req) => {
 
       // FULL SCAN — single gemini_3_1_pro call: SEO scores + issues + LRS + action plan
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an SEO and AI visibility (AEO) expert. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
+        prompt: `You are the WORLD'S BEST SEO and AI visibility (AEO) auditor. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
 
 REAL CRAWLED DATA:
 ${JSON.stringify(technicalAudit, null, 2)}
+
+## RIGOROUS ANALYSIS RULES — BE BRUTALLY REALISTIC
+
+1. **Scores must reflect REALITY, not generosity:**
+   - A site with NO schema, NO Google Business, missing meta description → overall_score 15-35, NOT 60+
+   - A site WITH schema, FAQ, About page, Google Business → 50-75
+   - A nationally recognized brand → 75-95
+   - NEVER inflate scores. A bad site gets a bad score.
+
+2. **Issues must be ULTRA-SPECIFIC to what the crawl found:**
+   - Cite the EXACT page (e.g.: "on your homepage /", "on /contact")
+   - Reference the EXACT missing element from the crawl data
+   - Write in simple English for a non-technical person
+   - Be direct about what it COSTS them
+
+3. **LRS scores must be DIFFERENTIATED and REALISTIC:**
+   - lrs_citation_score: How often do AI engines actually cite this site? Unknown site = 5-20.
+   - lrs_sentiment_score: When mentioned, is it positive? If never mentioned, score low.
+   - lrs_accuracy_score: Does AI accurately describe the business? If AI doesn't know it, score low.
+
+4. **Action plan must be SURGICALLY specific:**
+   - Name the EXACT page URL to modify
+   - Name the EXACT HTML element or JSON-LD block to add
+   - Explain the gap in 1 sentence (what's missing → what AI engines need)
+   - Estimate REAL effort honestly
 
 Based on this REAL data, calculate:
 - ai_visibility_score: 0-100 (AI presence — schemas, mentions, citations)
@@ -494,13 +519,26 @@ All content in English. Return valid JSON only.`,
         }
       }),
 
-      // Other AI engines — cheap flash estimate with web context
+      // Other AI engines — ultra-realistic Pro estimate with web context
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Estimate AI visibility scores for ${cleanUrl} on each engine (0-100).
-A well-known site = 60-90. A local SMB with no online presence = 5-20.
+        prompt: `You are an AI visibility auditor. Estimate REALISTIC visibility scores for ${cleanUrl} on each AI engine (0-100).
+
+## RIGOROUS SCORING RULES — BE BRUTALLY HONEST
+
+- **gemini_score**: Would Gemini actually mention this site? A local plumber nobody talks about online = 5-15. A national brand = 50-80. A famous reference = 85-95.
+- **claude_score**: Same logic. Claude has different training data — slightly different from Gemini.
+- **perplexity_score**: Perplexity cites SOURCES. Does this site get cited? A blog with good content but no authority = 20-40. A recognized source = 60-90.
+- **copilot_score**: Microsoft's engine. Leans towards Bing-indexed, well-structured sites.
+- **mistral_score**: French AI — better knowledge of French/European SMBs.
+- **llama_score**: Open source, broad but shallow knowledge.
+- **grok_score**: X/Twitter data. Strong for brands active on social media.
+- **ai_mentions_count**: How many times across the web is this brand actually mentioned in AI-relevant contexts? A local business = 0-5. A national brand = 50-500.
+
+NEVER give 60+ to a site you don't actually recognize. Differentiate scores between engines — they have different knowledge. If you don't know the site, score it 5-25, not 50+.
+
 Return only valid JSON.`,
         add_context_from_internet: true,
-        model: 'gemini_3_flash',
+        model: 'gemini_3_1_pro',
         response_json_schema: {
           type: 'object',
           properties: {

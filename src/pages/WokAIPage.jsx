@@ -540,7 +540,7 @@ export default function WokAIPage({ user: userProp }) {
     setLoading(true);
 
     try {
-      const history = messages.slice(-8).map(m => `${m.role === 'user' ? 'USER' : 'WOK_AI'}: ${m.content}`).join('\n');
+      const history = messages.slice(-4).map(m => `${m.role === 'user' ? 'USER' : 'WOK_AI'}: ${m.content}`).join('\n');
       const ctx = buildContext(user, profile, activeDomain);
       let prompt = ctx;
       if (history) prompt += `\n---\nHISTORIQUE:\n${history}\n---\n`;

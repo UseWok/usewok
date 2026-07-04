@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       ? ['summary', 'prompt', 'time_estimate']
       : ['summary', 'explanation', 'time_estimate'];
 
-    // ── 10X better, 10X more concise prompt ──
+    // ── 10X better, ultra-concise prompt (fix prompt capped at 500 chars) ──
     const prompt = `You are a world-class AEO (AI Engine Optimization) Consultant.
 
 BUSINESS: ${businessName} | URL: ${siteUrl} | INDUSTRY: ${industry}
@@ -95,13 +95,7 @@ FIELDS:
 1. "summary" — 1 punchy sentence + 1 quantified impact. Example: "AI can't find your contact info — losing 40% of 'near me' searches."
 2. "time_estimate" — realistic: no_code "10-30 min" | ai_nocode "5-30 min" | developer "30 min-2h"
 3. "type" — "solo" or "with help"
-${needsPrompt ? `4. "prompt" — an expert prompt to copy into ChatGPT/Claude. Structure:
-   - ROLE: hyper-specific expert (1 line)
-   - CONTEXT: business="${businessName}", url=${siteUrl}, problem="${issueProblem}" (2 lines)
-   - TASK: numbered deliverables (3-5 lines) with EXACT quantities ("3 sections", "4 steps")
-   - CONSTRAINTS: bullet list with measurable rules (format, word count, tone, zero placeholders)
-   - OUTPUT: exact format (HTML/plain text/JSON) + where to paste
-   Rules: pre-fill ${businessName} and ${siteUrl} verbatim. Only [PHONE]/[ADDRESS]/[HOURS] allowed as placeholders. Zero commentary outside deliverables. End with a CTA. 15-30 lines total. Do NOT prefix with "Copy this into ChatGPT" — just the prompt itself.`
+${needsPrompt ? `4. "prompt" — an expert prompt to copy into ChatGPT/Claude. HARD LIMIT: MAXIMUM 500 CHARACTERS INCLUDING SPACES. Be ultra-dense: role + context + task + output format in a few lines. Pre-fill ${businessName} and ${siteUrl}. Only [PHONE]/[ADDRESS]/[HOURS] as placeholders. No commentary — just the prompt itself. Count every character.`
 : `4. "explanation" — expert dev response with: ROOT CAUSE (spec ref), AI IMPACT (per LLM), STEP-BY-STEP, COMPLETE READY-TO-PASTE CODE (pre-filled with ${businessName}/${siteUrl}), VERIFICATION (test URL/curl), COMMON PITFALLS. 300-500 words, dense, zero fluff.`}
 5. "steps" — array of 3-5 action strings. Each: "Action → Expected result". Concrete, no-code friendly.`;
 
@@ -121,6 +115,11 @@ ${needsPrompt ? `4. "prompt" — an expert prompt to copy into ChatGPT/Claude. S
         required: requiredFields,
       },
     });
+
+    // ── Hard cap prompt at 500 characters (spaces included) ──
+    if (result.prompt && result.prompt.length > 500) {
+      result.prompt = result.prompt.slice(0, 497).replace(/\s+\S*$/, '') + '…';
+    }
 
     // ── Parallel save (fire-and-forget) ──
     const stepsJson = JSON.stringify(result.steps || []);
