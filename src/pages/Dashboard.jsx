@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
-import { SlidersHorizontal, RefreshCw, Zap } from 'lucide-react';
+import { SlidersHorizontal, RefreshCw, Zap, Info } from 'lucide-react';
 
+import CustomizePanel, { DASHBOARD_WIDGETS } from '@/components/dashboard/CustomizePanel';
 import EvolutionCard from '@/components/dashboard/EvolutionCard';
 import TasksCard from '@/components/dashboard/TasksCard';
 import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
@@ -27,6 +28,19 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [phase, setPhase] = useState('loading');
   const [period, setPeriod] = useState('30J');
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [visibility, setVisibility] = useState({});
+  const profileIdRef = useRef(null);
+
+  const toggleWidget = (id) => {
+    setVisibility(prev => {
+      const next = { ...prev, [id]: prev[id] === false ? true : false };
+      if (profileIdRef.current) {
+        base44.entities.BusinessProfile.update(profileIdRef.current, { dashboard_widgets: JSON.stringify(next) }).catch(() => {});
+      }
+      return next;
+    });
+  };
 
   const load = async (forceRefresh = false) => {
     setPhase('loading');
@@ -39,6 +53,8 @@ export default function Dashboard() {
       if (!p?.site_url) { setPhase('no_profile'); return; }
       const extra = await getProfileData(p);
       setProfile({ ...p, ...extra });
+      profileIdRef.current = p.id;
+      try { setVisibility(p.dashboard_widgets ? JSON.parse(p.dashboard_widgets) : {}); } catch { setVisibility({}); }
 
       if (!forceRefresh && extra.overview_data && extra.overview_analyzed_at) {
         const age = Date.now() - new Date(extra.overview_analyzed_at).getTime();
@@ -90,8 +106,8 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
-            <button onClick={() => load(true)} disabled={phase === 'thinking'}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 10, border: `1px solid ${ORANGE}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, opacity: phase === 'thinking' ? 0.5 : 1 }}>
+            <button onClick={() => setCustomizeOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 10, border: `1px solid ${ORANGE}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
               <SlidersHorizontal size={14} /> Personnaliser
             </button>
           </div>
@@ -135,28 +151,53 @@ export default function Dashboard() {
           </div>
         )}
 
-        {phase === 'done' && data && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Row 1 : Évolution (1.55fr) + Tâches (1fr) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 16, alignItems: 'stretch' }}>
-              <EvolutionCard score={data.geo_score} breakdown={data.score_breakdown} evolution={data.evolution} />
-              <TasksCard tasks={data.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />
-            </div>
+        {phase === 'done' && data && (() => {
+          const vis = (id) => visibility[id] !== false;
+          const allHidden = DASHBOARD_WIDGETS.every(w => visibility[w.id] === false);
+          if (allHidden) {
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12 }}>
+                <Info size={18} color="#2563EB" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 13.5, color: '#1E40AF' }}>Toutes les cartes sont masquées. Ouvre « Personnaliser » pour en réafficher.</span>
+              </div>
+            );
+          }
+          // Row 1
+          const row1 = [vis('evolution'), vis('tasks')];
+          const row2 = [vis('competitors'), vis('llms'), vis('pages')];
+          const row3 = [vis('zones'), vis('languages')];
+          const cols = (flags) => flags.filter(Boolean).map(() => '1fr').join(' ');
+          return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5%' }}>
+            {/* Row 1 : Score global + Tâches */}
+            {(row1[0] || row1[1]) && (
+              <div style={{ display: 'grid', gridTemplateColumns: row1[0] && row1[1] ? '1.55fr 1fr' : '1fr', gap: '5%', alignItems: 'stretch' }}>
+                {vis('evolution') && <EvolutionCard score={data.geo_score} breakdown={data.score_breakdown} evolution={data.evolution} />}
+                {vis('tasks') && <TasksCard tasks={data.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />}
+              </div>
+            )}
 
             {/* Row 2 : Concurrents + LLM + Pages citées */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, alignItems: 'stretch' }}>
-              <CompetitorsCard competitors={data.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'Comment atteindre la 2ème place vs mes concurrents dans les recommandations IA ?' } })} />
-              <LLMCitingCard llms={data.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'Comment être cité plus souvent par les moteurs IA ?' } })} />
-              <CitedPagesCard pages={data.cited_pages} />
-            </div>
+            {(row2[0] || row2[1] || row2[2]) && (
+              <div style={{ display: 'grid', gridTemplateColumns: cols(row2), gap: '5%', alignItems: 'stretch' }}>
+                {vis('competitors') && <CompetitorsCard competitors={data.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'Comment atteindre la 2ème place vs mes concurrents dans les recommandations IA ?' } })} />}
+                {vis('llms') && <LLMCitingCard llms={data.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'Comment être cité plus souvent par les moteurs IA ?' } })} />}
+                {vis('pages') && <CitedPagesCard pages={data.cited_pages} />}
+              </div>
+            )}
 
             {/* Row 3 : Zone + Langue */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'stretch' }}>
-              <ZoneRankingCard zones={data.zones} onDetail={() => navigate('/performance')} />
-              <LanguageRankingCard languages={data.languages} onDetail={() => navigate('/performance')} />
-            </div>
+            {(row3[0] || row3[1]) && (
+              <div style={{ display: 'grid', gridTemplateColumns: cols(row3), gap: '5%', alignItems: 'stretch' }}>
+                {vis('zones') && <ZoneRankingCard zones={data.zones} onDetail={() => navigate('/performance')} />}
+                {vis('languages') && <LanguageRankingCard languages={data.languages} onDetail={() => navigate('/performance')} />}
+              </div>
+            )}
           </div>
-        )}
+          );
+        })()}
+
+        <CustomizePanel open={customizeOpen} onClose={() => setCustomizeOpen(false)} visibility={visibility} onToggle={toggleWidget} />
       </div>
     </div>
   );

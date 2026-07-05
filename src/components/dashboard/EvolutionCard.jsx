@@ -79,10 +79,10 @@ export default function EvolutionCard({ score, breakdown, evolution }) {
   const maxBar = Math.max(b.narrative || 0, b.authority || 0, b.referral || 0, 1);
 
   return (
-    <DashCard title="Évolution" dot={ORANGE}>
+    <DashCard title="Ton score global" dot={ORANGE}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: -40, marginBottom: 20 }}>
         <div style={{ display: 'inline-flex', gap: 3, background: CREAM2, borderRadius: 9, padding: 3 }}>
-          {[['score', 'Score GEO'], ['citations', 'Citations / moteur']].map(([k, lbl]) => (
+          {[['score', 'Ta note'], ['citations', 'Par IA']].map(([k, lbl]) => (
             <button key={k} onClick={() => setTab(k)}
               style={{ padding: '6px 12px', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: F,
                 fontSize: 11.5, fontWeight: 700,

@@ -24,30 +24,30 @@ export default function LLMCitingCard({ llms, onDetail, onWantMore }) {
   const max = Math.max(1, ...rows.map(r => r.citations || 0));
 
   return (
-    <DashCard title="LLM qui vous citent" dot={GREEN} action="Détail →" onAction={onDetail}>
+    <DashCard title="Qui parle de toi" dot={GREEN} action="Voir le détail →" onAction={onDetail}>
       {rows.length === 0 && (
-        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>Aucune citation IA détectée pour vos moteurs activés.</p>
+        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>Aucune IA ne te cite encore.</p>
       )}
       {rows.map((l, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-          <div style={{ width: 22, height: 22, borderRadius: 6, background: CREAM2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <img src={AI_LOGO_URLS[l.engine]} width={14} height={14} alt={l.label} style={{ objectFit: 'contain' }} />
+          <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <img src={AI_LOGO_URLS[l.engine]} width={18} height={18} alt={l.label} style={{ objectFit: 'contain' }} />
           </div>
           <span style={{ width: 76, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
           <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${((l.citations || 0) / max) * 100}%`, background: ORANGE, borderRadius: 100 }} />
           </div>
-          <span style={{ width: 56, fontSize: 11.5, color: INK3, textAlign: 'right', flexShrink: 0 }}>{l.citations || 0} citation{(l.citations || 0) > 1 ? 's' : ''}</span>
+          <span style={{ width: 56, fontSize: 11.5, color: INK3, textAlign: 'right', flexShrink: 0 }}>{l.citations || 0} fois</span>
         </div>
       ))}
 
       <div style={{ fontSize: 11, color: INK3, lineHeight: 1.5, margin: '12px 0 14px' }}>
-        Nombre de réponses IA où votre marque est citée, cumulées sur la période.
+        Combien de fois chaque IA a parlé de toi sur la période.
       </div>
 
       <button onClick={onWantMore}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: INK, color: '#FBF8F2', border: 'none', borderRadius: 10, height: 42, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-        <Plus size={14} /> Être cité davantage
+        <Plus size={14} /> Être cité plus souvent
       </button>
     </DashCard>
   );

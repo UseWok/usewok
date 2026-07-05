@@ -45,6 +45,12 @@
       "format": "textarea",
       "description": "Stored as JSON: {tech_level, main_goal, business_maturity, objectives}"
     },
+    "dashboard_widgets": {
+      "type": "string",
+      "title": "Dashboard Widgets Visibility (JSON)",
+      "format": "textarea",
+      "description": "JSON map of widget id -> boolean visibility"
+    },
     "stripe_connected": {
       "type": "boolean",
       "title": "Stripe Connected",

@@ -8,19 +8,19 @@ const ORANGE_PALE = '#FFE7D6';
 const F = 'Inter, system-ui, sans-serif';
 
 const PRIORITY = {
-  urgent: { label: 'Urgent', color: '#fff', bg: '#FF5A1F' },
-  high: { label: 'Élevé', color: ORANGE_DEEP, bg: ORANGE_PALE },
-  medium: { label: 'Moyen', color: ORANGE_DEEP, bg: ORANGE_PALE },
-  low: { label: 'Faible', color: INK3, bg: '#F3EEE3' },
+  urgent: { label: 'À faire en premier', color: '#fff', bg: '#FF5A1F' },
+  high: { label: 'Important', color: ORANGE_DEEP, bg: ORANGE_PALE },
+  medium: { label: 'Utile', color: ORANGE_DEEP, bg: ORANGE_PALE },
+  low: { label: 'Quand tu peux', color: INK3, bg: '#F3EEE3' },
 };
 
 export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
   const list = tasks || [];
   return (
-    <DashCard title="Tâches à faire" dot={ORANGE_DEEP} action="Tout voir →" onAction={onSeeAll}>
+    <DashCard title="Ce que tu dois faire" dot={ORANGE_DEEP} action="Tout voir →" onAction={onSeeAll}>
       {list.length === 0 ? (
         <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-          Aucune tâche ouverte. Lancez un audit pour générer des recommandations.
+          Rien à faire pour l'instant. Lance une analyse pour recevoir tes conseils.
         </p>
       ) : (
         <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 2 }}>

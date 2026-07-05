@@ -14,11 +14,33 @@ function initials(name) {
   return (name || '??').slice(0, 2).toUpperCase();
 }
 
+function faviconUrl(c) {
+  const raw = c.domain || c.url || c.website || '';
+  if (!raw) return null;
+  const host = raw.replace(/https?:\/\//, '').split('/')[0];
+  if (!host || !host.includes('.')) return null;
+  return `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
+}
+
+function CompetitorLogo({ c, you }) {
+  const url = faviconUrl(c);
+  const bg = you ? ORANGE : '#fff';
+  return (
+    <div style={{ width: 28, height: 28, borderRadius: 8, background: bg, border: you ? 'none' : `1px solid ${CREAM2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+      {url ? (
+        <img src={url} width={20} height={20} alt={c.name} style={{ objectFit: 'contain' }}
+          onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }} />
+      ) : null}
+      <span style={{ display: url ? 'none' : 'block', fontSize: 10.5, fontWeight: 700, color: you ? '#fff' : '#4A453B' }}>{initials(c.name)}</span>
+    </div>
+  );
+}
+
 export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) {
   const rows = (competitors || []).slice().sort((a, b) => (b.visibility_pct || 0) - (a.visibility_pct || 0));
 
   return (
-    <DashCard title="Concurrents" dot={ORANGE} action="Concurrents →" onAction={onSeeAll}>
+    <DashCard title="Tes concurrents" dot={ORANGE} action="Tout voir →" onAction={onSeeAll}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {rows.map((c, i) => {
           const you = c.is_you;
@@ -31,12 +53,10 @@ export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) 
               borderTop: i === 0 ? 'none' : '1px solid rgba(21,19,15,0.09)',
             }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: INK3, width: 14, flexShrink: 0 }}>{i + 1}</span>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: you ? ORANGE : CREAM2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: you ? '#fff' : '#4A453B' }}>{initials(c.name)}</span>
-              </div>
+              <CompetitorLogo c={c} you={you} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <b style={{ display: 'block', fontSize: 13, fontWeight: 700, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
-                {you && <span style={{ fontSize: 11, color: INK3 }}>votre marque</span>}
+                {you && <span style={{ fontSize: 11, color: INK3 }}>ta marque</span>}
               </div>
               <span style={{ fontSize: 13, fontWeight: 700, color: INK, flexShrink: 0 }}>{Math.round(c.visibility_pct || 0)}%</span>
             </div>
@@ -46,7 +66,7 @@ export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) 
 
       <button onClick={onWantRank2}
         style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: CREAM2, borderRadius: 10, padding: '11px 14px', border: 'none', cursor: 'pointer', fontFamily: F }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>Je veux atteindre la 2ème place</span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>Je veux passer devant eux</span>
         <span style={{ width: 26, height: 26, borderRadius: '50%', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ArrowUpRight size={12} color="#fff" strokeWidth={2.6} />
         </span>
