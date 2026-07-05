@@ -347,7 +347,7 @@ function SidebarCreditsBar({ user, onUpgrade }) {
 function SectionLabel({ label, expanded }) {
   if (!expanded) return <div style={{ height: 16 }} />;
   return (
-    <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.3)', margin: '12px 10px 3px', letterSpacing: '0.08em', textTransform: 'uppercase', userSelect: 'none' }}>
+    <p style={{ fontSize: 11, fontWeight: 700, color: '#A0A0A8', margin: '18px 12px 6px', letterSpacing: '0.06em', textTransform: 'uppercase', userSelect: 'none' }}>
       {label}
     </p>
   );
@@ -615,57 +615,71 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', padding: expanded ? '0 8px' : '0 6px', display: (expanded && (settingsMode || wokAIMode)) ? 'none' : 'flex' }}>
 
           {/* Main nav */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-            <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
-            <NavItem icon={LayoutDashboard} label="Overview" onClick={() => nav('/dashboard')} active={isActive('/dashboard')} expanded={expanded} />
-            <NavItem icon={BarChart2} label="AI Report" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
-            <NavItem icon={Trophy} label="History" onClick={() => nav('/history')} active={isActive('/history')} expanded={expanded} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+            <NavItem icon={LayoutDashboard} label="Tableau de bord" onClick={() => nav('/dashboard')} active={isActive('/dashboard')} expanded={expanded} />
           </div>
 
-          <Divider />
-
-          <Divider />
-
-          {/* ── AI Tools ── */}
+          {/* ── Grouped nav sections ── */}
           {expanded && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
-              <SectionLabel label="AI Tools" expanded={expanded} />
-
-              {/* Ask AI de WOK — ouvre le mode historique dans la sidebar */}
-              <NavItem icon={Sparkles} label="Ask AI" onClick={() => { setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               {[
-                { id: 'brand',       label: 'Brand Knowledge',  icon: BookOpen,       color: '#7B4FE0', route: '/brand-knowledge' },
-                { id: 'geo',         label: 'GEO Strategy',     icon: Target,         color: '#F97316', route: '/geo-strategy' },
-                { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
-                { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
-                { id: 'siteaudit',   label: 'Site Audit',       icon: FileSearch,     color: '#7B4FE0', route: '/site-audit' },
-                { id: 'competitors', label: 'Competitors',      icon: Users,          color: '#F95738', route: '/competitors' },
-                { id: 'tasks',       label: 'Tasks',            icon: CheckSquare,    color: '#F97316', route: '/tasks' },
-                { id: 'brandimage',  label: 'Brand Image',      icon: Award,          color: '#E8184A', route: '/brand-image' },
-                { id: 'reco',        label: 'Recommendations',  icon: Sparkle,        color: '#7C3AED', route: '/recommendations' },
-              ].map(tool => {
-                const Icon = tool.icon;
-                const isToolActive = tool.route ? location.pathname === tool.route : (location.pathname === '/ai-report' && new URLSearchParams(location.search).get('tool') === tool.id);
-                return (
-                  <button key={tool.id}
-                    onClick={() => tool.route ? nav(tool.route) : nav(`/ai-report?tool=${tool.id}`)}
-                    style={{
-                      display: 'flex', alignItems: 'center', width: '100%', height: 30,
-                      padding: '0 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                      background:           isToolActive ? `${tool.color}18` : 'transparent',
-                      fontFamily: 'inherit', transition: 'background 100ms', gap: 8,
-                    }}
-                    onMouseEnter={e => { if (!isToolActive) e.currentTarget.style.background = 'rgba(21,19,15,0.05)'; }}
-                    onMouseLeave={e => { if (!isToolActive) e.currentTarget.style.background = isToolActive ? `${tool.color}18` : 'transparent'; }}
-                  >
-                    <Icon style={{ width: 14, height: 14, flexShrink: 0, color: isToolActive ? '#111' : '#888', strokeWidth: 1.8 }} />
-                    <span style={{ fontSize: 13, fontWeight: isToolActive ? 600 : 400, color: isToolActive ? '#111' : '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {tool.label}
-                    </span>
-                    {isToolActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#111', marginLeft: 'auto', flexShrink: 0 }} />}
-                  </button>
-                );
-              })}
+                {
+                  section: 'STRATÉGIE',
+                  items: [
+                    { id: 'brand', label: 'Brand Knowledge', icon: BookOpen, route: '/brand-knowledge' },
+                    { id: 'geo',   label: 'GEO Strategy',    icon: Sparkle,  route: '/geo-strategy' },
+                  ],
+                },
+                {
+                  section: 'AUDIT',
+                  items: [
+                    { id: 'siteaudit',   label: 'Audit du site',  icon: FileSearch, route: '/site-audit' },
+                    { id: 'brandimage',  label: 'Médias & presse', icon: BookOpen,  route: '/brand-image' },
+                    { id: 'competitors', label: 'Concurrents',    icon: Users,      route: '/competitors' },
+                  ],
+                },
+                {
+                  section: 'ACTIONS',
+                  items: [
+                    { id: 'tasks', label: 'Tâches',     icon: CheckSquare, route: '/tasks' },
+                    { id: 'news',  label: 'Veille news', icon: Sparkles,   route: '/recommendations' },
+                  ],
+                },
+                {
+                  section: 'VISIBILITÉ IA',
+                  items: [
+                    { id: 'image', label: 'Image de marque',  icon: BookOpen, route: '/brand-image' },
+                    { id: 'auth',  label: 'Autorité',         icon: Award,    route: '/ai-report' },
+                    { id: 'reco',  label: 'Recommandations',  icon: Target,   route: '/recommendations' },
+                  ],
+                },
+              ].map(group => (
+                <div key={group.section} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <SectionLabel label={group.section} expanded={expanded} />
+                  {group.items.map(tool => {
+                    const Icon = tool.icon;
+                    const isToolActive = location.pathname === tool.route;
+                    return (
+                      <button key={tool.id}
+                        onClick={() => nav(tool.route)}
+                        style={{
+                          display: 'flex', alignItems: 'center', width: '100%', height: 36,
+                          padding: '0 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                          background: isToolActive ? 'rgba(123,79,224,0.12)' : 'transparent',
+                          fontFamily: 'inherit', transition: 'background 100ms', gap: 12,
+                        }}
+                        onMouseEnter={e => { if (!isToolActive) e.currentTarget.style.background = 'rgba(21,19,15,0.05)'; }}
+                        onMouseLeave={e => { if (!isToolActive) e.currentTarget.style.background = isToolActive ? 'rgba(123,79,224,0.12)' : 'transparent'; }}
+                      >
+                        <Icon style={{ width: 18, height: 18, flexShrink: 0, color: isToolActive ? '#7B4FE0' : '#555', strokeWidth: 1.9 }} />
+                        <span style={{ fontSize: 14.5, fontWeight: 600, color: isToolActive ? '#7B4FE0' : '#1A1A1A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {tool.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
 
