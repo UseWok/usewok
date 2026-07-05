@@ -19,7 +19,7 @@ export default function BrandStatsRow({ scoreNarrative, scoreAuthority, sentimen
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18, fontFamily: F }}>
       {/* Score narrative & authority */}
       <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, padding: '18px 20px' }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 14px' }}>Score Narrative & autorité stratégique</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 14px' }}>Narrative & strategic authority score</p>
         {[{ label: 'Narrative', v: scoreNarrative, c: '#7C3AED' }, { label: 'Authority', v: scoreAuthority, c: GREEN }].map(s => (
           <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <span style={{ width: 76, fontSize: 12, color: INK3 }}>{s.label}</span>
@@ -31,14 +31,14 @@ export default function BrandStatsRow({ scoreNarrative, scoreAuthority, sentimen
 
       {/* Sentiment */}
       <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, padding: '18px 20px' }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 14px' }}>Sentiment des réponses IA</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 14px' }}>AI answer sentiment</p>
         <div style={{ display: 'flex', height: 26, borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
           <div style={{ width: `${sentiment.positive}%`, background: GREEN }} />
           <div style={{ width: `${sentiment.neutral}%`, background: GRAY }} />
           <div style={{ width: `${sentiment.negative}%`, background: RED }} />
         </div>
         <div style={{ display: 'flex', gap: 16 }}>
-          {[{ label: 'Positif', v: sentiment.positive, c: GREEN }, { label: 'Neutre', v: sentiment.neutral, c: GRAY }, { label: 'Négatif', v: sentiment.negative, c: RED }].map(s => (
+          {[{ label: 'Positive', v: sentiment.positive, c: GREEN }, { label: 'Neutral', v: sentiment.neutral, c: GRAY }, { label: 'Negative', v: sentiment.negative, c: RED }].map(s => (
             <span key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: INK3 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.c }} /> {s.label} {s.v}%
             </span>

@@ -7,15 +7,15 @@ const INK3 = '#9B9BA8';
 const BORDER = 'rgba(21,19,15,0.10)';
 const VIOLET = '#7C3AED';
 
-const IMPACT_C = { 'Fort': '#10B981', 'Moyen': '#F97316', 'Faible': '#9B9BA8' };
+const IMPACT_C = { 'High': '#10B981', 'Fort': '#10B981', 'Medium': '#F97316', 'Moyen': '#F97316', 'Low': '#9B9BA8', 'Faible': '#9B9BA8' };
 
 export default function RecoGrid({ recommendations, onAddTask, addedKeys }) {
   return (
     <div style={{ fontFamily: F }}>
-      <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '22px 0 4px' }}>Recommandations</p>
-      <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 14px' }}>Basées sur cet audit · cliquez « Ajouter à mes tâches » pour les suivre.</p>
+      <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '22px 0 4px' }}>Recommendations</p>
+      <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 14px' }}>Based on this audit · click "Add to my tasks" to track them.</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {recommendations.length === 0 && <p style={{ fontSize: 13, color: INK3 }}>Aucune recommandation pour le moment.</p>}
+        {recommendations.length === 0 && <p style={{ fontSize: 13, color: INK3 }}>No recommendations yet.</p>}
         {recommendations.map((r, i) => {
           const key = `reco_${r.title}`;
           const added = addedKeys.includes(key);
@@ -30,7 +30,7 @@ export default function RecoGrid({ recommendations, onAddTask, addedKeys }) {
                 </div>
                 <button onClick={() => !added && onAddTask(r, key)} disabled={added}
                   style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: added ? '#EDE7F8' : VIOLET, border: 'none', borderRadius: 8, fontSize: 11.5, fontWeight: 700, color: added ? VIOLET : '#fff', cursor: added ? 'default' : 'pointer', fontFamily: F }}>
-                  {added ? <><Check size={11} /> Ajoutée</> : <><Plus size={11} /> Ajouter à mes tâches</>}
+                  {added ? <><Check size={11} /> Added</> : <><Plus size={11} /> Add to my tasks</>}
                 </button>
               </div>
             </div>

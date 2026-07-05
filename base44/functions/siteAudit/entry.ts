@@ -26,20 +26,20 @@ function htmlToText(html) {
 }
 
 function categorize(path) {
-  if (/legal|mentions|privacy|confidentialite|terms|cgu|cgv|cookies/i.test(path)) return 'Mentions légales';
+  if (/legal|mentions|privacy|confidentialite|terms|cgu|cgv|cookies/i.test(path)) return 'Legal';
   if (/blog|article|news|actualite/i.test(path)) return 'Blog';
   if (/contact/i.test(path)) return 'Contact';
-  if (/carriere|career|job|recrutement/i.test(path)) return 'Carrières';
-  if (/pricing|tarif/i.test(path)) return 'Tarifs';
-  if (/about|propos|equipe|team/i.test(path)) return 'À propos';
-  if (/product|produit|service|feature|solution/i.test(path)) return 'Produit';
-  if (/faq|aide|help|support/i.test(path)) return 'FAQ / Aide';
+  if (/carriere|career|job|recrutement/i.test(path)) return 'Careers';
+  if (/pricing|tarif/i.test(path)) return 'Pricing';
+  if (/about|propos|equipe|team/i.test(path)) return 'About';
+  if (/product|produit|service|feature|solution/i.test(path)) return 'Product';
+  if (/faq|aide|help|support/i.test(path)) return 'FAQ / Help';
   return 'Page';
 }
 
 const UTILITY_RE = /login|register|signin|signup|logout|cart|panier|checkout|account|admin|wp-|\.(pdf|xml|jpg|jpeg|png|svg|zip|ico)$|unsubscribe|reset-password|forgot/i;
-const LANG_DUP_RE = /^\/(en|de|es|it|pt|nl|ja|zh)(\/|$)/i;
-const SINGLE_CATS = ['Mentions légales', 'Carrières', 'Contact'];
+const LANG_DUP_RE = /^\/(fr|de|es|it|pt|nl|ja|zh)(\/|$)/i;
+const SINGLE_CATS = ['Legal', 'Careers', 'Contact'];
 const MAX_PAGES = 6;
 
 Deno.serve(async (req) => {
@@ -75,14 +75,14 @@ Deno.serve(async (req) => {
     const filtered = [];
     const catCount = {};
     let categoryLimitHits = 0;
-    const selected = [{ url: cleanUrl, category: 'Accueil' }];
+    const selected = [{ url: cleanUrl, category: 'Home' }];
     for (const c of candidates) {
       if (selected.length >= MAX_PAGES) break;
-      if (UTILITY_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Page utilitaire (sans valeur GEO)' }); continue; }
-      if (LANG_DUP_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Doublon de langue' }); continue; }
+      if (UTILITY_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Utility page (no GEO value)' }); continue; }
+      if (LANG_DUP_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Language duplicate' }); continue; }
       const cat = categorize(c.path);
       if (SINGLE_CATS.includes(cat) && (catCount[cat] || 0) >= 1) {
-        filtered.push({ url: c.url, reason: `Limite de catégorie (${cat})` });
+        filtered.push({ url: c.url, reason: `Category limit (${cat})` });
         categoryLimitHits++;
         continue;
       }
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     }));
     const fetchedPages = results.filter(p => p.fetched && p.text.length > 100);
 
-    const corpus = fetchedPages.map(p => `--- PAGE: ${p.url} (${p.category}) ---\n${p.text.slice(0, 3200)}`).join('\n\n') || '(aucune page accessible)';
+    const corpus = fetchedPages.map(p => `--- PAGE: ${p.url} (${p.category}) ---\n${p.text.slice(0, 3200)}`).join('\n\n') || '(no accessible page)';
 
     const agentSchema = {
       type: 'object',
@@ -119,22 +119,22 @@ Deno.serve(async (req) => {
       },
     };
 
-    const baseRules = `Réponds en français. score = 0-100 réaliste (site vide/inaccessible = 0-20). items = 2-6 constats concrets max, chacun cite la page exacte. severity: "high"|"medium"|"low". JSON valide uniquement.`;
+    const baseRules = `Respond in English. score = realistic 0-100 (empty/inaccessible site = 0-20). items = 2-6 concrete findings max, each citing the exact page. severity: "high"|"medium"|"low". Valid JSON only.`;
 
     // ── 4. Run the 3 agents in parallel ──
     const [freshness, seo, content] = await Promise.all([
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Tu es l'agent FRAÎCHEUR d'un audit GEO du site ${cleanUrl}. Évalue la fraîcheur du contenu (dates, actualités, signes de mise à jour, contenu daté ou obsolète) à partir des pages réellement crawlées ci-dessous.\n\n${corpus}\n\n${baseRules}`,
+        prompt: `You are the FRESHNESS agent of a GEO audit of the site ${cleanUrl}. Evaluate content freshness (dates, news, signs of updates, dated or obsolete content) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
         model: 'gpt_5_mini',
         response_json_schema: agentSchema,
       }).catch(() => null),
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Tu es l'agent SEO STRUCTUREL d'un audit GEO du site ${cleanUrl}. Évalue la structure (hiérarchie de titres, clarté des pages, maillage, lisibilité machine pour les moteurs IA) à partir des pages réellement crawlées ci-dessous.\n\n${corpus}\n\n${baseRules}`,
+        prompt: `You are the STRUCTURAL SEO agent of a GEO audit of the site ${cleanUrl}. Evaluate the structure (heading hierarchy, page clarity, internal linking, machine readability for AI engines) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
         model: 'gpt_5_mini',
         response_json_schema: agentSchema,
       }).catch(() => null),
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `Tu es l'agent QUALITÉ CONTENU d'un audit GEO du site ${cleanUrl}. Évalue la qualité éditoriale (clarté de la proposition de valeur, profondeur, réponses aux questions des prospects, citabilité par les IA) à partir des pages réellement crawlées ci-dessous.\n\n${corpus}\n\n${baseRules}`,
+        prompt: `You are the CONTENT QUALITY agent of a GEO audit of the site ${cleanUrl}. Evaluate editorial quality (clarity of value proposition, depth, answers to prospect questions, citability by AIs) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
         model: 'gpt_5_mini',
         response_json_schema: agentSchema,
       }).catch(() => null),

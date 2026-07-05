@@ -16,9 +16,9 @@ const BLUE = '#3B8BEB';
 function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { return fb; } }
 
 const TABS = [
-  { id: 'freshness', label: 'FRAÎCHEUR' },
-  { id: 'seo', label: 'SEO STRUCTUREL' },
-  { id: 'content', label: 'QUALITÉ CONTENU' },
+  { id: 'freshness', label: 'FRESHNESS' },
+  { id: 'seo', label: 'STRUCTURAL SEO' },
+  { id: 'content', label: 'CONTENT QUALITY' },
 ];
 
 function KPICard({ label, value, color, dash }) {
@@ -32,7 +32,7 @@ function KPICard({ label, value, color, dash }) {
   );
 }
 
-const SEV = { high: { label: 'Critique', c: '#EF4444' }, medium: { label: 'Moyen', c: ORANGE }, low: { label: 'Mineur', c: BLUE } };
+const SEV = { high: { label: 'Critical', c: '#EF4444' }, medium: { label: 'Medium', c: ORANGE }, low: { label: 'Minor', c: BLUE } };
 
 export default function SiteAuditDetail() {
   const { id } = useParams();
@@ -53,12 +53,12 @@ export default function SiteAuditDetail() {
   useEffect(() => { load(); }, [id]);
 
   if (loading) return <div style={{ minHeight: '100vh', background: '#F7F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 26, height: 26, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.10)', borderTopColor: VIOLET, animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>;
-  if (!audit) return <div style={{ minHeight: '100vh', background: '#F7F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}><p style={{ color: INK3 }}>Audit introuvable.</p></div>;
+  if (!audit) return <div style={{ minHeight: '100vh', background: '#F7F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}><p style={{ color: INK3 }}>Audit not found.</p></div>;
 
   const agents = parseJSON(audit.agents_json, {});
   const pages = parseJSON(audit.pages_json, {});
   const results = parseJSON(audit.results_json, {});
-  const dateLabel = new Date(audit.created_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const dateLabel = new Date(audit.created_date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const activeResult = results[tab];
   const items = activeResult?.items || [];
 
@@ -68,14 +68,14 @@ export default function SiteAuditDetail() {
 
         {/* Back */}
         <button onClick={() => navigate('/site-audit')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: VIOLET, fontFamily: F, padding: 0, marginBottom: 12 }}>
-          <ArrowLeft size={14} /> Retour aux audits
+          <ArrowLeft size={14} /> Back to audits
         </button>
 
         {/* Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Audit du {dateLabel}</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Audit from {dateLabel}</h1>
           <StatusBadge status={audit.status} />
-          <button onClick={load} title="Rafraîchir"
+          <button onClick={load} title="Refresh"
             style={{ width: 30, height: 30, borderRadius: '50%', border: `1px solid ${BORDER}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <RefreshCw size={13} color={INK} />
           </button>

@@ -15,8 +15,8 @@ const CORAL = '#FF5A1F';
 const RANK_COLORS = ['#F97316', '#EF4444', '#7C3AED', '#3B8BEB', '#10B981'];
 
 function Trend({ t }) {
-  if (t === 'up') return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#0B815A', fontSize: 12, fontWeight: 600 }}><TrendingUp size={13} /> Hausse</span>;
-  if (t === 'down') return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 12, fontWeight: 600 }}><TrendingDown size={13} /> Baisse</span>;
+  if (t === 'up') return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#0B815A', fontSize: 12, fontWeight: 600 }}><TrendingUp size={13} /> Up</span>;
+  if (t === 'down') return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 12, fontWeight: 600 }}><TrendingDown size={13} /> Down</span>;
   return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: INK3, fontSize: 12 }}><Minus size={13} /> Stable</span>;
 }
 
@@ -58,7 +58,7 @@ export default function CompetitorsPage() {
       else { setName(''); setDomain(''); }
       await load();
     } catch (e) {
-      setAddError(e?.response?.data?.error || 'Analyse échouée — réessayez.');
+      setAddError(e?.response?.data?.error || 'Analysis failed — please retry.');
     }
     setAdding(false);
   };
@@ -71,24 +71,24 @@ export default function CompetitorsPage() {
     <div style={{ minHeight: '100vh', background: '#F7F5F0', fontFamily: F }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}>
 
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Concurrents</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Competitors</h1>
         <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>
-          Position de chaque concurrent sur vos prompts actifs (Referral · Authority), évolution et actualités. Cliquez un concurrent pour le détail.
+          Each competitor's position on your active prompts (Referral · Authority), trend and news. Click a competitor for details.
         </p>
 
         {/* ── Tracked competitors table ── */}
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 18 }}>
           <div style={{ padding: '14px 20px', borderBottom: `1px solid ${BORDER}` }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Concurrents suivis · synthèse 90j ({competitors.length})</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Tracked competitors · 90d summary ({competitors.length})</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '0.5fr 2.2fr 1.2fr 1fr 1.2fr 1fr', padding: '10px 20px', borderBottom: `1px solid ${BORDER}` }}>
-            {['#', 'CONCURRENT', 'REFERRAL PDV', 'AUTHORITY', 'TENDANCE 90J', ''].map((h, i) => (
+            {['#', 'COMPETITOR', 'REFERRAL SOV', 'AUTHORITY', '90D TREND', ''].map((h, i) => (
               <span key={i} style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.05em' }}>{h}</span>
             ))}
           </div>
-          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Chargement…</p>}
+          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Loading…</p>}
           {!loading && competitors.length === 0 && !adding && (
-            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '26px 0' }}>Aucun concurrent suivi. Ajoutez-en un ci-dessous — les prompts actifs seront générés automatiquement.</p>
+            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '26px 0' }}>No competitors tracked. Add one below — active prompts are generated automatically.</p>
           )}
           {competitors.map((c, i) => (
             <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '0.5fr 2.2fr 1.2fr 1fr 1.2fr 1fr', padding: '13px 20px', borderBottom: `1px solid ${BORDER}`, alignItems: 'center' }}>
@@ -104,7 +104,7 @@ export default function CompetitorsPage() {
               <span style={{ fontSize: 14, fontWeight: 800, color: '#0B815A' }}>{c.authority_pct}</span>
               <Trend t={c.trend_90d} />
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end' }}>
-                <button onClick={() => setDetail(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: INK, fontFamily: F, textDecoration: 'underline' }}>Détail →</button>
+                <button onClick={() => setDetail(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: INK, fontFamily: F, textDecoration: 'underline' }}>Details →</button>
                 <button onClick={() => remove(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}><Trash2 size={13} color={INK3} /></button>
               </span>
             </div>
@@ -112,24 +112,24 @@ export default function CompetitorsPage() {
           {adding && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 20px', borderBottom: `1px solid ${BORDER}` }}>
               <Loader size={13} color={CORAL} style={{ animation: 'spin 1s linear infinite' }} />
-              <span style={{ fontSize: 12.5, color: INK3 }}>Analyse de <strong style={{ color: INK }}>{domain}</strong> en cours — évaluation sur vos prompts actifs…</span>
+              <span style={{ fontSize: 12.5, color: INK3 }}>Analyzing <strong style={{ color: INK }}>{domain}</strong> — evaluating against your active prompts…</span>
             </div>
           )}
           {/* Add form */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 20px', flexWrap: 'wrap' }}>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Nom"
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Name"
               style={{ padding: '8px 12px', fontSize: 12.5, border: `1px solid ${BORDER}`, borderRadius: 8, outline: 'none', fontFamily: F, width: 140 }} />
             <div>
-              <input value={domain} onChange={e => { setDomain(e.target.value); setAddError(''); }} placeholder="Domaine *"
+              <input value={domain} onChange={e => { setDomain(e.target.value); setAddError(''); }} placeholder="Domain *"
                 onKeyDown={e => e.key === 'Enter' && addCompetitor()}
                 style={{ padding: '8px 12px', fontSize: 12.5, border: `1px solid ${addError ? '#EF4444' : BORDER}`, borderRadius: 8, outline: 'none', fontFamily: F, width: 170 }} />
-              <p style={{ fontSize: 10.5, color: addError ? '#EF4444' : INK3, margin: '4px 0 0' }}>{addError || 'Vérifiez le domaine officiel'}</p>
+              <p style={{ fontSize: 10.5, color: addError ? '#EF4444' : INK3, margin: '4px 0 0' }}>{addError || 'Check the official domain'}</p>
             </div>
             <button onClick={addCompetitor} disabled={!domain.trim() || adding}
               style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', background: domain.trim() && !adding ? INK : '#DDD', border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: domain.trim() && !adding ? 'pointer' : 'not-allowed', fontFamily: F }}>
-              <Plus size={12} /> Ajouter
+              <Plus size={12} /> Add
             </button>
-            <span style={{ fontSize: 11, color: INK3, alignSelf: 'center' }}>Les scores se mettent à jour à chaque nouvelle analyse.</span>
+            <span style={{ fontSize: 11, color: INK3, alignSelf: 'center' }}>Scores update with each new analysis.</span>
           </div>
         </div>
 
@@ -145,7 +145,7 @@ export default function CompetitorsPage() {
               ))}
             </div>
             <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 10px' }}>
-              {tab === 'referral' ? "Position de chaque acteur dans les recommandations des moteurs IA (sans citer la marque)." : "Présence de chaque acteur sur les requêtes éducatives où une source experte est citée."}
+              {tab === 'referral' ? "Each player's position in AI engine recommendations (without naming the brand)." : "Each player's presence on educational queries where an expert source is cited."}
             </p>
           </div>
           <PromptsMatrix you={you} competitors={competitors} type={tab} />

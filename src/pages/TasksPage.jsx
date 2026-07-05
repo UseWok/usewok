@@ -65,12 +65,12 @@ function Dropdown({ label, value, options, onChange }) {
   );
 }
 
-const TYPE_COLORS = { 'Technique': { bg: 'rgba(59,139,235,0.12)', c: BLUE }, 'Contenu': { bg: 'rgba(16,185,129,0.12)', c: GREEN }, 'Hors-site': { bg: 'rgba(124,58,237,0.12)', c: VIOLET } };
-const EFFORT_C = { 'Faible': GREEN, 'Low': GREEN, 'Medium': ORANGE, 'Moyen': ORANGE, 'Élevé': '#EF4444', 'High': '#EF4444' };
+const TYPE_COLORS = { 'Technical': { bg: 'rgba(59,139,235,0.12)', c: BLUE }, 'Technique': { bg: 'rgba(59,139,235,0.12)', c: BLUE }, 'Content': { bg: 'rgba(16,185,129,0.12)', c: GREEN }, 'Contenu': { bg: 'rgba(16,185,129,0.12)', c: GREEN }, 'Off-site': { bg: 'rgba(124,58,237,0.12)', c: VIOLET }, 'Hors-site': { bg: 'rgba(124,58,237,0.12)', c: VIOLET } };
+const EFFORT_C = { 'Low': GREEN, 'Faible': GREEN, 'Medium': ORANGE, 'Moyen': ORANGE, 'High': '#EF4444', 'Élevé': '#EF4444' };
 const STATUS_CFG = {
-  todo: { label: 'À faire', c: INK3, icon: null },
-  in_progress: { label: 'En cours', c: BLUE, icon: Play },
-  done: { label: 'Terminé', c: GREEN, icon: Check },
+  todo: { label: 'To do', c: INK3, icon: null },
+  in_progress: { label: 'In progress', c: BLUE, icon: Play },
+  done: { label: 'Done', c: GREEN, icon: Check },
 };
 
 export default function TasksPage() {
@@ -116,7 +116,7 @@ export default function TasksPage() {
   });
 
   const total = tasks.length;
-  const quickWins = tasks.filter(t => { const m = parseMeta(t); return (m.impact_label === 'Fort' || m.impact_score >= 60) && (m.effort === 'Faible' || m.effort === 'Low'); }).length;
+  const quickWins = tasks.filter(t => { const m = parseMeta(t); return (m.impact_label === 'High' || m.impact_label === 'Fort' || m.impact_score >= 60) && (m.effort === 'Low' || m.effort === 'Faible'); }).length;
   const pending = tasks.filter(t => !t.status || t.status === 'todo').length;
   const inProgress = tasks.filter(t => t.status === 'in_progress').length;
   const completed = tasks.filter(t => t.status === 'done').length;
@@ -124,8 +124,8 @@ export default function TasksPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#F7F5F0', fontFamily: F }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Tâches</h1>
-        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>Centre d'action — recommandations issues de vos audits, classées par impact.</p>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Tasks</h1>
+        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>Action center — recommendations from your audits, ranked by impact.</p>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 18 }}>
@@ -140,25 +140,25 @@ export default function TasksPage() {
         <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 10, padding: '9px 14px', flex: 1, minWidth: 200 }}>
             <Search size={14} color={INK3} />
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher…"
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search…"
               style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: INK, fontFamily: F, width: '100%' }} />
           </div>
-          <Dropdown label="Tous statuts" value={fStatus} onChange={setFStatus} options={[{ id: 'all', label: 'Tous statuts' }, { id: 'todo', label: 'À faire' }, { id: 'in_progress', label: 'En cours' }, { id: 'done', label: 'Terminé' }]} />
-          <Dropdown label="Tous types" value={fType} onChange={setFType} options={[{ id: 'all', label: 'Tous types' }, { id: 'Technique', label: 'Technique' }, { id: 'Contenu', label: 'Contenu' }, { id: 'Hors-site', label: 'Hors-site' }]} />
-          <Dropdown label="Toutes sources" value={fSource} onChange={setFSource} options={[{ id: 'all', label: 'Toutes sources' }, { id: 'Audit', label: 'Audit' }, { id: 'Image de marque', label: 'Image de marque' }, { id: 'Recommandations', label: 'Recommandations' }]} />
-          <Dropdown label="Toutes priorités" value={fPriority} onChange={setFPriority} options={[{ id: 'all', label: 'Toutes priorités' }, { id: 'Fort', label: 'Fort' }, { id: 'Moyen', label: 'Moyen' }, { id: 'Faible', label: 'Faible' }]} />
+          <Dropdown label="All statuses" value={fStatus} onChange={setFStatus} options={[{ id: 'all', label: 'All statuses' }, { id: 'todo', label: 'To do' }, { id: 'in_progress', label: 'In progress' }, { id: 'done', label: 'Done' }]} />
+          <Dropdown label="All types" value={fType} onChange={setFType} options={[{ id: 'all', label: 'All types' }, { id: 'Technical', label: 'Technical' }, { id: 'Content', label: 'Content' }, { id: 'Off-site', label: 'Off-site' }]} />
+          <Dropdown label="All sources" value={fSource} onChange={setFSource} options={[{ id: 'all', label: 'All sources' }, { id: 'Audit', label: 'Audit' }, { id: 'Brand image', label: 'Brand image' }, { id: 'Recommendations', label: 'Recommendations' }]} />
+          <Dropdown label="All priorities" value={fPriority} onChange={setFPriority} options={[{ id: 'all', label: 'All priorities' }, { id: 'High', label: 'High' }, { id: 'Medium', label: 'Medium' }, { id: 'Low', label: 'Low' }]} />
         </div>
 
         {/* Table */}
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px 130px 90px', padding: '12px 20px', borderBottom: `1px solid ${BORDER}` }}>
-            {['RECOMMANDATION', 'IMPACT', 'EFFORT', 'STATUS', ''].map((h, i) => (
+            {['RECOMMENDATION', 'IMPACT', 'EFFORT', 'STATUS', ''].map((h, i) => (
               <span key={i} style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.05em', textAlign: i === 0 ? 'left' : 'center' }}>{h}</span>
             ))}
           </div>
           {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '28px 0' }}>Chargement…</p>}
           {!loading && filtered.length === 0 && (
-            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>Aucune tâche urgente. Ajoutez des recommandations depuis Image de marque ou Recommandations.</p>
+            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>No tasks yet. Add recommendations from Brand image or Recommendations.</p>
           )}
           {filtered.map(t => {
             const m = parseMeta(t);
@@ -184,9 +184,9 @@ export default function TasksPage() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
-                  <button onClick={() => setStatus(t, 'done')} title="Terminer" style={{ width: 24, height: 24, borderRadius: '50%', background: GREEN, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={12} color="#fff" /></button>
-                  <button onClick={() => setStatus(t, t.status === 'in_progress' ? 'todo' : 'in_progress')} title="En cours" style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3 }}><Ban size={15} /></button>
-                  <button onClick={() => remove(t)} title="Supprimer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }}><Trash2 size={14} /></button>
+                  <button onClick={() => setStatus(t, 'done')} title="Mark done" style={{ width: 24, height: 24, borderRadius: '50%', background: GREEN, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={12} color="#fff" /></button>
+                  <button onClick={() => setStatus(t, t.status === 'in_progress' ? 'todo' : 'in_progress')} title="In progress" style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3 }}><Ban size={15} /></button>
+                  <button onClick={() => remove(t)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }}><Trash2 size={14} /></button>
                 </div>
               </div>
             );

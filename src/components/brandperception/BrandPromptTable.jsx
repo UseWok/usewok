@@ -39,14 +39,14 @@ export default function BrandPromptTable({ prompts }) {
   return (
     <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', fontFamily: F }}>
       <div style={{ display: 'flex', gap: 6, padding: '12px 16px', borderBottom: `1px solid ${BORDER}` }}>
-        {[{ id: 'all', label: 'Tous' }, { id: 'narrative', label: 'Narrative' }, { id: 'authority', label: 'Authority' }].map(f => (
+        {[{ id: 'all', label: 'All' }, { id: 'narrative', label: 'Narrative' }, { id: 'authority', label: 'Authority' }].map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
             style={{ padding: '5px 12px', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: F, fontSize: 11.5, fontWeight: 700, background: filter === f.id ? INK : '#F0EDE8', color: filter === f.id ? '#fff' : INK3 }}>
             {f.label}
           </button>
         ))}
       </div>
-      {rows.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0', margin: 0 }}>Aucun prompt.</p>}
+      {rows.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0', margin: 0 }}>No prompts.</p>}
       {rows.map((p, i) => <Row key={i} p={p} />)}
     </div>
   );

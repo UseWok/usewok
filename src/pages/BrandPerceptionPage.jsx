@@ -21,10 +21,10 @@ function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { re
  */
 export default function BrandPerceptionPage({ kind = 'brand' }) {
   const isReco = kind === 'reco';
-  const title = isReco ? 'Recommandations' : 'Image de marque';
+  const title = isReco ? 'Recommendations' : 'Brand image';
   const subtitle = isReco
-    ? "Actions concrètes pour améliorer votre présence dans les réponses des IA, priorisées par impact."
-    : "Comment les moteurs IA parlent de votre marque — narrative, autorité et sentiment.";
+    ? "Concrete actions to improve your presence in AI answers, prioritized by impact."
+    : "How AI engines talk about your brand — narrative, authority and sentiment.";
 
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ export default function BrandPerceptionPage({ kind = 'brand' }) {
         user_id: userId, site_url: siteUrl,
         action_title: reco.title,
         status: 'todo',
-        note: JSON.stringify({ type: reco.type, source: title, impact_label: reco.impact, effort: reco.effort, impact_score: reco.impact === 'Fort' ? 80 : reco.impact === 'Moyen' ? 55 : 30, reco_key: key, description: reco.description }),
+        note: JSON.stringify({ type: reco.type, source: title, impact_label: reco.impact, effort: reco.effort, impact_score: (reco.impact === 'High' || reco.impact === 'Fort') ? 80 : (reco.impact === 'Medium' || reco.impact === 'Moyen') ? 55 : 30, reco_key: key, description: reco.description }),
       });
       setAddedKeys(prev => [...prev, key]);
     } catch {}
@@ -95,30 +95,30 @@ export default function BrandPerceptionPage({ kind = 'brand' }) {
             {!isReco && (
               <button onClick={() => setShowConfig(true)} disabled={!record}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#fff', border: `1px solid ${VIOLET}`, borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: VIOLET, cursor: record ? 'pointer' : 'not-allowed', fontFamily: F, opacity: record ? 1 : 0.5 }}>
-                <Settings size={13} /> Configurer les prompts
+                <Settings size={13} /> Configure prompts
               </button>
             )}
             <button onClick={run} disabled={running || !siteUrl}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: running ? '#999' : INK, border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: running ? 'default' : 'pointer', fontFamily: F }}>
               {running ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />}
-              {running ? 'Analyse…' : record ? 'Relancer l\'audit' : 'Lancer l\'audit'}
+              {running ? 'Analyzing…' : record ? 'Re-run audit' : 'Run audit'}
             </button>
           </div>
         </div>
-        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>{subtitle}{record?.analyzed_at ? ` · Dernier audit ${new Date(record.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}</p>
+        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>{subtitle}{record?.analyzed_at ? ` · Last audit ${new Date(record.analyzed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}</p>
 
         {loading ? (
-          <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>Chargement…</p>
+          <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>Loading…</p>
         ) : !record ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '45vh', textAlign: 'center' }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
               <Zap size={22} color={INK3} />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Aucune analyse pour ce domaine</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Lancez l'audit pour découvrir comment les IA perçoivent votre marque.</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>No analysis for this domain</p>
+            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Run the audit to see how AI engines perceive your brand.</p>
             <button onClick={run} disabled={running || !siteUrl}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <Zap size={13} /> {running ? 'Analyse…' : 'Lancer l\'audit'}
+              <Zap size={13} /> {running ? 'Analyzing…' : 'Run audit'}
             </button>
           </div>
         ) : (

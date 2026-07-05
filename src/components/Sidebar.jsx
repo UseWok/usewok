@@ -619,7 +619,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
             <NavItem icon={LayoutDashboard} label="Overview" onClick={() => nav('/dashboard')} active={isActive('/dashboard')} expanded={expanded} />
             <NavItem icon={BarChart2} label="AI Report" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
-            <NavItem icon={Trophy} label="Historique" onClick={() => nav('/history')} active={isActive('/history')} expanded={expanded} />
+            <NavItem icon={Trophy} label="History" onClick={() => nav('/history')} active={isActive('/history')} expanded={expanded} />
           </div>
 
           <Divider />
@@ -638,11 +638,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 { id: 'geo',         label: 'GEO Strategy',     icon: Target,         color: '#F97316', route: '/geo-strategy' },
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
-                { id: 'siteaudit',   label: 'Audit du site',    icon: FileSearch,     color: '#7B4FE0', route: '/site-audit' },
-                { id: 'competitors', label: 'Concurrents',      icon: Users,          color: '#F95738', route: '/competitors' },
-                { id: 'tasks',       label: 'Tâches',           icon: CheckSquare,    color: '#F97316', route: '/tasks' },
-                { id: 'brandimage',  label: 'Image de marque',  icon: Award,          color: '#E8184A', route: '/brand-image' },
-                { id: 'reco',        label: 'Recommandations',  icon: Sparkle,        color: '#7C3AED', route: '/recommendations' },
+                { id: 'siteaudit',   label: 'Site Audit',       icon: FileSearch,     color: '#7B4FE0', route: '/site-audit' },
+                { id: 'competitors', label: 'Competitors',      icon: Users,          color: '#F95738', route: '/competitors' },
+                { id: 'tasks',       label: 'Tasks',            icon: CheckSquare,    color: '#F97316', route: '/tasks' },
+                { id: 'brandimage',  label: 'Brand Image',      icon: Award,          color: '#E8184A', route: '/brand-image' },
+                { id: 'reco',        label: 'Recommendations',  icon: Sparkle,        color: '#7C3AED', route: '/recommendations' },
               ].map(tool => {
                 const Icon = tool.icon;
                 const isToolActive = tool.route ? location.pathname === tool.route : (location.pathname === '/ai-report' && new URLSearchParams(location.search).get('tool') === tool.id);

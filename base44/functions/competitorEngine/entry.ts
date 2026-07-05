@@ -52,22 +52,22 @@ async function analyzeDomain(svc, { name, domain, prompts, industry }) {
   const promptList = prompts.map((p, i) => `${i}. [${p.type}] ${p.text}`).join('\n');
 
   const result = await svc.integrations.Core.InvokeLLM({
-    prompt: `Tu es un analyste GEO (Generative Engine Optimization). Analyse la visibilité IA réelle de "${name}" (${domain})${industry ? `, secteur: ${industry}` : ''}.
+    prompt: `You are a GEO (Generative Engine Optimization) analyst. Analyze the real AI visibility of "${name}" (${domain})${industry ? `, industry: ${industry}` : ''}.
 
-## PROMPTS ACTIFS À ÉVALUER
-Pour CHAQUE prompt ci-dessous, détermine si les moteurs IA (ChatGPT, Gemini, Perplexity) citeraient/recommanderaient réellement ${name} en réponse. Sois brutalement réaliste — une marque peu connue n'est presque jamais citée.
+## ACTIVE PROMPTS TO EVALUATE
+For EACH prompt below, determine whether AI engines (ChatGPT, Gemini, Perplexity) would actually cite/recommend ${name} in response. Be brutally realistic — a little-known brand is almost never cited.
 ${promptList}
 
-## À RETOURNER
-- per_prompt: pour chaque prompt (index 0-based), cited true/false.
-- referral_pct: % de part de voix sur les prompts de type "referral" (0-100, réaliste).
-- authority_pct: % de présence sur les prompts de type "authority" (0-100, réaliste).
-- synthesis: 1-2 phrases en français expliquant pourquoi ${name} ressort (ou pas) dans les réponses IA, avec les chiffres.
-- positioning: comment ${name} se présente — différenciateurs observés sur le site, cibles éditoriales inférées (français). ${siteText ? `Voici le texte réel de leur page d'accueil:\n"${siteText.slice(0, 2000)}"` : 'Le site n\'a pas pu être analysé — retourne une chaîne vide pour positioning.'}
-- trend_90d: "up" | "down" | "flat" — tendance de visibilité IA sur 90 jours.
-- news: 0-3 actualités RÉELLES et récentes de ${name} (lancements produits, annonces) avec titre, résumé, date (JJ/MM/AAAA), source_url réelle, tag ("News"|"Produit"|"Annonce"). Tableau vide si rien de vérifiable.
+## TO RETURN
+- per_prompt: for each prompt (0-based index), cited true/false.
+- referral_pct: % share of voice on "referral" type prompts (0-100, realistic).
+- authority_pct: % presence on "authority" type prompts (0-100, realistic).
+- synthesis: 1-2 sentences in English explaining why ${name} appears (or not) in AI answers, with the numbers.
+- positioning: how ${name} presents itself — differentiators observed on the site, inferred editorial targets (English). ${siteText ? `Here is the real text of their homepage:\n"${siteText.slice(0, 2000)}"` : 'The site could not be analyzed — return an empty string for positioning.'}
+- trend_90d: "up" | "down" | "flat" — AI visibility trend over 90 days.
+- news: 0-3 REAL and recent news items about ${name} (product launches, announcements) with title, summary, date (MM/DD/YYYY), real source_url, tag ("News"|"Product"|"Announcement"). Empty array if nothing verifiable.
 
-JSON valide uniquement.`,
+Valid JSON only.`,
     add_context_from_internet: true,
     model: 'gemini_3_flash',
     response_json_schema: evalSchema,
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
     const siteUrl = body.site_url || '';
     const name = (body.name || '').trim();
     const domain = (body.domain || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    if (!domain || !siteUrl) return Response.json({ error: 'domain et site_url requis' }, { status: 400 });
+    if (!domain || !siteUrl) return Response.json({ error: 'domain and site_url required' }, { status: 400 });
 
     // Brand context
     let brandName = '', industry = '';
@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
 
     const existing = await svc.entities.Competitor.filter({ user_id: user.id, site_url: siteUrl });
     if (existing.some(c => !c.is_you && c.domain === domain)) {
-      return Response.json({ error: 'Ce concurrent est déjà suivi.' }, { status: 409 });
+      return Response.json({ error: 'This competitor is already tracked.' }, { status: 409 });
     }
     let you = existing.find(c => c.is_you);
     let prompts;
@@ -134,16 +134,16 @@ Deno.serve(async (req) => {
     if (!you) {
       // First competitor → generate the shared prompt set + evaluate the user's own brand
       const gen = await svc.integrations.Core.InvokeLLM({
-        prompt: `Tu es un analyste GEO. Marque: "${brandName}" (${youDomain})${industry ? `, secteur: ${industry}` : ''}.
+        prompt: `You are a GEO analyst. Brand: "${brandName}" (${youDomain})${industry ? `, industry: ${industry}` : ''}.
 
-1. Génère 10 prompts utilisateurs RÉALISTES en français, tels que de vrais prospects les poseraient à ChatGPT/Gemini :
-   - 6 de type "referral" (demandes de recommandation d'outils/services dans la catégorie de la marque)
-   - 4 de type "authority" (questions éducatives où une marque experte serait citée en source)
-   Chaque prompt a des tags courts (ex: ["L1","P1"]).
-2. Pour CHAQUE prompt, évalue honnêtement si les IA citeraient réellement "${brandName}" (cited true/false). Une marque peu connue = presque jamais citée.
-3. Donne referral_pct et authority_pct réalistes (0-100) pour "${brandName}".
+1. Generate 10 REALISTIC user prompts in English, as real prospects would ask ChatGPT/Gemini:
+   - 6 of type "referral" (recommendation requests for tools/services in the brand's category)
+   - 4 of type "authority" (educational questions where an expert brand would be cited as a source)
+   Each prompt has short tags (e.g. ["L1","P1"]).
+2. For EACH prompt, honestly assess whether the AIs would actually cite "${brandName}" (cited true/false). A little-known brand = almost never cited.
+3. Give realistic referral_pct and authority_pct (0-100) for "${brandName}".
 
-JSON valide uniquement.`,
+Valid JSON only.`,
         add_context_from_internet: true,
         model: 'gemini_3_flash',
         response_json_schema: {
@@ -172,7 +172,7 @@ JSON valide uniquement.`,
         type: p.type === 'authority' ? 'authority' : 'referral',
         tags: p.tags || [],
       }));
-      if (prompts.length === 0) return Response.json({ error: 'Impossible de générer les prompts' }, { status: 500 });
+      if (prompts.length === 0) return Response.json({ error: 'Unable to generate prompts' }, { status: 500 });
 
       const youPrompts = prompts.map((p, i) => ({ ...p, cited: !!(gen?.prompts?.[i]?.you_cited) }));
       const refP = youPrompts.filter(p => p.type === 'referral');
@@ -189,7 +189,7 @@ JSON valide uniquement.`,
       });
     } else {
       try { prompts = JSON.parse(you.prompts_json || '[]'); } catch { prompts = []; }
-      if (prompts.length === 0) return Response.json({ error: 'Jeu de prompts introuvable' }, { status: 500 });
+      if (prompts.length === 0) return Response.json({ error: 'Prompt set not found' }, { status: 500 });
     }
 
     const analysis = await analyzeDomain(svc, { name: name || domain, domain, prompts, industry });
@@ -201,6 +201,6 @@ JSON valide uniquement.`,
     return Response.json({ competitor, you });
   } catch (error) {
     console.error('[competitorEngine]', error);
-    return Response.json({ error: error?.message || 'Analyse échouée' }, { status: 500 });
+    return Response.json({ error: error?.message || 'Analysis failed' }, { status: 500 });
   }
 });

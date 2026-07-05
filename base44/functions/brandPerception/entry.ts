@@ -31,23 +31,23 @@ Deno.serve(async (req) => {
     } catch {}
 
     const result = await svc.integrations.Core.InvokeLLM({
-      prompt: `Tu es un analyste GEO (Generative Engine Optimization). Analyse en LIVE comment les moteurs IA (ChatGPT, Gemini, Perplexity) perçoivent la marque "${brandName}" (${cleanUrl})${industry ? `, secteur: ${industry}` : ''}${city ? `, zone: ${city}` : ''}.
+      prompt: `You are a GEO (Generative Engine Optimization) analyst. Analyze LIVE how AI engines (ChatGPT, Gemini, Perplexity) perceive the brand "${brandName}" (${cleanUrl})${industry ? `, industry: ${industry}` : ''}${city ? `, area: ${city}` : ''}.
 
-## PROMPTS À ÉVALUER
-Génère 10 prompts utilisateurs RÉALISTES en français :
-- 5 "narrative" : demandes de recommandation d'outils/services où la marque devrait apparaître.
-- 5 "authority" : questions éducatives où une source experte serait citée.
-Pour CHAQUE prompt, détermine honnêtement si les IA citeraient réellement "${brandName}" (cited true/false). Une marque peu connue = presque jamais citée. Donne une réponse courte (answer, 1 phrase) résumant ce que l'IA répondrait.
+## PROMPTS TO EVALUATE
+Generate 10 REALISTIC user prompts in English:
+- 5 "narrative": recommendation requests for tools/services where the brand should appear.
+- 5 "authority": educational questions where an expert source would be cited.
+For EACH prompt, honestly determine whether the AI engines would actually cite "${brandName}" (cited true/false). A little-known brand = almost never cited. Give a short answer (answer, 1 sentence) summarizing what the AI would respond.
 
 ## SCORES
-- score_narrative (0-100): part de voix sur les prompts narrative (réaliste).
-- score_authority (0-100): présence sur les prompts authority (réaliste).
-- sentiment_positive, sentiment_neutral, sentiment_negative (entiers, somme = 100): le sentiment des IA quand elles évoquent la marque. Marque inconnue = surtout neutre.
+- score_narrative (0-100): share of voice on narrative prompts (realistic).
+- score_authority (0-100): presence on authority prompts (realistic).
+- sentiment_positive, sentiment_neutral, sentiment_negative (integers, sum = 100): the AI sentiment when it mentions the brand. Unknown brand = mostly neutral.
 
-## RECOMMANDATIONS
-Génère 4-6 recommandations concrètes pour améliorer la visibilité IA. Chaque reco: title, description (2 phrases), impact ("Fort"|"Moyen"|"Faible"), effort ("Faible"|"Moyen"|"Élevé"), type ("Technique"|"Contenu"|"Hors-site").
+## RECOMMENDATIONS
+Generate 4-6 concrete recommendations to improve AI visibility. Each reco: title, description (2 sentences), impact ("High"|"Medium"|"Low"), effort ("Low"|"Medium"|"High"), type ("Technical"|"Content"|"Off-site").
 
-Réponds en français. JSON valide uniquement.`,
+Respond in English. Valid JSON only.`,
       add_context_from_internet: true,
       model: 'gemini_3_flash',
       response_json_schema: {
@@ -93,7 +93,7 @@ Réponds en français. JSON valide uniquement.`,
       type: p.type === 'authority' ? 'authority' : 'narrative',
       cited: !!p.cited,
       answer: p.answer || '',
-      lang: p.lang || 'FR',
+      lang: p.lang || 'EN',
     }));
 
     let sp = Math.max(0, Math.round(result?.sentiment_positive || 0));
