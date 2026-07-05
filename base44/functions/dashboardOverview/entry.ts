@@ -84,6 +84,22 @@ Deno.serve(async (req) => {
           if (Array.isArray(bk.languages) && bk.languages.length) parts.push(`Answer languages: ${bk.languages.join(', ')}`);
           if (parts.length) brandContext = `\n## BRAND KNOWLEDGE (user-provided, authoritative — use this to focus zones, languages, competitors, tasks and cited topics)\n${parts.join('\n')}\n`;
         }
+
+        // ── GEO Strategy — user-curated GEO plan ──
+        const gs = extra?.geo_strategy;
+        if (gs && typeof gs === 'object') {
+          const gp: string[] = [];
+          if (gs.positioning_target) gp.push(`Positioning target: ${gs.positioning_target}`);
+          if (gs.positioning_note) gp.push(`Positioning angle: ${gs.positioning_note}`);
+          if (Array.isArray(gs.target_queries) && gs.target_queries.length) gp.push(`Target queries: ${gs.target_queries.join(' | ')}`);
+          if (Array.isArray(gs.query_intents) && gs.query_intents.length) gp.push(`Query intents: ${gs.query_intents.join(', ')}`);
+          if (gs.query_philosophy) gp.push(`Query philosophy: ${gs.query_philosophy}`);
+          if (Array.isArray(gs.known_sources) && gs.known_sources.length) gp.push(`Target authority sources: ${gs.known_sources.join(', ')}`);
+          if (Array.isArray(gs.authority_sources) && gs.authority_sources.length) gp.push(`Other target sources: ${gs.authority_sources.join(', ')}`);
+          if (Array.isArray(gs.content_pillars) && gs.content_pillars.length) gp.push(`Content pillars: ${gs.content_pillars.join(', ')}`);
+          if (Array.isArray(gs.priority_competitors) && gs.priority_competitors.length) gp.push(`Priority competitors to beat: ${gs.priority_competitors.join(', ')}`);
+          if (gp.length) brandContext += `\n## GEO STRATEGY (user-provided, authoritative — align competitors, zones and tasks to this plan)\n${gp.join('\n')}\n`;
+        }
       }
     } catch (e) {
       console.log('[dashboardOverview] brand knowledge load skipped:', e?.message);

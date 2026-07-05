@@ -400,6 +400,21 @@ function buildContext(user, profile, activeDomain) {
     if (bk.languages?.length) ctx += `Answer languages: ${bk.languages.join(', ')}\n`;
   }
 
+  // ── GEO Strategy — user-curated GEO plan (highest priority) ──
+  const gs = profile.geo_strategy;
+  if (gs && typeof gs === 'object') {
+    ctx += `\n## GEO STRATEGY (user-provided, authoritative — align every recommendation to this)\n`;
+    if (gs.positioning_target) ctx += `Positioning target: ${gs.positioning_target}\n`;
+    if (gs.positioning_note) ctx += `Positioning angle: ${gs.positioning_note}\n`;
+    if (gs.target_queries?.length) ctx += `Target queries: ${gs.target_queries.join(' | ')}\n`;
+    if (gs.query_intents?.length) ctx += `Query intents: ${gs.query_intents.join(', ')}\n`;
+    if (gs.query_philosophy) ctx += `Query philosophy / editorial directives: ${gs.query_philosophy}\n`;
+    if (gs.known_sources?.length) ctx += `Target authority sources: ${gs.known_sources.join(', ')}\n`;
+    if (gs.authority_sources?.length) ctx += `Other target sources: ${gs.authority_sources.join(', ')}\n`;
+    if (gs.content_pillars?.length) ctx += `Content pillars: ${gs.content_pillars.join(', ')}\n`;
+    if (gs.priority_competitors?.length) ctx += `Priority competitors to beat: ${gs.priority_competitors.join(', ')}\n`;
+  }
+
   return ctx;
 }
 
