@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -617,7 +617,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
             <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
-            <NavItem icon={BarChart2} label="Dashboard" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
+            <NavItem icon={LayoutDashboard} label="Overview" onClick={() => nav('/dashboard')} active={isActive('/dashboard')} expanded={expanded} />
+            <NavItem icon={BarChart2} label="AI Report" onClick={() => nav('/ai-report')} active={isActive('/ai-report')} expanded={expanded} />
             <NavItem icon={Trophy} label="Historique" onClick={() => nav('/history')} active={isActive('/history')} expanded={expanded} />
           </div>
 

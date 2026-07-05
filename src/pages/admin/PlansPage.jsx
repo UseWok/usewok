@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { loadPlansFromDB, savePlansConfig, getPlansConfig } from '@/lib/plans-config';
+import { loadPlansFromDB, savePlansConfig, getPlansConfig, ALL_ENGINES } from '@/lib/plans-config';
 import { toast } from 'sonner';
 import {
   Plus, Trash2, Users, Check, Save, RefreshCw, ChevronDown, ChevronUp,
@@ -179,6 +179,43 @@ function PlanForm({ plan, onChange, onDelete, subscriberCount, isNew }) {
                 <Field label="Historique conservé (jours)">
                   <input type="number" min="1" value={plan.history_days ?? 30} onChange={e => setField('history_days', parseInt(e.target.value) || 30)} style={inp} />
                 </Field>
+              </div>
+
+              {/* ── Moteurs IA activés (liste exacte cochable) ── */}
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#AAA', letterSpacing: '0.08em', textTransform: 'uppercase', margin: '18px 0 8px', fontFamily: F }}>
+                Moteurs IA activés
+              </p>
+              <p style={{ fontSize: 11, color: '#999', margin: '0 0 10px', lineHeight: 1.5, fontFamily: F }}>
+                Seuls les moteurs cochés sont analysés dans le tableau de bord de ce plan.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {ALL_ENGINES.map(eng => {
+                  const active = (plan.engines || []).includes(eng.id);
+                  return (
+                    <button key={eng.id} type="button"
+                      onClick={() => {
+                        const cur = plan.engines || [];
+                        setField('engines', active ? cur.filter(x => x !== eng.id) : [...cur, eng.id]);
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 11px',
+                        border: `1px solid ${active ? INK : BORDER}`, borderRadius: 8,
+                        background: active ? '#FFF3F0' : WHITE, cursor: 'pointer', fontFamily: F, textAlign: 'left',
+                      }}>
+                      <div style={{
+                        width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                        border: `1.5px solid ${active ? CORAL : '#CCC'}`, background: active ? CORAL : WHITE,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {active && <Check size={11} color={WHITE} strokeWidth={3} />}
+                      </div>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: active ? INK : '#777' }}>{eng.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 8, fontFamily: F }}>
+                {(plan.engines || []).length} moteur{(plan.engines || []).length !== 1 ? 's' : ''} activé{(plan.engines || []).length !== 1 ? 's' : ''}
               </div>
             </div>
 

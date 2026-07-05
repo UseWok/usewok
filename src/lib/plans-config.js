@@ -47,6 +47,7 @@ export const DEFAULT_PLANS = [
     scan_period: 'month',
     max_sites: 1,
     history_days: 30,
+    engines: ['gemini'],
   },
   {
     id: 'starter',
@@ -73,6 +74,7 @@ export const DEFAULT_PLANS = [
     scan_period: 'month',
     max_sites: 5,
     history_days: 180,
+    engines: ['gemini', 'chatgpt', 'claude', 'llama', 'perplexity'],
   },
   {
     id: 'pro',
@@ -99,7 +101,20 @@ export const DEFAULT_PLANS = [
     scan_period: 'day',
     max_sites: 10,
     history_days: 365,
+    engines: ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'],
   },
+];
+
+/** The full catalog of AI engines that can be enabled per plan (id + label). */
+export const ALL_ENGINES = [
+  { id: 'chatgpt', label: 'ChatGPT' },
+  { id: 'gemini', label: 'Gemini' },
+  { id: 'claude', label: 'Claude' },
+  { id: 'perplexity', label: 'Perplexity' },
+  { id: 'mistral', label: 'Mistral' },
+  { id: 'llama', label: 'Llama' },
+  { id: 'copilot', label: 'Copilot' },
+  { id: 'grok', label: 'Grok' },
 ];
 
 export const COMPARISON_FEATURES = [
@@ -172,6 +187,15 @@ export async function loadPlansFromDB() {
   } catch {}
   // Fallback: local cache
   try { return JSON.parse(localStorage.getItem(PLANS_STORAGE_KEY)) || null; } catch { return null; }
+}
+
+/** Resolve the list of enabled AI engine ids for a user's plan (admins get all). */
+export function getEnabledEngines(user) {
+  const allIds = ALL_ENGINES.map(e => e.id);
+  if (user?.role === 'admin') return allIds;
+  const plan = getUserPlan(user);
+  const engines = Array.isArray(plan?.engines) && plan.engines.length > 0 ? plan.engines : ['gemini'];
+  return engines.filter(e => allIds.includes(e));
 }
 
 export function getPlanById(planId) {
