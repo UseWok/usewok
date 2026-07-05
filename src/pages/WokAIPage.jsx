@@ -592,19 +592,17 @@ export default function WokAIPage({ user: userProp }) {
     setLoading(true);
 
     try {
-      const history = messages.slice(-4).map(m => `${m.role === 'user' ? 'USER' : 'WOK_AI'}: ${m.content}`).join('\n');
-      const ctx = buildContext(user, profile, activeDomain);
-      let prompt = ctx;
-      if (history) prompt += `\n---\nHISTORIQUE:\n${history}\n---\n`;
-      prompt += `\nUSER: ${content}\nWOK_AI:`;
+      const history = messages.slice(-4).map(m => ({ role: m.role, content: m.content }));
+      const systemPrompt = buildContext(user, profile, activeDomain);
       const fileUrls = allAttachments.map(f => f.url).filter(Boolean);
 
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        model: aiModel,
+      const res = await base44.functions.invoke('wokAIChat', {
+        system_prompt: systemPrompt,
+        history,
+        prompt: content,
         ...(fileUrls.length > 0 ? { file_urls: fileUrls } : {}),
       });
-      const aiContent = typeof res === 'string' ? res : (res?.data ?? res?.response ?? res?.text ?? res?.content ?? JSON.stringify(res) ?? '');
+      const aiContent = res?.data?.response || '';
       if (!aiContent || aiContent === 'null' || aiContent === '{}') throw new Error('empty_response');
 
       const aiMsg = { role: 'assistant', content: aiContent, ts: Date.now() };
