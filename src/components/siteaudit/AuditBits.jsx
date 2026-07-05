@@ -1,31 +1,39 @@
 const F = 'Inter, system-ui, sans-serif';
-const GREEN = '#10B981';
-const GRAY = '#C9C6BF';
+const INK = '#18140F';
+const INK2 = '#2C2820';
+const INK_FAINT = '#A79E8C';
+const CREAM = '#F6F1E7';
+const SURFACE = '#FFFFFF';
+const BORDER_STRONG = '#DCD1B4';
+const ORANGE = '#FF5A1F';
+const ORANGE_DARK = '#B23E10';
+const ORANGE_TINT = '#FFE6D6';
 
 export function StatusBadge({ status }) {
   const map = {
-    done: { label: 'Done', bg: '#10B981', color: '#fff' },
-    running: { label: 'Running', bg: 'rgba(249,115,22,0.14)', color: '#F97316' },
-    failed: { label: 'Failed', bg: 'rgba(239,68,68,0.12)', color: '#EF4444' },
+    done:    { label: 'Terminé',    bg: INK,           color: CREAM,      dot: ORANGE },
+    running: { label: 'En cours',   bg: ORANGE_TINT,   color: ORANGE_DARK, dot: ORANGE },
+    failed:  { label: 'Échec',      bg: '#FEE2E2',     color: '#DC2626',   dot: '#DC2626' },
   };
   const s = map[status] || map.done;
   return (
-    <span style={{ padding: '4px 12px', background: s.bg, color: s.color, borderRadius: 20, fontSize: 11.5, fontWeight: 700, fontFamily: F, display: 'inline-block' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, padding: '5px 11px', borderRadius: 100, border: `1px solid ${s.bg === INK ? INK : BORDER_STRONG}`, color: s.color, background: s.bg, fontFamily: F }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
       {s.label}
     </span>
   );
 }
 
 export const AGENT_ORDER = ['crawl', 'freshness', 'seo', 'content'];
-export const AGENT_LABELS = { crawl: 'Crawl', freshness: 'Freshness', seo: 'Structural SEO', content: 'Content Quality' };
+export const AGENT_LABELS = { crawl: 'Exploration', freshness: 'Fraîcheur', seo: 'SEO structurel', content: 'Qualité du contenu' };
 
 export function AgentDots({ agents }) {
   const a = agents || {};
   return (
     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
       {AGENT_ORDER.map(k => (
-        <div key={k} title={`${AGENT_LABELS[k]} : ${a[k] === 'done' ? 'Done' : 'Pending'}`}
-          style={{ width: 8, height: 8, borderRadius: '50%', background: a[k] === 'done' ? GREEN : GRAY }} />
+        <div key={k} title={`${AGENT_LABELS[k]} : ${a[k] === 'done' ? 'Terminé' : 'En cours'}`}
+          style={{ width: 8, height: 8, borderRadius: '50%', background: a[k] === 'done' ? ORANGE : BORDER_STRONG }} />
       ))}
     </div>
   );
@@ -35,11 +43,17 @@ export function AgentChip({ agentKey, status }) {
   const done = status === 'done';
   return (
     <span style={{
-      padding: '4px 12px', borderRadius: 20, fontSize: 11.5, fontWeight: 600, fontFamily: F,
-      background: done ? 'rgba(16,185,129,0.12)' : 'rgba(21,19,15,0.06)',
-      color: done ? '#0B815A' : '#8A877F',
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '6px 12px', borderRadius: 100, fontSize: 12.5, fontWeight: 500, fontFamily: F,
+      background: SURFACE, border: `1px solid ${done ? ORANGE_TINT : BORDER_STRONG}`,
+      color: done ? ORANGE_DARK : INK_FAINT,
     }}>
-      {AGENT_LABELS[agentKey]}: {done ? 'Done' : 'Pending'}
+      {done && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M5 13l4 4L19 7" stroke={ORANGE_DARK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+      {AGENT_LABELS[agentKey]} {done ? '✓' : ''}
     </span>
   );
 }

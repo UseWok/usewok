@@ -5,20 +5,26 @@ import { ArrowLeft, RefreshCw, ChevronUp, ChevronDown, CheckCircle2 } from 'luci
 import { StatusBadge, AgentChip, AGENT_ORDER } from '@/components/siteaudit/AuditBits';
 
 const F = 'Inter, system-ui, sans-serif';
-const INK = '#1A1A1A';
-const INK3 = '#9B9BA8';
-const BORDER = 'rgba(21,19,15,0.10)';
-const VIOLET = '#7C3AED';
-const GREEN = '#10B981';
-const ORANGE = '#F97316';
-const BLUE = '#3B8BEB';
+const MONO = '"JetBrains Mono", monospace';
+const INK = '#18140F';
+const INK2 = '#2C2820';
+const INK3 = '#726A5C';
+const INK_FAINT = '#A79E8C';
+const BORDER = '#E8E0CD';
+const BORDER_STRONG = '#DCD1B4';
+const CREAM = '#F6F1E7';
+const CREAM_DEEP = '#EDE5D2';
+const SURFACE = '#FFFFFF';
+const ORANGE = '#FF5A1F';
+const ORANGE_DARK = '#B23E10';
+const ORANGE_TINT = '#FFE6D6';
 
 function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { return fb; } }
 
 const TABS = [
-  { id: 'freshness', label: 'FRESHNESS' },
-  { id: 'seo', label: 'STRUCTURAL SEO' },
-  { id: 'content', label: 'CONTENT QUALITY' },
+  { id: 'freshness', label: 'Fraîcheur' },
+  { id: 'seo', label: 'SEO structurel' },
+  { id: 'content', label: 'Qualité de contenu' },
 ];
 
 function KPICard({ label, value, color, dash }) {
@@ -32,7 +38,11 @@ function KPICard({ label, value, color, dash }) {
   );
 }
 
-const SEV = { high: { label: 'Critical', c: '#EF4444' }, medium: { label: 'Medium', c: ORANGE }, low: { label: 'Minor', c: BLUE } };
+const SEV = {
+  high:   { label: 'Critique', bg: ORANGE_TINT, color: ORANGE_DARK, border: 'none' },
+  medium: { label: 'Moyen',    bg: CREAM_DEEP,  color: INK2,        border: 'none' },
+  low:    { label: 'Mineur',   bg: SURFACE,     color: INK_FAINT,   border: `1px solid ${BORDER_STRONG}` },
+};
 
 export default function SiteAuditDetail() {
   const { id } = useParams();
@@ -52,8 +62,8 @@ export default function SiteAuditDetail() {
   };
   useEffect(() => { load(); }, [id]);
 
-  if (loading) return <div style={{ minHeight: '100vh', background: '#F7F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 26, height: 26, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.10)', borderTopColor: VIOLET, animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>;
-  if (!audit) return <div style={{ minHeight: '100vh', background: '#F7F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}><p style={{ color: INK3 }}>Audit not found.</p></div>;
+  if (loading) return <div style={{ minHeight: '100vh', background: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 26, height: 26, borderRadius: '50%', border: `3px solid ${BORDER_STRONG}`, borderTopColor: ORANGE, animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>;
+  if (!audit) return <div style={{ minHeight: '100vh', background: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}><p style={{ color: INK3 }}>Audit introuvable.</p></div>;
 
   const agents = parseJSON(audit.agents_json, {});
   const pages = parseJSON(audit.pages_json, {});
@@ -63,36 +73,38 @@ export default function SiteAuditDetail() {
   const items = activeResult?.items || [];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F7F5F0', fontFamily: F }}>
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}>
+    <div style={{ minHeight: '100vh', background: CREAM, fontFamily: F }}>
+      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 28px 80px' }}>
 
         {/* Back */}
-        <button onClick={() => navigate('/site-audit')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: VIOLET, fontFamily: F, padding: 0, marginBottom: 12 }}>
-          <ArrowLeft size={14} /> Back to audits
+        <button onClick={() => navigate('/site-audit')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: INK3, fontFamily: F, padding: 0, marginBottom: 18 }}>
+          <ArrowLeft size={13} /> Retour aux audits
         </button>
 
         {/* Title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Audit from {dateLabel}</h1>
-          <StatusBadge status={audit.status} />
-          <button onClick={load} title="Refresh"
-            style={{ width: 30, height: 30, borderRadius: '50%', border: `1px solid ${BORDER}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <RefreshCw size={13} color={INK} />
-          </button>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 14 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 600, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Audit du {dateLabel}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <StatusBadge status={audit.status} />
+            <button onClick={load} title="Relancer l'audit"
+              style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${BORDER_STRONG}`, background: SURFACE, cursor: 'pointer', display: 'grid', placeItems: 'center', color: INK3 }}>
+              <RefreshCw size={15} />
+            </button>
+          </div>
         </div>
 
         {/* Agent chips */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 34 }}>
           {AGENT_ORDER.map(k => <AgentChip key={k} agentKey={k} status={agents[k]} />)}
         </div>
 
         {/* KPI cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 18 }}>
-          <KPICard label="Score Website" value={`${audit.score_website ?? 0}/100`} color={VIOLET} />
-          <KPICard label="Fraîcheur" value={results.freshness ? `${Math.round(results.freshness.score || 0)}` : null} color={GREEN} dash={!results.freshness} />
-          <KPICard label="SEO Structurel" value={results.seo ? `${Math.round(results.seo.score || 0)}` : null} color={VIOLET} dash={!results.seo} />
+          <KPICard label="Score Website" value={`${audit.score_website ?? 0}/100`} color={ORANGE_DARK} />
+          <KPICard label="Fraîcheur" value={results.freshness ? `${Math.round(results.freshness.score || 0)}` : null} color={ORANGE} dash={!results.freshness} />
+          <KPICard label="SEO Structurel" value={results.seo ? `${Math.round(results.seo.score || 0)}` : null} color={ORANGE_DARK} dash={!results.seo} />
           <KPICard label="Qualité Contenu" value={results.content ? `${Math.round(results.content.score || 0)}` : '0'} color={ORANGE} />
-          <KPICard label="Pages analysées" value={audit.pages_analyzed ?? 0} color={BLUE} />
+          <KPICard label="Pages analysées" value={audit.pages_analyzed ?? 0} color={INK} />
         </div>
 
         {/* Page selection */}
@@ -130,7 +142,7 @@ export default function SiteAuditDetail() {
                   <span style={{ fontSize: 12, color: INK, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.url}</span>
                   <span><span style={{ padding: '3px 10px', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 11, color: INK }}>{p.category}</span></span>
                   <span style={{ textAlign: 'right' }}>
-                    <CheckCircle2 size={16} color={p.fetched ? GREEN : '#C9C6BF'} fill={p.fetched ? 'rgba(16,185,129,0.15)' : 'none'} style={{ display: 'inline-block' }} />
+                    <CheckCircle2 size={16} color={p.fetched ? ORANGE_DARK : '#C9C6BF'} fill={p.fetched ? ORANGE_TINT : 'none'} style={{ display: 'inline-block' }} />
                   </span>
                 </div>
               ))}
@@ -146,27 +158,35 @@ export default function SiteAuditDetail() {
         </div>
 
         {/* Agent tabs */}
-        <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', gap: 24, padding: '0 22px', borderBottom: `1px solid ${BORDER}` }}>
+        <div>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: `1px solid ${BORDER}` }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 12px', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.05em', fontFamily: F, color: tab === t.id ? VIOLET : INK3, borderBottom: tab === t.id ? `2px solid ${VIOLET}` : '2px solid transparent' }}>
+                style={{ background: 'none', border: 'none', borderLeft: 'none', borderRight: 'none', borderTop: 'none', borderBottom: tab === t.id ? `2px solid ${ORANGE}` : '2px solid transparent', cursor: 'pointer', padding: '10px 4px', marginRight: 22, fontSize: 13.5, fontWeight: 500, fontFamily: F, color: tab === t.id ? INK : INK_FAINT }}>
                 {t.label}
               </button>
             ))}
           </div>
-          <div style={{ padding: '18px 22px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {items.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '18px 0', margin: 0 }}>Aucun résultat pour cet agent.</p>}
             {items.map((it, i) => {
               const sev = SEV[it.severity] || SEV.low;
               return (
-                <div key={i} style={{ borderBottom: i < items.length - 1 ? `1px solid ${BORDER}` : 'none', padding: '12px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ padding: '2px 8px', background: `${sev.c}15`, color: sev.c, borderRadius: 5, fontSize: 10.5, fontWeight: 700 }}>{sev.label}</span>
-                    <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>{it.title}</span>
+                <div key={i} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 100, letterSpacing: '0.02em', background: sev.bg, color: sev.color, border: sev.border }}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />
+                      {sev.label}
+                    </span>
                   </div>
-                  {it.detail && <p style={{ fontSize: 12.5, color: '#666', margin: '0 0 4px', lineHeight: 1.6 }}>{it.detail}</p>}
-                  {it.page && <span style={{ fontSize: 11, color: INK3, fontFamily: 'monospace' }}>{it.page}</span>}
+                  <div style={{ fontSize: 14.5, fontWeight: 600, color: INK, marginBottom: 6 }}>{it.title}</div>
+                  {it.detail && <p style={{ fontSize: 13.5, color: INK3, margin: '0 0 10px', lineHeight: 1.5 }}>{it.detail}</p>}
+                  {it.page && (
+                    <div style={{ fontSize: 12, color: INK_FAINT, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span style={{ fontFamily: MONO }}>{it.page}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
