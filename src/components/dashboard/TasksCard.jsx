@@ -27,7 +27,7 @@ export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
           {list.map((t, i) => {
             const p = PRIORITY[t.priority] || PRIORITY.medium;
             return (
-              <div key={i} style={{ border: '1px solid rgba(21,19,15,0.09)', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+              <div key={i} style={{ border: '1px solid rgba(21,19,15,0.09)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: p.color, background: p.bg, padding: '3px 9px', borderRadius: 100, flexShrink: 0 }}>{p.label}</span>
                   <button onClick={() => onLaunch?.(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: INK, fontFamily: F, padding: 0, flexShrink: 0 }}>
