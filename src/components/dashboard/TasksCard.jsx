@@ -34,8 +34,7 @@ export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
                     Lancer <ArrowRight size={12} />
                   </button>
                 </div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.35, marginBottom: 4 }}>{t.title}</div>
-                {t.impact && <div style={{ fontSize: 12, color: INK3, lineHeight: 1.5 }}>{t.impact}</div>}
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.35 }}>{t.title}</div>
               </div>
             );
           })}
