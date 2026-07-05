@@ -634,7 +634,6 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                   section: 'AUDIT',
                   items: [
                     { id: 'siteaudit',   label: 'Audit du site',  icon: FileSearch, route: '/site-audit' },
-                    { id: 'brandimage',  label: 'Médias & presse', icon: BookOpen,  route: '/brand-image' },
                     { id: 'competitors', label: 'Concurrents',    icon: Users,      route: '/competitors' },
                   ],
                 },
@@ -642,13 +641,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                   section: 'ACTIONS',
                   items: [
                     { id: 'tasks', label: 'Tâches',     icon: CheckSquare, route: '/tasks' },
-                    { id: 'news',  label: 'Veille news', icon: Sparkles,   route: '/recommendations' },
                   ],
                 },
                 {
                   section: 'VISIBILITÉ IA',
                   items: [
-                    { id: 'image', label: 'Image de marque',  icon: BookOpen, route: '/brand-image' },
                     { id: 'auth',  label: 'Autorité',         icon: Award,    route: '/ai-report' },
                     { id: 'reco',  label: 'Recommandations',  icon: Target,   route: '/recommendations' },
                   ],

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Flame } from 'lucide-react';
 import BottomTabs from './BottomTabs';
-import TopBar from './TopBar';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -291,9 +290,6 @@ export default function Layout() {
           }),
         }}
       >
-        {/* Top-right bar: notifications + profile */}
-        {user && <TopBar user={user} />}
-
         {/* Inner scroll container with slide page transitions */}
         <div style={{
           flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column',

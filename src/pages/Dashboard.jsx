@@ -11,7 +11,6 @@ import TasksCard from '@/components/dashboard/TasksCard';
 import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
-import { ZoneRankingCard, LanguageRankingCard } from '@/components/dashboard/RankingCards';
 
 const INK = '#15130F';
 const INK3 = 'rgba(21,19,15,0.5)';
@@ -20,14 +19,11 @@ const ORANGE = '#FF5A1F';
 const ORANGE_DEEP = '#C43E14';
 const F = 'Inter, system-ui, sans-serif';
 
-const PERIODS = ['7J', '30J', '90J', '6M', 'Tout'];
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [data, setData] = useState(null);
   const [phase, setPhase] = useState('loading');
-  const [period, setPeriod] = useState('30J');
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [visibility, setVisibility] = useState({});
   const profileIdRef = useRef(null);
@@ -96,21 +92,10 @@ export default function Dashboard() {
               Performance GEO de {brand}{lastAudit ? ` · Dernier audit le ${lastAudit}` : ''}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'inline-flex', gap: 3, background: '#fff', border: '1px solid rgba(21,19,15,0.14)', borderRadius: 10, padding: 3 }}>
-              {PERIODS.map(p => (
-                <button key={p} onClick={() => setPeriod(p)}
-                  style={{ padding: '6px 12px', border: 'none', borderRadius: 7, cursor: 'pointer', fontFamily: F,
-                    fontSize: 12.5, fontWeight: 600, background: period === p ? INK : 'transparent', color: period === p ? BG : INK3 }}>
-                  {p}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setCustomizeOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 10, border: `1px solid ${ORANGE}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <SlidersHorizontal size={14} /> Personnaliser
-            </button>
-          </div>
+          <button onClick={() => setCustomizeOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 10, border: `1px solid ${ORANGE}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+            <SlidersHorizontal size={14} /> Personnaliser
+          </button>
         </div>
 
         {phase === 'loading' && (
@@ -165,7 +150,6 @@ export default function Dashboard() {
           // Row 1
           const row1 = [vis('evolution'), vis('tasks')];
           const row2 = [vis('competitors'), vis('llms'), vis('pages')];
-          const row3 = [vis('zones'), vis('languages')];
           const cols = (flags) => flags.filter(Boolean).map(() => '1fr').join(' ');
           return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5%' }}>
@@ -186,13 +170,6 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Row 3 : Zone + Langue */}
-            {(row3[0] || row3[1]) && (
-              <div style={{ display: 'grid', gridTemplateColumns: cols(row3), gap: '5%', alignItems: 'stretch' }}>
-                {vis('zones') && <ZoneRankingCard zones={data.zones} onDetail={() => navigate('/performance')} />}
-                {vis('languages') && <LanguageRankingCard languages={data.languages} onDetail={() => navigate('/performance')} />}
-              </div>
-            )}
           </div>
           );
         })()}

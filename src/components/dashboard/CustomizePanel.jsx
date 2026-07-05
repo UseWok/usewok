@@ -13,8 +13,6 @@ export const DASHBOARD_WIDGETS = [
   { id: 'competitors', label: 'Tes concurrents',        sub: 'Ton classement face à eux' },
   { id: 'llms',        label: 'Qui parle de toi',       sub: 'Les IA qui te citent' },
   { id: 'pages',       label: 'Tes pages populaires',   sub: 'Les pages que les IA préfèrent' },
-  { id: 'zones',       label: 'Tes meilleurs pays',     sub: 'Où tu es le plus visible' },
-  { id: 'languages',   label: 'Tes meilleures langues', sub: 'Dans quelle langue on te trouve' },
 ];
 
 function Toggle({ on, onClick }) {

@@ -16,7 +16,7 @@ const AI_LOGO_URLS = {
   mistral: 'https://media.base44.com/images/public/6a2edc91082e534601118582/3a3745646_image.png',
   grok: 'https://media.base44.com/images/public/6a2edc91082e534601118582/ddf7fe28b_image.png',
   copilot: 'https://media.base44.com/images/public/6a2edc91082e534601118582/92bb51643_image.png',
-  llama: 'https://media.base44.com/images/public/6a2edc91082e534601118582/1bdc7666b_image.png',
+  llama: 'https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/5189c1dc8_image.png',
 };
 
 export default function LLMCitingCard({ llms, onDetail, onWantMore }) {
