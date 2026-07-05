@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -634,6 +634,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
               {/* Ask AI de WOK — ouvre le mode historique dans la sidebar */}
               <NavItem icon={Sparkles} label="Ask AI" onClick={() => { setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
               {[
+                { id: 'brand',       label: 'Brand Knowledge',  icon: BookOpen,       color: '#7B4FE0', route: '/brand-knowledge' },
                 { id: 'performance', label: 'Performance',      icon: TrendingUp,     color: '#10B981', route: '/performance' },
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
                 { id: 'goals',       label: 'Goals',            icon: Lightbulb,      color: '#84CC16' },

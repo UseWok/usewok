@@ -375,6 +375,31 @@ function buildContext(user, profile, activeDomain) {
   if (issues.length) ctx += `Issues (${issues.length}): ${issues.slice(0,4).map(i => i.title || i.name || i).join(', ')}\n`;
 
   if (profile.last_scan) ctx += `Last scan: ${new Date(profile.last_scan).toLocaleDateString('en-US')}\n`;
+
+  // ── Brand Knowledge — user-curated context (highest priority) ──
+  const bk = profile.brand_knowledge;
+  if (bk && typeof bk === 'object') {
+    ctx += `\n## BRAND KNOWLEDGE (user-provided, authoritative — always prioritize this)\n`;
+    if (bk.industry) ctx += `Industry: ${bk.industry}\n`;
+    if (bk.headquarters) ctx += `Headquarters: ${bk.headquarters}\n`;
+    if (bk.audience) ctx += `Target audience: ${bk.audience}\n`;
+    if (bk.business_model) ctx += `Business model: ${bk.business_model}\n`;
+    if (bk.target_segment) ctx += `Geographic focus: ${bk.target_segment}\n`;
+    if (bk.value_description) ctx += `Value proposition: ${bk.value_description}\n`;
+    if (bk.value_keywords?.length) ctx += `Differentiators: ${bk.value_keywords.join(', ')}\n`;
+    if (bk.use_cases?.length) ctx += `Use cases / sales plays: ${bk.use_cases.join(' | ')}\n`;
+    if (bk.authority_topics?.length) ctx += `Authority topics: ${bk.authority_topics.join(', ')}\n`;
+    if (bk.pre_purchase_questions?.length) ctx += `Pre-purchase questions: ${bk.pre_purchase_questions.join(' | ')}\n`;
+    if (bk.objections?.length) ctx += `Prospect objections: ${bk.objections.join(' | ')}\n`;
+    if (bk.avoid_topics?.length) ctx += `Topics to AVOID mentioning: ${bk.avoid_topics.join(', ')}\n`;
+    if (bk.scope) ctx += `Brand scope: ${bk.scope}\n`;
+    if (bk.wikipedia_url) ctx += `Wikipedia: ${bk.wikipedia_url}\n`;
+    if (bk.crunchbase_url) ctx += `Crunchbase: ${bk.crunchbase_url}\n`;
+    if (bk.other_sources?.length) ctx += `Other notoriety sources: ${bk.other_sources.join(', ')}\n`;
+    if (bk.priority_countries?.length) ctx += `Priority countries: ${bk.priority_countries.join(', ')}\n`;
+    if (bk.languages?.length) ctx += `Answer languages: ${bk.languages.join(', ')}\n`;
+  }
+
   return ctx;
 }
 

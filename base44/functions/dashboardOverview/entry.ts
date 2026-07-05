@@ -56,12 +56,46 @@ Deno.serve(async (req) => {
 
     const enginesList = enabledEngines.map((e) => ENGINE_LABELS[e] || e).join(', ');
 
+    // ── Load user-curated Brand Knowledge to enrich the analysis ──
+    let brandContext = '';
+    try {
+      const profiles = await base44.asServiceRole.entities.BusinessProfile.filter({ created_by_id: user.id });
+      const p = profiles.find((x: any) => x.site_url === cleanUrl) || profiles[0];
+      if (p?.brand_keywords) {
+        let extra: any = {};
+        if (String(p.brand_keywords).startsWith('http')) {
+          extra = await fetch(p.brand_keywords).then((r) => r.json()).catch(() => ({}));
+        } else {
+          try { extra = JSON.parse(p.brand_keywords); } catch { extra = {}; }
+        }
+        const bk = extra?.brand_knowledge;
+        if (bk && typeof bk === 'object') {
+          const parts: string[] = [];
+          if (bk.industry) parts.push(`Industry: ${bk.industry}`);
+          if (bk.audience) parts.push(`Target audience: ${bk.audience}`);
+          if (bk.business_model) parts.push(`Business model: ${bk.business_model}`);
+          if (bk.value_description) parts.push(`Value proposition: ${bk.value_description}`);
+          if (Array.isArray(bk.value_keywords) && bk.value_keywords.length) parts.push(`Differentiators: ${bk.value_keywords.join(', ')}`);
+          if (Array.isArray(bk.use_cases) && bk.use_cases.length) parts.push(`Use cases: ${bk.use_cases.join(' | ')}`);
+          if (Array.isArray(bk.authority_topics) && bk.authority_topics.length) parts.push(`Authority topics: ${bk.authority_topics.join(', ')}`);
+          if (Array.isArray(bk.pre_purchase_questions) && bk.pre_purchase_questions.length) parts.push(`Pre-purchase questions: ${bk.pre_purchase_questions.join(' | ')}`);
+          if (bk.scope) parts.push(`Brand scope: ${bk.scope}`);
+          if (Array.isArray(bk.priority_countries) && bk.priority_countries.length) parts.push(`Priority countries: ${bk.priority_countries.join(', ')}`);
+          if (Array.isArray(bk.languages) && bk.languages.length) parts.push(`Answer languages: ${bk.languages.join(', ')}`);
+          if (parts.length) brandContext = `\n## BRAND KNOWLEDGE (user-provided, authoritative — use this to focus zones, languages, competitors, tasks and cited topics)\n${parts.join('\n')}\n`;
+        }
+      }
+    } catch (e) {
+      console.log('[dashboardOverview] brand knowledge load skipped:', e?.message);
+    }
+
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: `You are an elite GEO (Generative Engine Optimization) analyst. Perform a LIVE web analysis of the brand "${brandLabel}" (website: ${cleanUrl}) to build a full AI-visibility overview dashboard.
 
 ## SCOPE — ONLY THESE AI ENGINES
 Analyze citations ONLY for these AI engines (the ones enabled on the user's plan): ${enginesList}.
 Do NOT include any other engine in "llms_citing".
+${brandContext}
 
 ## RULES — REALISM, ZERO INVENTION
 - Base scores on the brand's REAL online authority. An unknown local brand scores low (10-35). A recognized brand scores higher.

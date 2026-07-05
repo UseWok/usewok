@@ -42,6 +42,7 @@ const AIVisibilityReport = lazy(() => import('./pages/AIVisibilityReport.jsx'));
 const WokAIPage = lazy(() => import('./pages/WokAIPage.jsx'));
 const PerformancePage = lazy(() => import('./pages/PerformancePage.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const BrandKnowledge = lazy(() => import('./pages/BrandKnowledge.jsx'));
 const AuditPage = lazy(() => import('./pages/AuditPage.jsx'));
 const ConnectionsPage = lazy(() => import('./pages/ConnectionsPage'));
 const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'));
@@ -124,6 +125,7 @@ const AuthenticatedApp = () => {
           <Route element={<Layout />}>
             <Route path="/app" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/brand-knowledge" element={<BrandKnowledge />} />
             <Route path="/projects" element={<AllProjects />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/admin/products" element={<AdminProducts />} />
