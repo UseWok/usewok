@@ -264,14 +264,19 @@ async function runScan(inputUrl, userId, features) {
   const res = await base44.functions.invoke(fn, { url: inputUrl });
   const d = res?.data || {};
   if (features?.scan_type === 'full') {
-    const [audit, perf] = await Promise.all([
+    const [audit, perf, overview] = await Promise.all([
       base44.functions.invoke('analyzeAudit', { url: inputUrl }).catch(() => ({ data: {} })),
       base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: d.business_name || '' }).catch(() => ({ data: {} })),
+      base44.functions.invoke('dashboardOverview', { url: inputUrl, business_name: d.business_name || '' }).catch(() => ({ data: null })),
     ]);
     d.audit_data = audit?.data || {};
     d.perf_data = perf?.data || {};
     d.audit_analyzed_at = new Date().toISOString();
     d.perf_analyzed_at = new Date().toISOString();
+    if (overview?.data && !overview.data.error) {
+      d.overview_data = overview.data;
+      d.overview_analyzed_at = new Date().toISOString();
+    }
   }
   d.scan_type = features?.scan_type || 'lite';
   const brand_keywords = await uploadProfileData(d);

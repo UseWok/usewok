@@ -49,6 +49,9 @@ const ConnectionsPage = lazy(() => import('./pages/ConnectionsPage'));
 const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'));
 const UIShowcase = lazy(() => import('./pages/UIShowcase'));
 const HistoryPage = lazy(() => import('./pages/HistoryPage'));
+const SiteAuditPage = lazy(() => import('./pages/SiteAuditPage'));
+const SiteAuditDetail = lazy(() => import('./pages/SiteAuditDetail'));
+const CompetitorsPage = lazy(() => import('./pages/CompetitorsPage'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#FBF8F2' }}>
@@ -141,6 +144,9 @@ const AuthenticatedApp = () => {
             <Route path="/audit" element={<AuditPage />} />
             <Route path="/connections" element={<ConnectionsPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/site-audit" element={<SiteAuditPage />} />
+            <Route path="/site-audit/:id" element={<SiteAuditDetail />} />
+            <Route path="/competitors" element={<CompetitorsPage />} />
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="*" element={<PageNotFound />} />
           </Route>

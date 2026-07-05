@@ -1,0 +1,147 @@
+{
+  "name": "Competitor",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL (du user)"
+    },
+    "name": {
+      "type": "string",
+      "title": "Nom"
+    },
+    "domain": {
+      "type": "string",
+      "title": "Domaine"
+    },
+    "is_you": {
+      "type": "boolean",
+      "title": "Est la marque du user",
+      "default": false
+    },
+    "referral_pct": {
+      "type": "number",
+      "title": "Referral PDV %",
+      "default": 0
+    },
+    "authority_pct": {
+      "type": "number",
+      "title": "Authority %",
+      "default": 0
+    },
+    "referral_cited": {
+      "type": "number",
+      "title": "Referral cit\u00e9 (n)",
+      "default": 0
+    },
+    "referral_total": {
+      "type": "number",
+      "title": "Referral total prompts",
+      "default": 0
+    },
+    "authority_cited": {
+      "type": "number",
+      "title": "Authority cit\u00e9 (n)",
+      "default": 0
+    },
+    "authority_total": {
+      "type": "number",
+      "title": "Authority total prompts",
+      "default": 0
+    },
+    "trend_90d": {
+      "type": "string",
+      "title": "Tendance 90j",
+      "default": "flat"
+    },
+    "synthesis": {
+      "type": "string",
+      "title": "Synth\u00e8se",
+      "format": "textarea"
+    },
+    "positioning": {
+      "type": "string",
+      "title": "Positionnement",
+      "format": "textarea"
+    },
+    "positioning_available": {
+      "type": "boolean",
+      "title": "Positionnement dispo",
+      "default": false
+    },
+    "prompts_json": {
+      "type": "string",
+      "title": "Prompts + citations (JSON)",
+      "format": "textarea"
+    },
+    "news_json": {
+      "type": "string",
+      "title": "Actualit\u00e9s (JSON)",
+      "format": "textarea"
+    },
+    "analyzed_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Analys\u00e9 le"
+    }
+  },
+  "required": [
+    "user_id",
+    "site_url",
+    "domain"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

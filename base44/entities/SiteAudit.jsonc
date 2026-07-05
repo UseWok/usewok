@@ -1,0 +1,103 @@
+{
+  "name": "SiteAudit",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "done",
+        "failed"
+      ],
+      "default": "done",
+      "title": "Statut"
+    },
+    "score_website": {
+      "type": "number",
+      "title": "Score Website",
+      "default": 0
+    },
+    "pages_analyzed": {
+      "type": "number",
+      "title": "Pages analys\u00e9es",
+      "default": 0
+    },
+    "agents_json": {
+      "type": "string",
+      "title": "Statuts agents (JSON)",
+      "format": "textarea"
+    },
+    "pages_json": {
+      "type": "string",
+      "title": "S\u00e9lection des pages (JSON)",
+      "format": "textarea"
+    },
+    "results_json": {
+      "type": "string",
+      "title": "R\u00e9sultats agents (JSON)",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "user_id",
+    "site_url"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
