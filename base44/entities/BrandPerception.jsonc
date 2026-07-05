@@ -1,0 +1,117 @@
+{
+  "name": "BrandPerception",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "brand",
+        "reco"
+      ],
+      "default": "brand",
+      "title": "Type (image de marque / recommandations)"
+    },
+    "score_narrative": {
+      "type": "number",
+      "title": "Score Narrative",
+      "default": 0
+    },
+    "score_authority": {
+      "type": "number",
+      "title": "Score Authority",
+      "default": 0
+    },
+    "sentiment_positive": {
+      "type": "number",
+      "title": "Sentiment positif %",
+      "default": 0
+    },
+    "sentiment_neutral": {
+      "type": "number",
+      "title": "Sentiment neutre %",
+      "default": 0
+    },
+    "sentiment_negative": {
+      "type": "number",
+      "title": "Sentiment n\u00e9gatif %",
+      "default": 0
+    },
+    "prompts_json": {
+      "type": "string",
+      "title": "Prompts + r\u00e9ponses (JSON)",
+      "format": "textarea"
+    },
+    "recommendations_json": {
+      "type": "string",
+      "title": "Recommandations (JSON)",
+      "format": "textarea"
+    },
+    "analyzed_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Analys\u00e9 le"
+    }
+  },
+  "required": [
+    "user_id",
+    "site_url"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

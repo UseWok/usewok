@@ -52,6 +52,8 @@ const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 const SiteAuditPage = lazy(() => import('./pages/SiteAuditPage'));
 const SiteAuditDetail = lazy(() => import('./pages/SiteAuditDetail'));
 const CompetitorsPage = lazy(() => import('./pages/CompetitorsPage'));
+const TasksPage = lazy(() => import('./pages/TasksPage'));
+const BrandPerceptionPage = lazy(() => import('./pages/BrandPerceptionPage'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#FBF8F2' }}>
@@ -147,6 +149,9 @@ const AuthenticatedApp = () => {
             <Route path="/site-audit" element={<SiteAuditPage />} />
             <Route path="/site-audit/:id" element={<SiteAuditDetail />} />
             <Route path="/competitors" element={<CompetitorsPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/brand-image" element={<BrandPerceptionPage kind="brand" />} />
+            <Route path="/recommendations" element={<BrandPerceptionPage kind="reco" />} />
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="*" element={<PageNotFound />} />
           </Route>

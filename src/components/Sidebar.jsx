@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen, Target, FileSearch, Users } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen, Target, FileSearch, Users, CheckSquare, Award, Sparkle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -640,7 +640,9 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 { id: 'audit',       label: 'Audit',            icon: ClipboardCheck, color: '#0EA5E9', route: '/audit' },
                 { id: 'siteaudit',   label: 'Audit du site',    icon: FileSearch,     color: '#7B4FE0', route: '/site-audit' },
                 { id: 'competitors', label: 'Concurrents',      icon: Users,          color: '#F95738', route: '/competitors' },
-                { id: 'goals',       label: 'Goals',            icon: Lightbulb,      color: '#84CC16' },
+                { id: 'tasks',       label: 'Tâches',           icon: CheckSquare,    color: '#F97316', route: '/tasks' },
+                { id: 'brandimage',  label: 'Image de marque',  icon: Award,          color: '#E8184A', route: '/brand-image' },
+                { id: 'reco',        label: 'Recommandations',  icon: Sparkle,        color: '#7C3AED', route: '/recommendations' },
               ].map(tool => {
                 const Icon = tool.icon;
                 const isToolActive = tool.route ? location.pathname === tool.route : (location.pathname === '/ai-report' && new URLSearchParams(location.search).get('tool') === tool.id);

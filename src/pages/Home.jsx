@@ -268,6 +268,10 @@ async function runScan(inputUrl, userId, features) {
       base44.functions.invoke('analyzeAudit', { url: inputUrl }).catch(() => ({ data: {} })),
       base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: d.business_name || '' }).catch(() => ({ data: {} })),
       base44.functions.invoke('dashboardOverview', { url: inputUrl, business_name: d.business_name || '' }).catch(() => ({ data: null })),
+      // Sidebar pages — launched simultaneously so they are ready right after a scan
+      base44.functions.invoke('siteAudit', { url: inputUrl }).catch(() => null),
+      base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'brand' }).catch(() => null),
+      base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'reco' }).catch(() => null),
     ]);
     d.audit_data = audit?.data || {};
     d.perf_data = perf?.data || {};
