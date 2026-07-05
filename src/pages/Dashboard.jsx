@@ -152,7 +152,7 @@ export default function Dashboard() {
           const row2 = [vis('competitors'), vis('llms'), vis('pages')];
           const cols = (flags) => flags.filter(Boolean).map(() => '1fr').join(' ');
           return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {/* Row 1 : Score global + Tâches */}
             {(row1[0] || row1[1]) && (
               <div style={{ display: 'grid', gridTemplateColumns: row1[0] && row1[1] ? '1.55fr 1fr' : '1fr', gap: '5%', alignItems: 'stretch' }}>

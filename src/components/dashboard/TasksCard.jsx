@@ -23,7 +23,7 @@ export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
           Rien à faire pour l'instant. Lance une analyse pour recevoir tes conseils.
         </p>
       ) : (
-        <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 2 }}>
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: 2 }}>
           {list.map((t, i) => {
             const p = PRIORITY[t.priority] || PRIORITY.medium;
             return (
