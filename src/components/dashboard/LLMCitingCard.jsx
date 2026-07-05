@@ -1,10 +1,11 @@
 import DashCard from './DashCard';
 import { Plus } from 'lucide-react';
 
-const INK = '#1A1A1A';
-const INK3 = '#9B9BA8';
-const GREEN = '#22A87A';
-const VIOLET = '#7C3AED';
+const INK = '#15130F';
+const INK3 = 'rgba(21,19,15,0.5)';
+const ORANGE = '#FF5A1F';
+const GREEN = '#1E7A4C';
+const CREAM2 = '#F3EEE3';
 const F = 'Inter, system-ui, sans-serif';
 
 const AI_LOGO_URLS = {
@@ -23,34 +24,30 @@ export default function LLMCitingCard({ llms, onDetail, onWantMore }) {
   const max = Math.max(1, ...rows.map(r => r.citations || 0));
 
   return (
-    <DashCard title="LLMs that cite you" dot={GREEN} action="Detail →" onAction={onDetail}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {rows.length === 0 && (
-          <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>No AI citations detected yet for your enabled engines.</p>
-        )}
-        {rows.map((l, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src={AI_LOGO_URLS[l.engine]} width={18} height={18} alt={l.label} style={{ objectFit: 'contain', flexShrink: 0 }} />
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: INK, width: 70, flexShrink: 0 }}>{l.label}</span>
-            <div style={{ flex: 1, height: 6, background: '#F0EEE9', borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${((l.citations || 0) / max) * 100}%`, background: GREEN, borderRadius: 999 }} />
-            </div>
-            <span style={{ fontSize: 12.5, fontWeight: 800, color: INK, flexShrink: 0 }}>{l.citations || 0}</span>
-            <span style={{ fontSize: 10, color: INK3, flexShrink: 0, width: 42 }}>citations</span>
+    <DashCard title="LLM qui vous citent" dot={GREEN} action="Détail →" onAction={onDetail}>
+      {rows.length === 0 && (
+        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>Aucune citation IA détectée pour vos moteurs activés.</p>
+      )}
+      {rows.map((l, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: CREAM2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <img src={AI_LOGO_URLS[l.engine]} width={14} height={14} alt={l.label} style={{ objectFit: 'contain' }} />
           </div>
-        ))}
+          <span style={{ width: 76, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
+          <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${((l.citations || 0) / max) * 100}%`, background: ORANGE, borderRadius: 100 }} />
+          </div>
+          <span style={{ width: 56, fontSize: 11.5, color: INK3, textAlign: 'right', flexShrink: 0 }}>{l.citations || 0} citation{(l.citations || 0) > 1 ? 's' : ''}</span>
+        </div>
+      ))}
+
+      <div style={{ fontSize: 11, color: INK3, lineHeight: 1.5, margin: '12px 0 14px' }}>
+        Nombre de réponses IA où votre marque est citée, cumulées sur la période.
       </div>
 
-      <p style={{ fontSize: 11, color: INK3, margin: '14px 0 12px', lineHeight: 1.5 }}>
-        Number of AI answers where your brand is cited, aggregated over the period.
-      </p>
-
       <button onClick={onWantMore}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '11px 14px', background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 10, cursor: 'pointer', fontFamily: F }}>
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: VIOLET }}>I want to be cited more</span>
-        <span style={{ width: 26, height: 26, borderRadius: '50%', background: VIOLET, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Plus size={14} color="#fff" strokeWidth={2.5} />
-        </span>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: INK, color: '#FBF8F2', border: 'none', borderRadius: 10, height: 42, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
+        <Plus size={14} /> Être cité davantage
       </button>
     </DashCard>
   );

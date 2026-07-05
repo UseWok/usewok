@@ -12,13 +12,14 @@ import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
 import { ZoneRankingCard, LanguageRankingCard } from '@/components/dashboard/RankingCards';
 
-const INK = '#1A1A1A';
-const INK3 = '#9B9BA8';
-const BG = '#F7F5F0';
-const VIOLET = '#7C3AED';
+const INK = '#15130F';
+const INK3 = 'rgba(21,19,15,0.5)';
+const BG = '#FBF8F2';
+const ORANGE = '#FF5A1F';
+const ORANGE_DEEP = '#C43E14';
 const F = 'Inter, system-ui, sans-serif';
 
-const PERIODS = ['7J', '30J', '90J', '6M', 'ALL'];
+const PERIODS = ['7J', '30J', '90J', '6M', 'Tout'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -63,40 +64,43 @@ export default function Dashboard() {
 
   const domain = data?.domain || (profile?.site_url || '').replace(/https?:\/\//, '').split('/')[0];
   const brand = data?.brand_name || profile?.identity_name || domain;
+  const lastAudit = data?.analyzed_at
+    ? new Date(data.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }).replace('.', '')
+    : '';
 
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: F }}>
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: '26px 36px 60px' }}>
 
         {/* ── Header ── */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 14 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Overview</h1>
-            <p style={{ fontSize: 13, color: INK3, margin: 0 }}>
-              GEO performance of {brand}{data?.analyzed_at ? ` · Last audit ${new Date(data.analyzed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}` : ''}
-            </p>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Aperçu</h1>
+            <div style={{ fontSize: 13, color: INK3 }}>
+              Performance GEO de {brand}{lastAudit ? ` · Dernier audit le ${lastAudit}` : ''}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ display: 'inline-flex', background: '#fff', border: '1px solid #E9E5DD', borderRadius: 9, padding: 3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'inline-flex', gap: 3, background: '#fff', border: '1px solid rgba(21,19,15,0.14)', borderRadius: 10, padding: 3 }}>
               {PERIODS.map(p => (
                 <button key={p} onClick={() => setPeriod(p)}
-                  style={{ padding: '6px 11px', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: F,
-                    fontSize: 11.5, fontWeight: 700, background: period === p ? INK : 'transparent', color: period === p ? '#fff' : INK3 }}>
+                  style={{ padding: '6px 12px', border: 'none', borderRadius: 7, cursor: 'pointer', fontFamily: F,
+                    fontSize: 12.5, fontWeight: 600, background: period === p ? INK : 'transparent', color: period === p ? BG : INK3 }}>
                   {p}
                 </button>
               ))}
             </div>
             <button onClick={() => load(true)} disabled={phase === 'thinking'}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 13px', border: `1px solid ${VIOLET}`, borderRadius: 9, background: '#fff', fontSize: 12, fontWeight: 700, color: VIOLET, cursor: 'pointer', fontFamily: F }}>
-              <SlidersHorizontal size={13} /> Customize
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 10, border: `1px solid ${ORANGE}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, opacity: phase === 'thinking' ? 0.5 : 1 }}>
+              <SlidersHorizontal size={14} /> Personnaliser
             </button>
           </div>
         </div>
 
         {phase === 'loading' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 16 }}>
             {[280, 200, 240, 240, 130, 130].map((h, i) => (
-              <div key={i} style={{ gridColumn: i === 4 || i === 5 ? 'auto' : (i === 0 || i === 2 ? 'span 1' : 'auto'), height: h, borderRadius: 14, background: 'linear-gradient(90deg,#F0EEE9 25%,#E8E4DC 50%,#F0EEE9 75%)', backgroundSize: '600px 100%', animation: 'shimmer 1.5s infinite' }} />
+              <div key={i} style={{ gridColumn: i === 4 || i === 5 ? 'auto' : (i === 0 || i === 2 ? 'span 1' : 'auto'), height: h, borderRadius: 16, background: 'linear-gradient(90deg,#F3EEE3 25%,#E8E4DC 50%,#F3EEE3 75%)', backgroundSize: '600px 100%', animation: 'shimmer 1.5s infinite' }} />
             ))}
             <style>{`@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
           </div>
@@ -104,50 +108,50 @@ export default function Dashboard() {
 
         {phase === 'thinking' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '55vh', textAlign: 'center' }}>
-            <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid #E9E5DD', borderTopColor: VIOLET, animation: 'spin 0.9s linear infinite', marginBottom: 16 }} />
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Building your overview…</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>Analyzing your AI visibility across your plan's engines</p>
+            <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.09)', borderTopColor: ORANGE, animation: 'spin 0.9s linear infinite', marginBottom: 16 }} />
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Construction de votre aperçu…</p>
+            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>Analyse de votre visibilité IA sur les moteurs de votre plan</p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         )}
 
         {phase === 'no_profile' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '55vh', textAlign: 'center' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: '1px solid #E9E5DD', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: '1px solid rgba(21,19,15,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
               <Zap size={22} color={INK3} />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>No site analyzed</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Analyze your site from the home page.</p>
-            <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Back</button>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Aucun site analysé</p>
+            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Analysez votre site depuis la page d'accueil.</p>
+            <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Retour</button>
           </div>
         )}
 
         {phase === 'error' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '55vh', textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 16px' }}>Analysis failed</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 16px' }}>L'analyse a échoué</p>
             <button onClick={() => load(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <RefreshCw size={13} /> Retry
+              <RefreshCw size={13} /> Réessayer
             </button>
           </div>
         )}
 
         {phase === 'done' && data && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Row 1 : Evolution (2/3) + Tasks (1/3) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.9fr 1fr', gap: 14, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Row 1 : Évolution (1.55fr) + Tâches (1fr) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 16, alignItems: 'stretch' }}>
               <EvolutionCard score={data.geo_score} breakdown={data.score_breakdown} evolution={data.evolution} />
-              <TasksCard tasks={data.tasks} onSeeAll={() => navigate('/audit')} onLaunch={() => navigate('/audit')} />
+              <TasksCard tasks={data.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />
             </div>
 
-            {/* Row 2 : Competitors + LLMs citing + Cited pages */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, alignItems: 'start' }}>
-              <CompetitorsCard competitors={data.competitors} onSeeAll={() => navigate('/performance')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach #2 vs my competitors in AI recommendations?' } })} />
-              <LLMCitingCard llms={data.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />
+            {/* Row 2 : Concurrents + LLM + Pages citées */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, alignItems: 'stretch' }}>
+              <CompetitorsCard competitors={data.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'Comment atteindre la 2ème place vs mes concurrents dans les recommandations IA ?' } })} />
+              <LLMCitingCard llms={data.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'Comment être cité plus souvent par les moteurs IA ?' } })} />
               <CitedPagesCard pages={data.cited_pages} />
             </div>
 
-            {/* Row 3 : Zone + Language */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'start' }}>
+            {/* Row 3 : Zone + Langue */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'stretch' }}>
               <ZoneRankingCard zones={data.zones} onDetail={() => navigate('/performance')} />
               <LanguageRankingCard languages={data.languages} onDetail={() => navigate('/performance')} />
             </div>

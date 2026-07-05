@@ -1,39 +1,41 @@
 import DashCard from './DashCard';
 import { ArrowRight } from 'lucide-react';
 
-const INK = '#1A1A1A';
-const INK3 = '#9B9BA8';
-const CORAL = '#F95738';
+const INK = '#15130F';
+const INK3 = 'rgba(21,19,15,0.5)';
+const ORANGE_DEEP = '#C43E14';
+const ORANGE_PALE = '#FFE7D6';
+const F = 'Inter, system-ui, sans-serif';
 
 const PRIORITY = {
-  urgent: { label: 'Urgent', color: '#fff', bg: CORAL },
-  high: { label: 'High', color: CORAL, bg: 'rgba(249,87,56,0.12)' },
-  medium: { label: 'Medium', color: '#8A6D1F', bg: '#FBF0D6' },
-  low: { label: 'Low', color: INK3, bg: '#F0EEE9' },
+  urgent: { label: 'Urgent', color: '#fff', bg: '#FF5A1F' },
+  high: { label: 'Élevé', color: ORANGE_DEEP, bg: ORANGE_PALE },
+  medium: { label: 'Moyen', color: ORANGE_DEEP, bg: ORANGE_PALE },
+  low: { label: 'Faible', color: INK3, bg: '#F3EEE3' },
 };
 
 export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
   const list = tasks || [];
   return (
-    <DashCard title="Tasks to do" dot={CORAL} action="See all →" onAction={onSeeAll}>
+    <DashCard title="Tâches à faire" dot={ORANGE_DEEP} action="Tout voir →" onAction={onSeeAll}>
       {list.length === 0 ? (
         <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-          No open task. Launch an audit to generate recommendations.
+          Aucune tâche ouverte. Lancez un audit pour générer des recommandations.
         </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 2 }}>
           {list.map((t, i) => {
             const p = PRIORITY[t.priority] || PRIORITY.medium;
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', border: '1px solid #E9E5DD', borderRadius: 10 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: p.color, background: p.bg, borderRadius: 999, padding: '3px 9px', flexShrink: 0 }}>{p.label}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{t.title}</div>
-                  {t.impact && <div style={{ fontSize: 11.5, color: INK3, marginTop: 2 }}>{t.impact}</div>}
+              <div key={i} style={{ border: '1px solid rgba(21,19,15,0.09)', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: p.color, background: p.bg, padding: '3px 9px', borderRadius: 100, flexShrink: 0 }}>{p.label}</span>
+                  <button onClick={() => onLaunch?.(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: INK, fontFamily: F, padding: 0, flexShrink: 0 }}>
+                    Lancer <ArrowRight size={12} />
+                  </button>
                 </div>
-                <button onClick={() => onLaunch?.(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: CORAL, flexShrink: 0 }}>
-                  Launch <ArrowRight size={12} />
-                </button>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.35, marginBottom: 4 }}>{t.title}</div>
+                {t.impact && <div style={{ fontSize: 12, color: INK3, lineHeight: 1.5 }}>{t.impact}</div>}
               </div>
             );
           })}

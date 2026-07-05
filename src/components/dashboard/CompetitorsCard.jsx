@@ -1,10 +1,11 @@
 import DashCard from './DashCard';
 import { ArrowUpRight } from 'lucide-react';
 
-const INK = '#1A1A1A';
-const INK3 = '#9B9BA8';
-const CORAL = '#F95738';
-const VIOLET = '#7C3AED';
+const INK = '#15130F';
+const INK3 = 'rgba(21,19,15,0.5)';
+const ORANGE = '#FF5A1F';
+const ORANGE_PALE = '#FFE7D6';
+const CREAM2 = '#F3EEE3';
 const F = 'Inter, system-ui, sans-serif';
 
 function initials(name) {
@@ -17,35 +18,37 @@ export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) 
   const rows = (competitors || []).slice().sort((a, b) => (b.visibility_pct || 0) - (a.visibility_pct || 0));
 
   return (
-    <DashCard title="Competitors" dot={CORAL} action="Competitors →" onAction={onSeeAll}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <DashCard title="Concurrents" dot={ORANGE} action="Concurrents →" onAction={onSeeAll}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         {rows.map((c, i) => {
           const you = c.is_you;
           return (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 11, padding: '9px 8px', borderRadius: 9,
-              background: you ? 'rgba(124,58,237,0.06)' : 'transparent',
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: you ? '10px' : '10px 0',
+              borderRadius: you ? 10 : 0,
+              background: you ? ORANGE_PALE : 'transparent',
+              borderTop: i === 0 ? 'none' : '1px solid rgba(21,19,15,0.09)',
             }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: you ? VIOLET : INK3, width: 12, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: you ? VIOLET : '#EDEBE6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: you ? '#fff' : INK }}>{initials(c.name)}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: INK3, width: 14, flexShrink: 0 }}>{i + 1}</span>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: you ? ORANGE : CREAM2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: you ? '#fff' : '#4A453B' }}>{initials(c.name)}</span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                {you && <div style={{ fontSize: 10.5, color: VIOLET, fontWeight: 600 }}>your brand</div>}
+                <b style={{ display: 'block', fontSize: 13, fontWeight: 700, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
+                {you && <span style={{ fontSize: 11, color: INK3 }}>votre marque</span>}
               </div>
-              <span style={{ fontSize: 13, fontWeight: 800, color: INK, flexShrink: 0 }}>{Math.round(c.visibility_pct || 0)}%</span>
-              <span style={{ fontSize: 10, color: INK3, flexShrink: 0 }}>views</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: INK, flexShrink: 0 }}>{Math.round(c.visibility_pct || 0)}%</span>
             </div>
           );
         })}
       </div>
 
       <button onClick={onWantRank2}
-        style={{ marginTop: 10, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '11px 14px', background: 'rgba(249,87,56,0.08)', border: '1px solid rgba(249,87,56,0.2)', borderRadius: 10, cursor: 'pointer', fontFamily: F }}>
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: CORAL }}>I want to reach #2</span>
-        <span style={{ width: 26, height: 26, borderRadius: '50%', background: CORAL, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <ArrowUpRight size={13} color="#fff" strokeWidth={2.5} />
+        style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: CREAM2, borderRadius: 10, padding: '11px 14px', border: 'none', cursor: 'pointer', fontFamily: F }}>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>Je veux atteindre la 2ème place</span>
+        <span style={{ width: 26, height: 26, borderRadius: '50%', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <ArrowUpRight size={12} color="#fff" strokeWidth={2.6} />
         </span>
       </button>
     </DashCard>
