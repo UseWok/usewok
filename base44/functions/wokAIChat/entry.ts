@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const { system_prompt, history, prompt, file_urls } = body;
     if (!prompt) return Response.json({ error: 'prompt required' }, { status: 400 });
 
-    let apiKey = Deno.env.get('ia_mode_free') || '';
+    let apiKey = Deno.env.get('NVIDIA:_Nemotron_3.5_Content_Safety_(free)') || '';
     // Clean key — handle cases where secret was stored as "export VAR=key" or with quotes/whitespace
     apiKey = apiKey.trim().replace(/^export\s+/i, '');
     if (apiKey.includes('=')) apiKey = apiKey.split('=').slice(1).join('=').trim();
