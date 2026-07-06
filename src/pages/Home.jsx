@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
+import ModelSelector, { AI_MODELS } from '@/components/wokai/ModelSelector';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe, Lock } from 'lucide-react';
 import { setActiveDomain, getActiveDomain, initActiveDomainFromUser } from '@/lib/active-domain';
@@ -476,6 +477,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showModes, setShowModes] = useState(false);
   const [mode, setMode] = useState('scan');
+  const [selectedModels, setSelectedModels] = useState(() => {
+    try { const saved = JSON.parse(localStorage.getItem('wok_home_ai_models') || 'null'); return Array.isArray(saved) && saved.length ? saved : AI_MODELS.map(m => m.id); } catch { return AI_MODELS.map(m => m.id); }
+  });
   const [trollError, setTrollError] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [confirmSite, setConfirmSite] = useState(null); // { url, name }
@@ -772,6 +776,7 @@ export default function Home() {
             transition: 'border-color 200ms',
           }}>
             <Plus size={14} color={INK} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+            <ModelSelector selected={selectedModels} onChange={(ids) => { setSelectedModels(ids); localStorage.setItem('wok_home_ai_models', JSON.stringify(ids)); }} />
             <textarea
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setTrollError(false); }}

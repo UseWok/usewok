@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
-import { usePlanFeatures } from '@/lib/usePlanFeatures';
 
 const F = '"Anthropic Sans","Anthropic Sans Variable",Inter,system-ui,sans-serif';
 const INK = '#111110';
@@ -23,21 +22,10 @@ export const AI_MODELS = [
   { id: 'claude_opus_4_6', label: 'Claude Opus', provider: 'anthropic', providerLabel: 'Anthropic' },
 ];
 
-// Maps a model's provider to the "engine" key used in the plan config (lib/wok-plans.js)
-const ENGINE_BY_PROVIDER = { openai: 'chatgpt', google: 'gemini', anthropic: 'claude' };
-
-/** Models allowed for the current user's plan (only ones whose provider engine is included) */
-export function getAvailableModels(features) {
-  const allowed = features?.engines || ['gemini'];
-  return AI_MODELS.filter(m => allowed.includes(ENGINE_BY_PROVIDER[m.provider]));
-}
-
-// Multi-select AI model pill — shows selected models' logos + count, opens a checklist gated by plan.
+// Multi-select AI model pill — shows selected models' logos + count, opens a checklist of ALL models.
 export default function ModelSelector({ selected, onChange }) {
-  const { features } = usePlanFeatures();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const availableModels = getAvailableModels(features);
 
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -45,7 +33,7 @@ export default function ModelSelector({ selected, onChange }) {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const selectedModels = availableModels.filter(m => selected.includes(m.id));
+  const selectedModels = AI_MODELS.filter(m => selected.includes(m.id));
   const shown = selectedModels.slice(0, 2);
   const extra = selectedModels.length - shown.length;
 
@@ -60,7 +48,7 @@ export default function ModelSelector({ selected, onChange }) {
     onChange(next);
   };
 
-  const providers = ['openai', 'google', 'anthropic'].filter(p => availableModels.some(m => m.provider === p));
+  const providers = ['openai', 'google', 'anthropic'];
 
   return (
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
@@ -80,13 +68,13 @@ export default function ModelSelector({ selected, onChange }) {
       </button>
 
       {open && (
-        <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, zIndex: 9000, background: '#FFFFFF', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 6, minWidth: 210, boxShadow: '0 4px 24px rgba(21,19,15,0.10)' }}>
+        <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', left: 0, zIndex: 9000, background: '#FFFFFF', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 6, minWidth: 210, boxShadow: '0 4px 24px rgba(21,19,15,0.10)' }}>
           {providers.map(prov => (
             <div key={prov}>
               <p style={{ fontSize: 9.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 10px 3px', fontFamily: F }}>
                 {AI_MODELS.find(m => m.provider === prov)?.providerLabel}
               </p>
-              {availableModels.filter(m => m.provider === prov).map(m => {
+              {AI_MODELS.filter(m => m.provider === prov).map(m => {
                 const sel = selected.includes(m.id);
                 return (
                   <div key={m.id} onClick={() => toggle(m.id)}
