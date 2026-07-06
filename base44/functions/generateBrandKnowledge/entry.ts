@@ -16,30 +16,30 @@ Deno.serve(async (req) => {
     const brandLabel = businessName || domain;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Tu es un expert en GEO (Generative Engine Optimization) et en stratégie de marque.
-Analyse le site web "${brandLabel}" (${cleanUrl}) en utilisant le contexte internet.
+      prompt: `Tu analyses le site web "${brandLabel}" (${cleanUrl}) via le contexte internet, pour une personne qui n'y connaît RIEN en marketing.
 
-Génère un "Brand Knowledge" structuré. Règles :
-- Sois PRÉCIS et CONCRET. Ne génère que des informations réellement pertinentes pour cette marque.
-- Si tu ne peux pas déterminer une valeur avec certitude, laisse-la VIDE ("").
-- Les tableaux doivent contenir 3 à 8 éléments spécifiques à cette marque (pas de générique).
+Génère un "Brand Knowledge" simple et concret. Règles STRICTES :
+- Langage SIMPLE et grand public. INTERDIT : jargon marketing (persona, proposition de valeur, sales play, GEO, autorité, notoriété…). Écris comme si tu expliquais à un ami.
+- Chaque tableau contient EXACTEMENT 3 à 5 éléments (jamais plus de 5), spécifiques à cette marque, pas de générique.
+- Chaque pastille de tableau = 2 à 5 mots MAX, court et clair.
+- Si une info est incertaine, laisse VIDE ("").
 - Réponds en français.
 
 Retourne un JSON avec exactement ces champs :
 {
-  "business_name": "Nom officiel de la marque",
-  "industry": "Secteur d'activité précis (ex: SaaS / SEO, E-commerce mode, etc.)",
-  "headquarters": "Ville, Pays du siège",
-  "audience": "Description des personas/clients cibles en 1-2 phrases",
+  "business_name": "Nom de l'entreprise",
+  "industry": "Ce qu'elle fait, en mots simples (ex: logiciel marketing, boutique de vêtements)",
+  "headquarters": "Ville, Pays",
+  "audience": "Ses clients types, en 1 phrase simple",
   "business_model": "B2B | B2C | B2B2C | Marketplace",
-  "target_segment": "Taille de marché ou segment (ex: PME, ETI, Grand public, etc.)",
-  "value_description": "Proposition de valeur en 2-3 phrases — ce qui rend cette marque unique",
-  "value_keywords": ["différenciateur clé 1", "différenciateur 2", ...],
-  "use_cases": ["cas d'usage concret 1", "cas d'usage 2", ...],
-  "authority_topics": ["sujet d'autorité 1", "sujet 2", ...],
-  "pre_purchase_questions": ["question que se posent les prospects avant achat 1", ...],
-  "objections": ["objection courante 1", ...],
-  "avoid_topics": ["sujet/association à éviter 1", ...],
+  "target_segment": "Type de clients en mots simples (ex: petites entreprises, particuliers)",
+  "value_description": "En 1-2 phrases simples, ce qu'elle fait de mieux que les autres",
+  "value_keywords": ["point fort court 1", "point fort 2", "... 5 max"],
+  "use_cases": ["situation d'usage courte 1", "... 5 max"],
+  "authority_topics": ["sujet d'expertise court 1", "... 5 max"],
+  "pre_purchase_questions": ["question simple d'un client 1", "... 5 max"],
+  "objections": ["hésitation courante 1", "... 5 max"],
+  "avoid_topics": ["sujet à éviter 1", "... 5 max"],
   "scope": "Local | Regional | National | Continental | Worldwide"
 }`,
       add_context_from_internet: true,
@@ -65,7 +65,13 @@ Retourne un JSON avec exactement ces champs :
       },
     });
 
-    return Response.json({ knowledge: result });
+    // Cap every pastille array to 5 items max
+    const capped = { ...result };
+    for (const key of ['value_keywords', 'use_cases', 'authority_topics', 'pre_purchase_questions', 'objections', 'avoid_topics']) {
+      if (Array.isArray(capped[key])) capped[key] = capped[key].slice(0, 5);
+    }
+
+    return Response.json({ knowledge: capped });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

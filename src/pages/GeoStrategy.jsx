@@ -92,9 +92,9 @@ export default function GeoStrategy() {
       {/* Sticky header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, background: SURFACE, padding: '18px 24px 12px', paddingTop: 'max(18px, env(safe-area-inset-top))', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>GEO Strategy</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Votre plan de visibilité IA</h1>
           <p style={{ fontSize: 12, color: INK3, margin: '4px 0 0' }}>
-            {domainLabel}{updatedAt ? ` · mis à jour le ${new Date(updatedAt).toLocaleDateString('fr-FR')}` : ' · jamais enregistré'}
+            Dites à l'IA comment vous voulez être vu · {domainLabel}{updatedAt ? ` · maj ${new Date(updatedAt).toLocaleDateString('fr-FR')}` : ''}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -113,54 +113,54 @@ export default function GeoStrategy() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         style={{ maxWidth: 1080, margin: '0 auto', padding: '8px 24px 120px' }}>
 
-        {/* Positionnement cible */}
-        <Section title="Positionnement cible" hint="Le rôle que vous voulez tenir dans les réponses des moteurs IA.">
+        {/* Comment vous voulez être vu */}
+        <Section title="Comment vous voulez être vu" icon="⭐" hint="Le rôle que vous aimeriez que l'IA vous donne quand elle parle de votre domaine.">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
             <div>
-              <FieldLabel>Stratégie / rôle visé</FieldLabel>
+              <FieldLabel>Votre place idéale</FieldLabel>
               <SelectInput value={s.positioning_target} onChange={v => set('positioning_target', v)} options={POSITIONING_TARGETS} />
             </div>
             <div>
-              <FieldLabel>Angle de positionnement</FieldLabel>
+              <FieldLabel>En quelques mots, comment aimeriez-vous être présenté ?</FieldLabel>
               <TextArea value={s.positioning_note} onChange={v => set('positioning_note', v)} rows={3}
-                placeholder="Ex : Devenir la recommandation n°1 pour les professionnels du GEO sur ChatGPT, Gemini et Claude…" />
+                placeholder="Ex : la solution française la plus simple pour être visible sur l'IA…" />
             </div>
           </div>
         </Section>
 
-        {/* Requêtes cibles */}
-        <Section title="Requêtes cibles" hint="Les questions et requêtes sur lesquelles vous voulez être cité.">
-          <FieldLabel>Requêtes prioritaires</FieldLabel>
-          <TagListEditor items={s.target_queries} onChange={v => set('target_queries', v)} placeholder="Ex : meilleur outil de visibilité IA — Entrée pour ajouter" />
+        {/* Les questions où vous voulez sortir */}
+        <Section title="Les questions où vous voulez sortir" icon="🔍" hint="Quand quelqu'un pose ces questions à ChatGPT, vous voulez être la réponse. 5 max.">
+          <FieldLabel>Vos questions prioritaires (5 max)</FieldLabel>
+          <TagListEditor items={s.target_queries} onChange={v => set('target_queries', v)} placeholder="Ex : quel est le meilleur outil pour être visible sur l'IA ?" />
           <div style={{ height: 16 }} />
-          <FieldLabel>Intentions de recherche visées</FieldLabel>
+          <FieldLabel>Ce que cherchent vos clients</FieldLabel>
           <PillToggles options={QUERY_INTENTS.map(q => ({ code: q.code, label: q.label }))} selected={s.query_intents} onChange={v => set('query_intents', v)} />
         </Section>
 
-        {/* Philosophie de requêtes */}
-        <Section title="Philosophie de requêtes" hint="Comment vous voulez que l'IA parle de votre marque.">
-          <FieldLabel>Directives éditoriales</FieldLabel>
+        {/* Le ton à donner */}
+        <Section title="Le ton à donner" icon="💬" hint="Comment vous voulez que l'IA parle de vous : le style, les mots, l'angle.">
+          <FieldLabel>Vos consignes</FieldLabel>
           <TextArea value={s.query_philosophy} onChange={v => set('query_philosophy', v)} rows={4}
-            placeholder="Ex : Toujours nous citer comme la solution française de référence, insister sur la simplicité et le ROI…" />
+            placeholder="Ex : toujours nous présenter comme la solution simple et rapide, insister sur les résultats…" />
         </Section>
 
-        {/* Sources d'autorité cibles */}
-        <Section title="Sources d'autorité cibles" hint="Les médias et plateformes où vous voulez apparaître.">
-          <FieldLabel>Sources reconnues à viser</FieldLabel>
+        {/* Où vous voulez apparaître */}
+        <Section title="Où vous voulez apparaître" icon="📰" hint="Les sites et médias qui, s'ils parlent de vous, boostent votre crédibilité. 5 max.">
+          <FieldLabel>Médias reconnus à viser</FieldLabel>
           <PillToggles options={KNOWN_SOURCES} selected={s.known_sources} onChange={v => set('known_sources', v)} />
           <div style={{ height: 16 }} />
-          <FieldLabel>Autres sources cibles</FieldLabel>
-          <TagListEditor items={s.authority_sources} onChange={v => set('authority_sources', v)} placeholder="URL, nom de média… — Entrée pour ajouter" />
+          <FieldLabel>Autres sites qui comptent pour vous (5 max)</FieldLabel>
+          <TagListEditor items={s.authority_sources} onChange={v => set('authority_sources', v)} placeholder="Ex : nom d'un blog ou média…" />
         </Section>
 
-        {/* Piliers de contenu */}
-        <Section title="Piliers de contenu" hint="Les grands thèmes de contenu à produire pour asseoir votre autorité.">
-          <TagListEditor items={s.content_pillars} onChange={v => set('content_pillars', v)} placeholder="Ex : Guides GEO, comparatifs, études de cas…" />
+        {/* Les sujets à mettre en avant */}
+        <Section title="Les sujets à mettre en avant" icon="📚" hint="Les grands thèmes de contenu à produire pour devenir une référence. 5 max.">
+          <TagListEditor items={s.content_pillars} onChange={v => set('content_pillars', v)} placeholder="Ex : guides pratiques, comparatifs, témoignages…" />
         </Section>
 
-        {/* Concurrents prioritaires */}
-        <Section title="Concurrents prioritaires" hint="Les marques à surveiller et à dépasser dans les réponses IA.">
-          <TagListEditor items={s.priority_competitors} onChange={v => set('priority_competitors', v)} placeholder="Ex : Semrush, Ahrefs… — Entrée pour ajouter" />
+        {/* Les concurrents à dépasser */}
+        <Section title="Les concurrents à dépasser" icon="🏁" hint="Les marques que vous voulez battre dans les réponses de l'IA. 5 max.">
+          <TagListEditor items={s.priority_competitors} onChange={v => set('priority_competitors', v)} placeholder="Ex : Semrush, Ahrefs…" />
         </Section>
       </motion.div>
 

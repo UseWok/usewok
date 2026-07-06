@@ -3,12 +3,19 @@ const INK3 = '#6B7280';
 const BORDER = '#E5E7EB';
 const WHITE = '#FFFFFF';
 
-export function Section({ title, meta, children }) {
+export function Section({ title, hint, icon, children }) {
   return (
-    <section style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '20px 24px', marginBottom: 12 }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: INK, margin: 0, letterSpacing: '-0.01em' }}>{title}</h2>
-        {meta && <p style={{ fontSize: 11.5, color: INK3, margin: '4px 0 0' }}>{meta}</p>}
+    <section style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '22px 24px', marginBottom: 14 }}>
+      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        {icon && (
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 17 }}>
+            {icon}
+          </div>
+        )}
+        <div>
+          <h2 style={{ fontSize: 15.5, fontWeight: 700, color: INK, margin: 0, letterSpacing: '-0.01em' }}>{title}</h2>
+          {hint && <p style={{ fontSize: 12.5, color: INK3, margin: '3px 0 0', lineHeight: 1.5 }}>{hint}</p>}
+        </div>
       </div>
       {children}
     </section>

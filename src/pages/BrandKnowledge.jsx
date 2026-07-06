@@ -148,7 +148,7 @@ export default function BrandKnowledge() {
               </span>
             )}
           </div>
-          <p style={{ fontSize: 12.5, color: INK3, margin: '4px 0 0' }}>Gérez votre contenu de marque</p>
+          <p style={{ fontSize: 12.5, color: INK3, margin: '4px 0 0' }}>Racontez qui vous êtes à l'IA — plus c'est clair, mieux elle parle de vous.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
           {!editMode ? (
@@ -184,153 +184,135 @@ export default function BrandKnowledge() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         style={{ maxWidth: 820, margin: '0 auto', padding: '20px 32px 120px' }}>
 
-        {/* Identité */}
-        <Section title="Identité" meta={meta}>
+        {/* Qui vous êtes */}
+        <Section title="Qui vous êtes" icon="🏷️" hint="Les infos de base sur votre entreprise. C'est ce que l'IA doit savoir en premier.">
           {editMode ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
-                <FieldLabel>Nom de la marque</FieldLabel>
-                <TextInput value={k.business_name} onChange={v => set('business_name', v)} placeholder="UseWok" />
+                <FieldLabel>Nom de votre entreprise</FieldLabel>
+                <TextInput value={k.business_name} onChange={v => set('business_name', v)} placeholder="Ex : UseWok" />
               </div>
               <div>
-                <FieldLabel>Secteur d'activité</FieldLabel>
-                <TextInput value={k.industry} onChange={v => set('industry', v)} placeholder="SaaS / GEO" />
+                <FieldLabel>Votre domaine d'activité</FieldLabel>
+                <TextInput value={k.industry} onChange={v => set('industry', v)} placeholder="Ex : logiciel marketing" />
               </div>
               <div>
-                <FieldLabel>Site web</FieldLabel>
+                <FieldLabel>Adresse de votre site</FieldLabel>
                 <TextInput value={k.site_url} onChange={v => set('site_url', v)} placeholder="usewok.com" />
               </div>
               <div>
-                <FieldLabel>Ville / Siège social</FieldLabel>
-                <TextInput value={k.headquarters} onChange={v => set('headquarters', v)} placeholder="Paris, France" />
+                <FieldLabel>Où êtes-vous basé ?</FieldLabel>
+                <TextInput value={k.headquarters} onChange={v => set('headquarters', v)} placeholder="Ex : Paris, France" />
               </div>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <FieldLabel>Nom de la marque</FieldLabel>
-                <FieldValue value={k.business_name} />
-              </div>
-              <div>
-                <FieldLabel>Secteur d'activité</FieldLabel>
-                <FieldValue value={k.industry} />
-              </div>
-              <div>
-                <FieldLabel>Site web</FieldLabel>
-                <FieldValue value={k.site_url} />
-              </div>
-              <div>
-                <FieldLabel>Ville / Siège social</FieldLabel>
-                <FieldValue value={k.headquarters} />
-              </div>
+              <div><FieldLabel>Nom de votre entreprise</FieldLabel><FieldValue value={k.business_name} /></div>
+              <div><FieldLabel>Votre domaine d'activité</FieldLabel><FieldValue value={k.industry} /></div>
+              <div><FieldLabel>Adresse de votre site</FieldLabel><FieldValue value={k.site_url} /></div>
+              <div><FieldLabel>Où êtes-vous basé ?</FieldLabel><FieldValue value={k.headquarters} /></div>
             </div>
           )}
         </Section>
 
-        {/* Marché cible */}
-        <Section title="Marché cible" meta={meta}>
+        {/* À qui vous vendez */}
+        <Section title="À qui vous vendez" icon="🎯" hint="Décrivez vos clients : qui sont-ils et où se trouvent-ils ?">
           {editMode ? (
             <>
-              <FieldLabel>Personas visés</FieldLabel>
-              <TextArea value={k.audience} onChange={v => set('audience', v)} rows={2} placeholder="Dirigeants, responsables marketing…" />
+              <FieldLabel>Vos clients types</FieldLabel>
+              <TextArea value={k.audience} onChange={v => set('audience', v)} rows={2} placeholder="Ex : dirigeants de PME, responsables marketing…" />
               <FieldDivider />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
-                  <FieldLabel>Taille du marché</FieldLabel>
-                  <TextInput value={k.target_segment} onChange={v => set('target_segment', v)} placeholder="PME, ETI…" />
+                  <FieldLabel>Quel type de clients ?</FieldLabel>
+                  <TextInput value={k.target_segment} onChange={v => set('target_segment', v)} placeholder="Ex : petites entreprises" />
                 </div>
                 <div>
-                  <FieldLabel>Zone géographique</FieldLabel>
-                  <SelectInput value={k.scope} onChange={v => set('scope', v)} options={SCOPES.map(s => ({ value: s, label: s === 'Worldwide' ? 'Monde entier' : s === 'National' ? 'National' : s === 'Continental' ? 'Continental' : s === 'Regional' ? 'Régional' : 'Local' }))} />
+                  <FieldLabel>Où vendez-vous ?</FieldLabel>
+                  <SelectInput value={k.scope} onChange={v => set('scope', v)} options={SCOPES.map(s => ({ value: s, label: s === 'Worldwide' ? 'Dans le monde entier' : s === 'National' ? 'Dans tout le pays' : s === 'Continental' ? 'Sur le continent' : s === 'Regional' ? 'Dans ma région' : 'Autour de moi' }))} />
                 </div>
               </div>
             </>
           ) : (
             <>
-              <FieldLabel>Personas visés</FieldLabel>
+              <FieldLabel>Vos clients types</FieldLabel>
               <FieldValue value={k.audience} />
               <FieldDivider />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div>
-                  <FieldLabel>Taille du marché</FieldLabel>
-                  <FieldValue value={k.target_segment} />
-                </div>
-                <div>
-                  <FieldLabel>Zone géographique</FieldLabel>
-                  <FieldValue value={k.scope === 'Worldwide' ? 'Monde entier' : k.scope} />
-                </div>
+                <div><FieldLabel>Quel type de clients ?</FieldLabel><FieldValue value={k.target_segment} /></div>
+                <div><FieldLabel>Où vendez-vous ?</FieldLabel><FieldValue value={k.scope === 'Worldwide' ? 'Dans le monde entier' : k.scope} /></div>
               </div>
             </>
           )}
         </Section>
 
-        {/* Proposition de valeur */}
-        <Section title="Proposition de valeur" meta={meta}>
+        {/* Ce qui vous rend unique */}
+        <Section title="Ce qui vous rend unique" icon="💎" hint="Pourquoi un client vous choisirait vous plutôt qu'un concurrent. Ajoutez jusqu'à 5 points forts.">
           {editMode ? (
             <>
-              <FieldLabel>Description</FieldLabel>
-              <TextArea value={k.value_description} onChange={v => set('value_description', v)} rows={3} placeholder="Ce qui vous rend unique…" />
+              <FieldLabel>En une phrase, qu'est-ce que vous faites de mieux ?</FieldLabel>
+              <TextArea value={k.value_description} onChange={v => set('value_description', v)} rows={3} placeholder="Ex : on aide les entreprises à apparaître dans les réponses de ChatGPT…" />
               <FieldDivider />
-              <FieldLabel>Différenciateurs clés</FieldLabel>
-              <TagListEditor items={k.value_keywords} onChange={v => set('value_keywords', v)} placeholder="Ex : visibilité IA…" />
+              <FieldLabel>Vos points forts (5 max)</FieldLabel>
+              <TagListEditor items={k.value_keywords} onChange={v => set('value_keywords', v)} placeholder="Ex : simple à utiliser, résultats rapides…" />
             </>
           ) : (
             <>
-              <FieldLabel>Description</FieldLabel>
+              <FieldLabel>En une phrase, qu'est-ce que vous faites de mieux ?</FieldLabel>
               <FieldValue value={k.value_description} />
               <FieldDivider />
-              <FieldLabel>Différenciateurs clés</FieldLabel>
+              <FieldLabel>Vos points forts</FieldLabel>
               <PillList items={k.value_keywords} />
             </>
           )}
         </Section>
 
-        {/* Cas d'usage / Sales Plays */}
-        <Section title="Cas d'usage / Sales Plays" meta={meta}>
+        {/* Comment on vous utilise */}
+        <Section title="Comment on vous utilise" icon="🛠️" hint="Les situations concrètes où vos clients font appel à vous. 5 max.">
           {editMode ? (
-            <TagListEditor items={k.use_cases} onChange={v => set('use_cases', v)} placeholder="Ex : Audit de présence IA…" />
+            <TagListEditor items={k.use_cases} onChange={v => set('use_cases', v)} placeholder="Ex : vérifier sa présence sur l'IA…" />
           ) : (
             <PillList items={k.use_cases} />
           )}
         </Section>
 
-        {/* Sujets d'autorité */}
-        <Section title="Sujets d'autorité" meta={meta}>
+        {/* Vos sujets d'expertise */}
+        <Section title="Vos sujets d'expertise" icon="🧠" hint="Les thèmes sur lesquels vous êtes reconnu comme un expert. 5 max.">
           {editMode ? (
-            <TagListEditor items={k.authority_topics} onChange={v => set('authority_topics', v)} placeholder="Ex : GEO, optimisation IA…" />
+            <TagListEditor items={k.authority_topics} onChange={v => set('authority_topics', v)} placeholder="Ex : visibilité sur l'IA, référencement…" />
           ) : (
             <PillList items={k.authority_topics} />
           )}
         </Section>
 
-        {/* Questions avant achat */}
-        <Section title="Questions avant achat" meta={meta}>
+        {/* Ce que vos clients se demandent */}
+        <Section title="Ce que vos clients se demandent" icon="❓" hint="Les questions que se posent les gens avant d'acheter chez vous. 5 max.">
           {editMode ? (
-            <TagListEditor items={k.pre_purchase_questions} onChange={v => set('pre_purchase_questions', v)} placeholder="Ex : Quelle solution pour être cité par les IA ?" />
+            <TagListEditor items={k.pre_purchase_questions} onChange={v => set('pre_purchase_questions', v)} placeholder="Ex : comment être cité par les IA ?" />
           ) : (
             <PillList items={k.pre_purchase_questions} />
           )}
         </Section>
 
-        {/* Objections des prospects */}
-        <Section title="Objections des prospects" meta={meta}>
+        {/* Les freins à l'achat */}
+        <Section title="Les freins à l'achat" icon="🚧" hint="Les hésitations ou objections courantes que vous devez lever. 5 max.">
           {editMode ? (
-            <TagListEditor items={k.objections} onChange={v => set('objections', v)} placeholder="Ex : Est-ce difficile à mettre en place ?" />
+            <TagListEditor items={k.objections} onChange={v => set('objections', v)} placeholder="Ex : est-ce compliqué à mettre en place ?" />
           ) : (
             <PillList items={k.objections} />
           )}
         </Section>
 
-        {/* Sujets à éviter */}
-        <Section title="Sujets à éviter" meta={meta}>
+        {/* À ne pas associer à vous */}
+        <Section title="À ne pas associer à vous" icon="🙅" hint="Les sujets dont vous ne voulez surtout pas qu'on parle à votre propos.">
           {editMode ? (
             <>
-              <FieldLabel>Associations dont la marque ne veut pas</FieldLabel>
-              <TextArea value={k.avoid_topics?.join(', ')} onChange={v => set('avoid_topics', v.split(',').map(s => s.trim()).filter(Boolean))} rows={2} placeholder="Sujets sensibles, domaines connexes…" />
+              <FieldLabel>Sujets à éviter</FieldLabel>
+              <TextArea value={k.avoid_topics?.join(', ')} onChange={v => set('avoid_topics', v.split(',').map(s => s.trim()).filter(Boolean))} rows={2} placeholder="Ex : sujets sensibles, concurrents…" />
             </>
           ) : (
             <>
-              <FieldLabel>Associations dont la marque ne veut pas</FieldLabel>
+              <FieldLabel>Sujets à éviter</FieldLabel>
               {k.avoid_topics?.length > 0
                 ? <PillList items={k.avoid_topics} />
                 : <FieldValue value={null} />}

@@ -17,21 +17,22 @@ function initials(name) {
 function faviconUrl(c) {
   const raw = c.domain || c.url || c.website || '';
   if (!raw) return null;
-  const host = raw.replace(/https?:\/\//, '').split('/')[0];
+  const host = raw.replace(/https?:\/\//, '').replace(/^www\./, '').split('/')[0];
   if (!host || !host.includes('.')) return null;
-  return `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
+  // Clearbit returns sharp, high-res square logos (better than favicons for a round crop)
+  return `https://logo.clearbit.com/${host}?size=128`;
 }
 
 function CompetitorLogo({ c, you }) {
   const url = faviconUrl(c);
   const bg = you ? ORANGE : '#fff';
   return (
-    <div style={{ width: 28, height: 28, borderRadius: 8, background: bg, border: you ? 'none' : `1px solid ${CREAM2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+    <div style={{ width: 30, height: 30, borderRadius: '50%', background: bg, border: you ? `2px solid ${ORANGE}` : `1px solid ${CREAM2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', boxShadow: '0 1px 3px rgba(21,19,15,0.08)' }}>
       {url ? (
-        <img src={url} width={20} height={20} alt={c.name} style={{ objectFit: 'contain' }}
-          onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }} />
+        <img src={url} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+          onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }} />
       ) : null}
-      <span style={{ display: url ? 'none' : 'block', fontSize: 10.5, fontWeight: 700, color: you ? '#fff' : '#4A453B' }}>{initials(c.name)}</span>
+      <span style={{ display: url ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 10.5, fontWeight: 700, color: you ? '#fff' : '#4A453B' }}>{initials(c.name)}</span>
     </div>
   );
 }

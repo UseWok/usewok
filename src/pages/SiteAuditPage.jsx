@@ -36,6 +36,13 @@ export default function SiteAuditPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Auto-open the most recent audit — the page acts as a redirect to the latest detail.
+  useEffect(() => {
+    if (!loading && audits.length > 0) {
+      navigate(`/site-audit/${audits[0].id}`, { replace: true });
+    }
+  }, [loading, audits]);
+
   const runAudit = async () => {
     if (!siteUrl || running) return;
     setRunning(true);

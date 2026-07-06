@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, ChevronUp, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { getActiveDomain } from '@/lib/active-domain';
+import { ArrowLeft, RefreshCw, ChevronUp, ChevronDown, CheckCircle2, Clock, Wrench, X } from 'lucide-react';
 import { StatusBadge, AgentChip, AGENT_ORDER } from '@/components/siteaudit/AuditBits';
+import FixDrawer from '@/components/report/FixDrawer';
 
 const F = 'Inter, system-ui, sans-serif';
 const MONO = '"JetBrains Mono", monospace';
@@ -51,6 +53,11 @@ export default function SiteAuditDetail() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('freshness');
   const [pagesOpen, setPagesOpen] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(null);
+  const [fixIssue, setFixIssue] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -61,6 +68,25 @@ export default function SiteAuditDetail() {
     setLoading(false);
   };
   useEffect(() => { load(); }, [id]);
+
+  // Load audit history + business profile (for the Fix drawer)
+  useEffect(() => {
+    (async () => {
+      try {
+        const u = await base44.auth.me();
+        setUser(u);
+        const active = getActiveDomain();
+        const q = { user_id: u.id };
+        if (active?.url) q.site_url = active.url;
+        const list = await base44.entities.SiteAudit.filter(q, '-created_date', 30);
+        setHistory(list);
+        if (active?.url) {
+          const profs = await base44.entities.BusinessProfile.filter({ site_url: active.url });
+          setProfile(profs.find(p => p.created_by_id === u.id) || profs[0] || null);
+        }
+      } catch {}
+    })();
+  }, [id]);
 
   if (loading) return <div style={{ minHeight: '100vh', background: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 26, height: 26, borderRadius: '50%', border: `3px solid ${BORDER_STRONG}`, borderTopColor: ORANGE, animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>;
   if (!audit) return <div style={{ minHeight: '100vh', background: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}><p style={{ color: INK3 }}>Audit introuvable.</p></div>;
@@ -84,12 +110,41 @@ export default function SiteAuditDetail() {
         {/* Title */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 14 }}>
           <h1 style={{ fontSize: 26, fontWeight: 600, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Audit du {dateLabel}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
             <StatusBadge status={audit.status} />
-            <button onClick={load} title="Relancer l'audit"
+            <button onClick={load} title="Rafraîchir"
               style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${BORDER_STRONG}`, background: SURFACE, cursor: 'pointer', display: 'grid', placeItems: 'center', color: INK3 }}>
               <RefreshCw size={15} />
             </button>
+            <button onClick={() => setShowHistory(v => !v)} title="Historique des audits"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 13px', borderRadius: 10, border: `1px solid ${BORDER_STRONG}`, background: showHistory ? CREAM_DEEP : SURFACE, cursor: 'pointer', color: INK2, fontSize: 12.5, fontWeight: 600, fontFamily: F }}>
+              <Clock size={14} /> Historique
+              {history.length > 0 && <span style={{ fontSize: 10.5, fontWeight: 700, background: INK, color: '#fff', borderRadius: 10, padding: '1px 6px' }}>{history.length}</span>}
+            </button>
+
+            {showHistory && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 60 }} onClick={() => setShowHistory(false)} />
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 70, width: 320, maxHeight: 360, overflowY: 'auto', background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', padding: 6 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 12px 6px' }}>Audits précédents</p>
+                  {history.length === 0 && <p style={{ fontSize: 12.5, color: INK3, padding: '10px 12px' }}>Aucun autre audit.</p>}
+                  {history.map(h => {
+                    const isCur = h.id === id;
+                    return (
+                      <button key={h.id} onClick={() => { setShowHistory(false); navigate(`/site-audit/${h.id}`); }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', padding: '9px 12px', border: 'none', borderRadius: 9, background: isCur ? CREAM_DEEP : 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: F, marginBottom: 2 }}
+                        onMouseEnter={e => { if (!isCur) e.currentTarget.style.background = CREAM; }}
+                        onMouseLeave={e => { if (!isCur) e.currentTarget.style.background = 'transparent'; }}>
+                        <span style={{ fontSize: 12.5, fontWeight: isCur ? 700 : 500, color: INK }}>
+                          {new Date(h.created_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span style={{ fontSize: 12.5, fontWeight: 800, color: ORANGE_DARK }}>{h.score_website ?? 0}/100</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -181,18 +236,35 @@ export default function SiteAuditDetail() {
                   </div>
                   <div style={{ fontSize: 14.5, fontWeight: 600, color: INK, marginBottom: 6 }}>{it.title}</div>
                   {it.detail && <p style={{ fontSize: 13.5, color: INK3, margin: '0 0 10px', lineHeight: 1.5 }}>{it.detail}</p>}
-                  {it.page && (
-                    <div style={{ fontSize: 12, color: INK_FAINT, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <span style={{ fontFamily: MONO }}>{it.page}</span>
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                    {it.page ? (
+                      <div style={{ fontSize: 12, color: INK_FAINT, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <span style={{ fontFamily: MONO }}>{it.page}</span>
+                      </div>
+                    ) : <span />}
+                    <button onClick={() => setFixIssue({ text: it.title + (it.detail ? ` — ${it.detail}` : '') })}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 9, background: INK, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
+                      <Wrench size={13} /> Corriger
+                    </button>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       </div>
+
+      {fixIssue && (
+        <FixDrawer
+          issue={fixIssue}
+          profile={profile}
+          user={user}
+          isFree={false}
+          onClose={() => setFixIssue(null)}
+          onUpgrade={() => navigate('/pricing')}
+        />
+      )}
     </div>
   );
 }
