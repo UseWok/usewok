@@ -9,7 +9,8 @@ import { getProfileData } from '@/lib/profile-storage';
 import { checkChatQuota } from '@/lib/quota-enforcement';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
-import ModelSelector from '@/components/wokai/ModelSelector';
+import ModelSelector, { getAvailableModels } from '@/components/wokai/ModelSelector';
+import { usePlanFeatures } from '@/lib/usePlanFeatures';
 
 const F = '"Anthropic Sans","Anthropic Sans Variable",Inter,system-ui,sans-serif';
 const INK = '#111110';
@@ -447,7 +448,10 @@ export default function WokAIPage({ user: userProp }) {
   const [showDrive, setShowDrive] = useState(false);
   const [mode, setMode] = useState('chat');
   const [showModes, setShowModes] = useState(false);
-  const [aiModel, setAiModel] = useState(() => localStorage.getItem('wok_ai_model') || 'gpt_5_mini');
+  const { features } = usePlanFeatures();
+  const [selectedModels, setSelectedModels] = useState(() => {
+    try { const saved = JSON.parse(localStorage.getItem('wok_ai_models_selected') || 'null'); return Array.isArray(saved) && saved.length ? saved : null; } catch { return null; }
+  });
   const [profile, setProfile] = useState(null);
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
   const [sendingTest, setSendingTest] = useState(false);
@@ -466,15 +470,18 @@ export default function WokAIPage({ user: userProp }) {
 
   const domainLabel = activeDomain?.url?.replace(/https?:\/\//, '').split('/')[0] || '';
 
-  // Model choice — persisted locally + in cloud on the user record
+  // Default selection: all AI models included in the user's plan — pre-checked, editable
   useEffect(() => {
-    if (user?.wok_ai_model) { setAiModel(user.wok_ai_model); localStorage.setItem('wok_ai_model', user.wok_ai_model); }
-  }, [user?.wok_ai_model]);
-  const changeModel = (m) => {
-    setAiModel(m);
-    localStorage.setItem('wok_ai_model', m);
-    base44.auth.updateMe({ wok_ai_model: m }).catch(() => {});
+    if (selectedModels) return;
+    const available = getAvailableModels(features);
+    if (available.length) setSelectedModels(available.map(m => m.id));
+  }, [features, selectedModels]);
+
+  const changeModels = (ids) => {
+    setSelectedModels(ids);
+    localStorage.setItem('wok_ai_models_selected', JSON.stringify(ids));
   };
+  const aiModel = selectedModels?.[0] || 'gpt_5_mini';
 
   // Load conversations from cloud on mount
   useEffect(() => {
@@ -816,8 +823,8 @@ export default function WokAIPage({ user: userProp }) {
               placeholder={mode === 'scan' ? 'Search a domain, run an analysis…' : 'Ask a question, get help...'} rows={1}
               style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F, resize: 'none', lineHeight: 1.5, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box', padding: 0 }} />
 
-            {/* AI Model selector */}
-            <ModelSelector model={aiModel} onChange={changeModel} />
+            {/* AI Models selector */}
+            <ModelSelector selected={selectedModels || []} onChange={changeModels} />
 
             {/* Mode selector */}
             <ModeSelector mode={mode} onToggle={() => setShowModes(v => !v)} />

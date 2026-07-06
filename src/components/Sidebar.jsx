@@ -616,6 +616,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+            <NavItem icon={Home} label="Accueil" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
             <NavItem icon={LayoutDashboard} label="Tableau de bord" onClick={() => nav('/dashboard')} active={isActive('/dashboard')} expanded={expanded} />
             <NavItem icon={Sparkles} label="WOK AI" onClick={() => nav('/wok-ai')} active={isActive('/wok-ai')} expanded={expanded} />
           </div>

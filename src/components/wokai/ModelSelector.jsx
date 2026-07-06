@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { usePlanFeatures } from '@/lib/usePlanFeatures';
 
 const F = '"Anthropic Sans","Anthropic Sans Variable",Inter,system-ui,sans-serif';
 const INK = '#111110';
@@ -22,10 +23,21 @@ export const AI_MODELS = [
   { id: 'claude_opus_4_6', label: 'Claude Opus', provider: 'anthropic', providerLabel: 'Anthropic' },
 ];
 
-export default function ModelSelector({ model, onChange }) {
+// Maps a model's provider to the "engine" key used in the plan config (lib/wok-plans.js)
+const ENGINE_BY_PROVIDER = { openai: 'chatgpt', google: 'gemini', anthropic: 'claude' };
+
+/** Models allowed for the current user's plan (only ones whose provider engine is included) */
+export function getAvailableModels(features) {
+  const allowed = features?.engines || ['gemini'];
+  return AI_MODELS.filter(m => allowed.includes(ENGINE_BY_PROVIDER[m.provider]));
+}
+
+// Multi-select AI model pill — shows selected models' logos + count, opens a checklist gated by plan.
+export default function ModelSelector({ selected, onChange }) {
+  const { features } = usePlanFeatures();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const active = AI_MODELS.find(m => m.id === model) || AI_MODELS[0];
+  const availableModels = getAvailableModels(features);
 
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -33,36 +45,59 @@ export default function ModelSelector({ model, onChange }) {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const providers = ['openai', 'google', 'anthropic'];
+  const selectedModels = availableModels.filter(m => selected.includes(m.id));
+  const shown = selectedModels.slice(0, 2);
+  const extra = selectedModels.length - shown.length;
+
+  const toggle = (id) => {
+    let next;
+    if (selected.includes(id)) {
+      next = selected.filter(x => x !== id);
+      if (next.length === 0) return; // keep at least one selected
+    } else {
+      next = [...selected, id];
+    }
+    onChange(next);
+  };
+
+  const providers = ['openai', 'google', 'anthropic'].filter(p => availableModels.some(m => m.provider === p));
 
   return (
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-      <button onClick={() => setOpen(v => !v)} title="Modèle IA"
-        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 8px', border: 'none', background: open ? SURFACE : 'transparent', borderRadius: 6, cursor: 'pointer', fontFamily: F }}
-        onMouseEnter={e => e.currentTarget.style.background = SURFACE}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.background = 'transparent'; }}>
-        <img src={LOGOS[active.provider]} width={14} height={14} style={{ objectFit: 'contain', display: 'block' }} alt={active.providerLabel} />
-        <span style={{ fontSize: 12, fontWeight: 600, color: INK, whiteSpace: 'nowrap' }}>{active.label}</span>
+      <button onClick={() => setOpen(v => !v)} title="Intelligences artificielles"
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', border: `1px solid ${BORDER}`, background: open ? SURFACE : '#fff', borderRadius: 20, cursor: 'pointer', fontFamily: F }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.background = SURFACE; }}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#fff'; }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {shown.map((m, i) => (
+            <img key={m.id} src={LOGOS[m.provider]} width={16} height={16}
+              style={{ objectFit: 'contain', display: 'block', marginLeft: i > 0 ? -5 : 0, borderRadius: '50%', background: '#fff', border: '1.5px solid #fff' }}
+              alt={m.providerLabel} />
+          ))}
+        </div>
+        {extra > 0 && <span style={{ fontSize: 11.5, fontWeight: 700, color: INK3 }}>+{extra}</span>}
         <ChevronDown size={11} color={INK} strokeWidth={2} />
       </button>
 
       {open && (
-        <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, zIndex: 9000, background: '#FFFFFF', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 6, minWidth: 200, boxShadow: '0 4px 24px rgba(21,19,15,0.10)' }}>
+        <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, zIndex: 9000, background: '#FFFFFF', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 6, minWidth: 210, boxShadow: '0 4px 24px rgba(21,19,15,0.10)' }}>
           {providers.map(prov => (
             <div key={prov}>
               <p style={{ fontSize: 9.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 10px 3px', fontFamily: F }}>
                 {AI_MODELS.find(m => m.provider === prov)?.providerLabel}
               </p>
-              {AI_MODELS.filter(m => m.provider === prov).map(m => {
-                const sel = m.id === model;
+              {availableModels.filter(m => m.provider === prov).map(m => {
+                const sel = selected.includes(m.id);
                 return (
-                  <div key={m.id} onClick={() => { onChange(m.id); setOpen(false); }}
+                  <div key={m.id} onClick={() => toggle(m.id)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', background: sel ? '#F3F4F6' : 'transparent' }}
                     onMouseEnter={e => { if (!sel) e.currentTarget.style.background = '#F9FAFB'; }}
                     onMouseLeave={e => { if (!sel) e.currentTarget.style.background = 'transparent'; }}>
+                    <div style={{ width: 15, height: 15, border: `2px solid ${sel ? INK : BORDER}`, borderRadius: 4, background: sel ? INK : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {sel && <Check size={9} color="#fff" strokeWidth={3} />}
+                    </div>
                     <img src={LOGOS[m.provider]} width={14} height={14} style={{ objectFit: 'contain' }} alt="" />
                     <span style={{ fontSize: 12.5, fontWeight: sel ? 600 : 450, color: INK, flex: 1, fontFamily: F }}>{m.label}</span>
-                    {sel && <Check size={13} color={INK} strokeWidth={2.5} />}
                   </div>
                 );
               })}
