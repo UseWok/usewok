@@ -600,6 +600,7 @@ export default function WokAIPage({ user: userProp }) {
         system_prompt: systemPrompt,
         history,
         prompt: content,
+        model: aiModel,
         ...(fileUrls.length > 0 ? { file_urls: fileUrls } : {}),
       });
       const aiContent = res?.data?.response || '';
