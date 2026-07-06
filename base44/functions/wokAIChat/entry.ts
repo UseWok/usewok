@@ -10,20 +10,18 @@ Deno.serve(async (req) => {
     const { system_prompt, history, prompt, file_urls } = body;
     if (!prompt) return Response.json({ error: 'prompt required' }, { status: 400 });
 
-    let apiKey = Deno.env.get('NVIDIA:_Nemotron_3.5_Content_Safety_(free)') || '';
-    // Clean key — handle cases where secret was stored as "export VAR=key" or with quotes/whitespace
+    let apiKey = Deno.env.get('Gemini') || '';
     apiKey = apiKey.trim().replace(/^export\s+/i, '');
     if (apiKey.includes('=')) apiKey = apiKey.split('=').slice(1).join('=').trim();
     apiKey = apiKey.replace(/^["']|["']$/g, '').trim();
     if (!apiKey) return Response.json({ error: 'API key not configured' }, { status: 500 });
 
-    // Build OpenAI-compatible messages array
-    const messages = [];
-    if (system_prompt) messages.push({ role: 'system', content: system_prompt });
+    // Build Gemini-compatible contents array (roles: user/model)
+    const contents = [];
     if (Array.isArray(history)) {
       for (const h of history) {
         if (!h.content) continue;
-        messages.push({ role: h.role === 'user' ? 'user' : 'assistant', content: h.content });
+        contents.push({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.content }] });
       }
     }
 
@@ -32,31 +30,26 @@ Deno.serve(async (req) => {
     if (Array.isArray(file_urls) && file_urls.length > 0) {
       userContent += '\n\n[Attached files]: ' + file_urls.join(', ');
     }
-    messages.push({ role: 'user', content: userContent });
+    contents.push({ role: 'user', parts: [{ text: userContent }] });
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://usewok.com',
-        'X-Title': 'WOK AI',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'nvidia/nemotron-3.5-content-safety:free',
-        messages,
-        max_tokens: 2000,
+        systemInstruction: system_prompt ? { parts: [{ text: system_prompt }] } : undefined,
+        contents,
+        generationConfig: { maxOutputTokens: 2000 },
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[wokAIChat] OpenRouter error:', response.status, errText);
+      console.error('[wokAIChat] Gemini error:', response.status, errText);
       return Response.json({ error: `API error: ${response.status}`, details: errText.slice(0, 500) }, { status: 502 });
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
+    const content = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
 
     return Response.json({ response: content });
   } catch (error) {
