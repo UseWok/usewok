@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const { system_prompt, history, prompt, file_urls } = body;
     if (!prompt) return Response.json({ error: 'prompt required' }, { status: 400 });
 
-    let apiKey = Deno.env.get('OpenAI_ChatBot') || '';
+    let apiKey = Deno.env.get('ia_mode_free') || '';
     // Clean key — handle cases where secret was stored as "export VAR=key" or with quotes/whitespace
     apiKey = apiKey.trim().replace(/^export\s+/i, '');
     if (apiKey.includes('=')) apiKey = apiKey.split('=').slice(1).join('=').trim();
@@ -34,14 +34,16 @@ Deno.serve(async (req) => {
     }
     messages.push({ role: 'user', content: userContent });
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://usewok.com',
+        'X-Title': 'WOK AI',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'nvidia/nemotron-3.5-content-safety:free',
         messages,
         max_tokens: 2000,
       }),
@@ -49,7 +51,7 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[wokAIChat] OpenAI error:', response.status, errText);
+      console.error('[wokAIChat] OpenRouter error:', response.status, errText);
       return Response.json({ error: `API error: ${response.status}`, details: errText.slice(0, 500) }, { status: 502 });
     }
 
