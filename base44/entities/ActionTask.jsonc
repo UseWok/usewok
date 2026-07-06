@@ -26,6 +26,30 @@
       "type": "string",
       "title": "Target platform"
     },
+    "platform_key": {
+      "type": "string",
+      "title": "Platform key (trustpilot/f6s/g2)"
+    },
+    "points_base": {
+      "type": "number",
+      "title": "Base points value",
+      "default": 0
+    },
+    "points_granted": {
+      "type": "number",
+      "title": "Points granted on verify",
+      "default": 0
+    },
+    "instructions_json": {
+      "type": "string",
+      "title": "Instructions (JSON)",
+      "format": "textarea"
+    },
+    "verify_result_json": {
+      "type": "string",
+      "title": "Verify result (JSON)",
+      "format": "textarea"
+    },
     "status": {
       "type": "string",
       "enum": [

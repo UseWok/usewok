@@ -11,6 +11,7 @@ import TasksCard from '@/components/dashboard/TasksCard';
 import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
+import AuthorityTasksCard from '@/components/authority/AuthorityTasksCard';
 
 const INK = '#15130F';
 const INK3 = 'rgba(21,19,15,0.5)';
@@ -160,6 +161,9 @@ export default function Dashboard() {
                 {vis('tasks') && <TasksCard tasks={data.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />}
               </div>
             )}
+
+            {/* Authority missions — Trustpilot / F6S / G2 */}
+            <AuthorityTasksCard siteUrl={profile?.site_url} score={profile?.score_ai_visibility || 0} onScoreUpdate={(s) => setProfile(prev => prev ? { ...prev, score_ai_visibility: s } : prev)} />
 
             {/* Row 2 : Concurrents + LLM + Pages citées */}
             {(row2[0] || row2[1] || row2[2]) && (

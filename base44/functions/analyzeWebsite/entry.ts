@@ -651,6 +651,11 @@ Return only valid JSON.`,
           lrs_score: result.lrs_score || 0,
           scan_type: 'full',
         }).catch(() => {});
+
+        // ── Seed authority tasks (Trustpilot, F6S, G2) — idempotent, NO AI ──
+        base44.asServiceRole.functions.invoke('authorityTasks', {
+          action: 'seed', site_url: cleanUrl, user_id: user.id,
+        }).catch(() => {});
       }
     } catch {}
 
