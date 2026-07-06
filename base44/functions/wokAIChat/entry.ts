@@ -34,16 +34,14 @@ Deno.serve(async (req) => {
     }
     messages.push({ role: 'user', content: userContent });
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://usewok.com',
-        'X-Title': 'WOK AI',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-oss-120b:free',
+        model: 'gpt-4o-mini',
         messages,
         max_tokens: 2000,
       }),
@@ -51,7 +49,7 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[wokAIChat] OpenRouter error:', response.status, errText);
+      console.error('[wokAIChat] OpenAI error:', response.status, errText);
       return Response.json({ error: `API error: ${response.status}`, details: errText.slice(0, 500) }, { status: 502 });
     }
 
