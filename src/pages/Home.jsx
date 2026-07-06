@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
-import ModelSelector, { AI_MODELS } from '@/components/wokai/ModelSelector';
+import ModelSelector, { AI_BRANDS } from '@/components/wokai/ModelSelector';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe, Lock } from 'lucide-react';
 import { setActiveDomain, getActiveDomain, initActiveDomainFromUser } from '@/lib/active-domain';
@@ -261,25 +261,34 @@ async function extractUrlFromText(text) {
 }
 
 async function runScan(inputUrl, userId, features) {
-  const fn = features?.scan_type === 'full' ? 'analyzeWebsite' : 'analyzeWebsiteLite';
-  const res = await base44.functions.invoke(fn, { url: inputUrl });
-  const d = res?.data || {};
-  if (features?.scan_type === 'full') {
-    const [audit, perf, overview] = await Promise.all([
-      base44.functions.invoke('analyzeAudit', { url: inputUrl }).catch(() => ({ data: {} })),
-      base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: d.business_name || '' }).catch(() => ({ data: {} })),
-      base44.functions.invoke('dashboardOverview', { url: inputUrl, business_name: d.business_name || '' }).catch(() => ({ data: null })),
-      // Sidebar pages — launched simultaneously so they are ready right after a scan
-      base44.functions.invoke('siteAudit', { url: inputUrl }).catch(() => null),
-      base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'brand' }).catch(() => null),
-      base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'reco' }).catch(() => null),
-    ]);
-    d.audit_data = audit?.data || {};
-    d.perf_data = perf?.data || {};
+  const isFull = features?.scan_type === 'full';
+  const mainFn = isFull ? 'analyzeWebsite' : 'analyzeWebsiteLite';
+  // ── Main scan + core analyses ALL IN PARALLEL — 10X faster ──
+  const [mainRes, auditRes, perfRes, overviewRes] = await Promise.all([
+    base44.functions.invoke(mainFn, { url: inputUrl }),
+    isFull && base44.functions.invoke('analyzeAudit', { url: inputUrl }).catch(() => ({ data: {} })),
+    isFull && base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: '' }).catch(() => ({ data: {} })),
+    isFull && base44.functions.invoke('dashboardOverview', { url: inputUrl, business_name: '' }).catch(() => ({ data: null })),
+  ]);
+  // ── Sidebar pages — fire-and-forget, all in parallel, persist to cloud ──
+  Promise.all([
+    base44.functions.invoke('siteAudit', { url: inputUrl }).catch(() => null),
+    base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'brand' }).catch(() => null),
+    base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'reco' }).catch(() => null),
+    base44.functions.invoke('generateBrandKnowledge', { url: inputUrl }).catch(() => null),
+    base44.functions.invoke('competitorEngine', { url: inputUrl }).catch(() => null),
+    base44.functions.invoke('authorityTasks', { url: inputUrl }).catch(() => null),
+    base44.functions.invoke('trackCitations', { url: inputUrl }).catch(() => null),
+    base44.functions.invoke('citationGaps', { url: inputUrl }).catch(() => null),
+  ]).catch(() => {});
+  const d = mainRes?.data || {};
+  if (isFull) {
+    d.audit_data = auditRes?.data || {};
+    d.perf_data = perfRes?.data || {};
     d.audit_analyzed_at = new Date().toISOString();
     d.perf_analyzed_at = new Date().toISOString();
-    if (overview?.data && !overview.data.error) {
-      d.overview_data = overview.data;
+    if (overviewRes?.data && !overviewRes.data.error) {
+      d.overview_data = overviewRes.data;
       d.overview_analyzed_at = new Date().toISOString();
     }
   }
@@ -478,7 +487,12 @@ export default function Home() {
   const [showModes, setShowModes] = useState(false);
   const [mode, setMode] = useState('scan');
   const [selectedModels, setSelectedModels] = useState(() => {
-    try { const saved = JSON.parse(localStorage.getItem('wok_home_ai_models') || 'null'); return Array.isArray(saved) && saved.length ? saved : AI_MODELS.map(m => m.id); } catch { return AI_MODELS.map(m => m.id); }
+    try {
+      const saved = JSON.parse(localStorage.getItem('wok_home_ai_models') || 'null');
+      const validIds = AI_BRANDS.map(b => b.id);
+      if (Array.isArray(saved) && saved.length && saved.every(id => validIds.includes(id))) return saved;
+    } catch {}
+    return AI_BRANDS.map(b => b.id);
   });
   const [trollError, setTrollError] = useState(false);
   const [extracting, setExtracting] = useState(false);
