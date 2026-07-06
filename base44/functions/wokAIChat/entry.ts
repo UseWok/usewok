@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: fullPrompt,
-      model: model || 'gpt_5_mini',
+      model: 'gpt_5_mini',
       ...(Array.isArray(file_urls) && file_urls.length > 0 ? { file_urls } : {}),
     });
 
