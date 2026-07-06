@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+// ── Fetch homepage text (used only for positioning, web-capable via direct fetch) ──
 async function fetchSiteText(domain) {
   try {
     const res = await fetch(`https://${domain}`, {
@@ -19,80 +20,85 @@ async function fetchSiteText(domain) {
   } catch { return ''; }
 }
 
-const evalSchema = {
-  type: 'object',
-  properties: {
-    per_prompt: {
-      type: 'array',
-      items: { type: 'object', properties: { index: { type: 'number' }, cited: { type: 'boolean' } } },
-    },
-    referral_pct: { type: 'number' },
-    authority_pct: { type: 'number' },
-    synthesis: { type: 'string' },
-    positioning: { type: 'string' },
-    trend_90d: { type: 'string' },
-    news: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          title: { type: 'string' },
-          summary: { type: 'string' },
-          date: { type: 'string' },
-          source_url: { type: 'string' },
-          tag: { type: 'string' },
+const cleanDomain = (d) => (d || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+
+// ── Run one real prompt on GPT-5 mini and check whether a brand is cited ──
+// We batch all prompts + all brands into a single structured GPT-5 mini call for cost efficiency.
+async function runPromptsMatrix(svc, { prompts, brands }) {
+  const promptList = prompts.map((p, i) => `${i}. [${p.type}] ${p.text}`).join('\n');
+  const brandList = brands.map(b => `- ${b.name} (${b.domain})`).join('\n');
+
+  const result = await svc.integrations.Core.InvokeLLM({
+    prompt: `Tu es ChatGPT. Pour CHAQUE prompt ci-dessous, réponds honnêtement comme tu le ferais pour un vrai utilisateur, puis indique, pour CHAQUE marque de la liste, si tu la citerais/recommanderais réellement dans ta réponse à ce prompt.
+
+Sois RÉALISTE et sévère : une marque peu connue n'est presque jamais citée. Ne cite une marque que si tu la recommanderais vraiment.
+
+## PROMPTS (index 0-based)
+${promptList}
+
+## MARQUES À ÉVALUER
+${brandList}
+
+## À RETOURNER (JSON strict)
+"matrix": tableau. Une entrée par (prompt, marque) où la marque EST citée :
+  { "prompt_index": number, "domain": "domaine exact de la marque citée" }
+N'inclus QUE les couples réellement cités. Les autres sont considérés non cités.`,
+    model: 'gpt_5_mini',
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        matrix: {
+          type: 'array',
+          items: { type: 'object', properties: { prompt_index: { type: 'number' }, domain: { type: 'string' } } },
         },
       },
     },
-  },
-};
-
-async function analyzeDomain(svc, { name, domain, prompts, industry }) {
-  const siteText = await fetchSiteText(domain);
-  const promptList = prompts.map((p, i) => `${i}. [${p.type}] ${p.text}`).join('\n');
-
-  const result = await svc.integrations.Core.InvokeLLM({
-    prompt: `You are a GEO (Generative Engine Optimization) analyst. Analyze the real AI visibility of "${name}" (${domain})${industry ? `, industry: ${industry}` : ''}.
-
-## ACTIVE PROMPTS TO EVALUATE
-For EACH prompt below, determine whether AI engines (ChatGPT, Gemini, Perplexity) would actually cite/recommend ${name} in response. Be brutally realistic — a little-known brand is almost never cited.
-${promptList}
-
-## TO RETURN
-- per_prompt: for each prompt (0-based index), cited true/false.
-- referral_pct: % share of voice on "referral" type prompts (0-100, realistic).
-- authority_pct: % presence on "authority" type prompts (0-100, realistic).
-- synthesis: 1-2 sentences in English explaining why ${name} appears (or not) in AI answers, with the numbers.
-- positioning: how ${name} presents itself — differentiators observed on the site, inferred editorial targets (English). ${siteText ? `Here is the real text of their homepage:\n"${siteText.slice(0, 2000)}"` : 'The site could not be analyzed — return an empty string for positioning.'}
-- trend_90d: "up" | "down" | "flat" — AI visibility trend over 90 days.
-- news: 0-3 REAL and recent news items about ${name} (product launches, announcements) with title, summary, date (MM/DD/YYYY), real source_url, tag ("News"|"Product"|"Announcement"). Empty array if nothing verifiable.
-
-Valid JSON only.`,
-    add_context_from_internet: true,
-    model: 'gemini_3_flash',
-    response_json_schema: evalSchema,
   });
 
-  const citedMap = {};
-  (result?.per_prompt || []).forEach((pp) => { citedMap[pp.index] = !!pp.cited; });
-  const promptsOut = prompts.map((p, i) => ({ text: p.text, type: p.type, tags: p.tags || [], cited: !!citedMap[i] }));
-  const refPrompts = promptsOut.filter(p => p.type === 'referral');
-  const authPrompts = promptsOut.filter(p => p.type === 'authority');
+  // cited[domain][promptIndex] = true
+  const cited = {};
+  brands.forEach(b => { cited[b.domain] = {}; });
+  (result?.matrix || []).forEach(m => {
+    const d = cleanDomain(m.domain);
+    // Match against known brand domains loosely
+    const match = brands.find(b => b.domain === d || b.domain.includes(d) || d.includes(b.domain));
+    if (match) cited[match.domain][m.prompt_index] = true;
+  });
+  return cited;
+}
 
+// ── Web analysis for a competitor: positioning + real recent news (Gemini 3 Flash) ──
+async function analyzeCompetitorWeb(svc, { name, domain, industry }) {
+  const siteText = await fetchSiteText(domain);
+  const result = await svc.integrations.Core.InvokeLLM({
+    prompt: `Analyse la marque "${name}" (${domain})${industry ? `, secteur : ${industry}` : ''} via le contexte internet.
+
+À RETOURNER (JSON strict, en français) :
+- positioning: comment "${name}" se présente — différenciateurs observés, cibles éditoriales inférées. ${siteText ? `Voici le vrai texte de leur page d'accueil :\n"${siteText.slice(0, 2000)}"` : 'Le site n\'a pas pu être analysé — renvoie une chaîne vide pour positioning.'}
+- news: 0 à 3 actualités RÉELLES et récentes sur "${name}" (lancements produit, annonces) avec title, summary, date (JJ/MM/AAAA), source_url réel, tag ("News"|"Product"|"Announcement"). Tableau vide si rien de vérifiable.`,
+    add_context_from_internet: true,
+    model: 'gemini_3_flash',
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        positioning: { type: 'string' },
+        news: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' }, summary: { type: 'string' }, date: { type: 'string' },
+              source_url: { type: 'string' }, tag: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  });
   return {
-    referral_pct: Math.max(0, Math.min(100, Math.round(result?.referral_pct || 0))),
-    authority_pct: Math.max(0, Math.min(100, Math.round(result?.authority_pct || 0))),
-    referral_cited: refPrompts.filter(p => p.cited).length,
-    referral_total: refPrompts.length,
-    authority_cited: authPrompts.filter(p => p.cited).length,
-    authority_total: authPrompts.length,
-    trend_90d: ['up', 'down', 'flat'].includes(result?.trend_90d) ? result.trend_90d : 'flat',
-    synthesis: result?.synthesis || '',
     positioning: siteText ? (result?.positioning || '') : '',
     positioning_available: !!siteText && !!result?.positioning,
-    prompts_json: JSON.stringify(promptsOut),
-    news_json: JSON.stringify((result?.news || []).slice(0, 3)),
-    analyzed_at: new Date().toISOString(),
+    news: (result?.news || []).slice(0, 3),
   };
 }
 
@@ -104,48 +110,67 @@ Deno.serve(async (req) => {
     const svc = base44.asServiceRole;
 
     const body = await req.json().catch(() => ({}));
-    const { action } = body;
-
-    if (action !== 'add') return Response.json({ error: 'Unknown action' }, { status: 400 });
-
+    const action = body.action;
     const siteUrl = body.site_url || '';
-    const name = (body.name || '').trim();
-    const domain = (body.domain || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    if (!domain || !siteUrl) return Response.json({ error: 'domain and site_url required' }, { status: 400 });
+    if (!siteUrl) return Response.json({ error: 'site_url required' }, { status: 400 });
 
     // Brand context
-    let brandName = '', industry = '';
+    let brandName = '', industry = '', profileRec = null;
     try {
       const profiles = await svc.entities.BusinessProfile.filter({ created_by_id: user.id });
-      const p = profiles.find(x => x.site_url === siteUrl) || profiles[0];
-      brandName = p?.identity_name || '';
-      industry = p?.identity_industry || '';
+      profileRec = profiles.find(x => x.site_url === siteUrl) || profiles[0];
+      brandName = profileRec?.identity_name || '';
+      industry = profileRec?.identity_industry || '';
     } catch {}
-    const youDomain = siteUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    const youDomain = cleanDomain(siteUrl);
     if (!brandName) brandName = youDomain;
 
-    const existing = await svc.entities.Competitor.filter({ user_id: user.id, site_url: siteUrl });
-    if (existing.some(c => !c.is_you && c.domain === domain)) {
-      return Response.json({ error: 'This competitor is already tracked.' }, { status: 409 });
+    // ─────────────────────────────────────────────
+    // ADD — instant, NO AI, NO loading
+    // ─────────────────────────────────────────────
+    if (action === 'add') {
+      const name = (body.name || '').trim();
+      const domain = cleanDomain(body.domain);
+      if (!domain) return Response.json({ error: 'domain required' }, { status: 400 });
+
+      const existing = await svc.entities.Competitor.filter({ user_id: user.id, site_url: siteUrl });
+      if (existing.some(c => !c.is_you && c.domain === domain)) {
+        return Response.json({ error: 'Ce concurrent est déjà suivi.' }, { status: 409 });
+      }
+      if (existing.filter(c => !c.is_you).length >= 3) {
+        return Response.json({ error: 'Maximum 3 concurrents suivis. Retirez-en un pour en ajouter.' }, { status: 409 });
+      }
+
+      const competitor = await svc.entities.Competitor.create({
+        user_id: user.id, site_url: siteUrl, name: name || domain, domain, is_you: false,
+        referral_pct: 0, authority_pct: 0, referral_cited: 0, referral_total: 0,
+        authority_cited: 0, authority_total: 0, trend_90d: 'flat',
+        synthesis: '', positioning: '', positioning_available: false,
+        prompts_json: '[]', news_json: '[]', analyzed_at: '',
+      });
+      return Response.json({ competitor });
     }
-    let you = existing.find(c => c.is_you);
-    let prompts;
 
-    if (!you) {
-      // First competitor → generate the shared prompt set + evaluate the user's own brand
+    // ─────────────────────────────────────────────
+    // SCAN — full real analysis for YOU + all tracked competitors
+    // ─────────────────────────────────────────────
+    if (action === 'scan') {
+      const existing = await svc.entities.Competitor.filter({ user_id: user.id, site_url: siteUrl });
+      const competitors = existing.filter(c => !c.is_you);
+      let you = existing.find(c => c.is_you);
+
+      // 1. Generate 6 referral + 6 authority prompts (text-only writing → gpt_5_mini)
       const gen = await svc.integrations.Core.InvokeLLM({
-        prompt: `You are a GEO analyst. Brand: "${brandName}" (${youDomain})${industry ? `, industry: ${industry}` : ''}.
+        prompt: `Tu es analyste GEO. Marque : "${brandName}" (${youDomain})${industry ? `, secteur : ${industry}` : ''}.
 
-1. Generate 10 REALISTIC user prompts in English, as real prospects would ask ChatGPT/Gemini:
-   - 6 of type "referral" (recommendation requests for tools/services in the brand's category)
-   - 4 of type "authority" (educational questions where an expert brand would be cited as a source)
-   Each prompt has short tags (e.g. ["L1","P1"]).
-2. For EACH prompt, honestly assess whether the AIs would actually cite "${brandName}" (cited true/false). A little-known brand = almost never cited.
-3. Give realistic referral_pct and authority_pct (0-100) for "${brandName}".
+Génère 12 prompts RÉALISTES en français, tels que de vrais prospects les poseraient à ChatGPT/Gemini :
+- 6 de type "referral" : demandes de recommandation d'outils/services de la catégorie de la marque (sans nommer la marque).
+- 6 de type "authority" : questions éducatives où une marque experte serait citée comme source.
 
-Valid JSON only.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
+Chaque prompt a des tags courts, ex : ["L5","FR"] (L = niveau/longueur, FR = langue).
+
+JSON strict uniquement.`,
+        model: 'gpt_5_mini',
         response_json_schema: {
           type: 'object',
           properties: {
@@ -157,48 +182,114 @@ Valid JSON only.`,
                   text: { type: 'string' },
                   type: { type: 'string' },
                   tags: { type: 'array', items: { type: 'string' } },
-                  you_cited: { type: 'boolean' },
                 },
               },
             },
-            referral_pct: { type: 'number' },
-            authority_pct: { type: 'number' },
           },
         },
       });
 
-      prompts = (gen?.prompts || []).filter(p => p.text).slice(0, 14).map(p => ({
-        text: p.text,
-        type: p.type === 'authority' ? 'authority' : 'referral',
-        tags: p.tags || [],
-      }));
-      if (prompts.length === 0) return Response.json({ error: 'Unable to generate prompts' }, { status: 500 });
+      let refP = (gen?.prompts || []).filter(p => p.text && p.type === 'referral').slice(0, 6);
+      let authP = (gen?.prompts || []).filter(p => p.text && p.type === 'authority').slice(0, 6);
+      const prompts = [
+        ...refP.map(p => ({ text: p.text, type: 'referral', tags: p.tags || [] })),
+        ...authP.map(p => ({ text: p.text, type: 'authority', tags: p.tags || [] })),
+      ];
+      if (prompts.length === 0) return Response.json({ error: 'Impossible de générer les prompts' }, { status: 500 });
 
-      const youPrompts = prompts.map((p, i) => ({ ...p, cited: !!(gen?.prompts?.[i]?.you_cited) }));
-      const refP = youPrompts.filter(p => p.type === 'referral');
-      const authP = youPrompts.filter(p => p.type === 'authority');
-      you = await svc.entities.Competitor.create({
+      // 2. Real per-prompt evaluation on GPT-5 mini for YOU + all competitors at once
+      const brands = [
+        { name: brandName, domain: youDomain },
+        ...competitors.map(c => ({ name: c.name, domain: c.domain })),
+      ];
+      const citedMap = await runPromptsMatrix(svc, { prompts, brands });
+
+      const buildStats = (domain) => {
+        const map = citedMap[domain] || {};
+        const promptsOut = prompts.map((p, i) => ({ text: p.text, type: p.type, tags: p.tags, cited: !!map[i] }));
+        const ref = promptsOut.filter(p => p.type === 'referral');
+        const auth = promptsOut.filter(p => p.type === 'authority');
+        const refCited = ref.filter(p => p.cited).length;
+        const authCited = auth.filter(p => p.cited).length;
+        return {
+          referral_cited: refCited, referral_total: ref.length,
+          authority_cited: authCited, authority_total: auth.length,
+          referral_pct: ref.length ? Math.round((refCited / ref.length) * 100) : 0,
+          authority_pct: authCited, // authority displayed as raw count in the header table
+          prompts_json: JSON.stringify(promptsOut),
+        };
+      };
+
+      // 3. Persist YOU
+      const youStats = buildStats(youDomain);
+      const youData = {
         user_id: user.id, site_url: siteUrl, name: brandName, domain: youDomain, is_you: true,
-        referral_pct: Math.round(gen?.referral_pct || 0),
-        authority_pct: Math.round(gen?.authority_pct || 0),
-        referral_cited: refP.filter(p => p.cited).length, referral_total: refP.length,
-        authority_cited: authP.filter(p => p.cited).length, authority_total: authP.length,
-        trend_90d: 'flat', synthesis: '', positioning: '', positioning_available: false,
-        prompts_json: JSON.stringify(youPrompts), news_json: '[]',
-        analyzed_at: new Date().toISOString(),
-      });
-    } else {
-      try { prompts = JSON.parse(you.prompts_json || '[]'); } catch { prompts = []; }
-      if (prompts.length === 0) return Response.json({ error: 'Prompt set not found' }, { status: 500 });
+        ...youStats, trend_90d: 'flat', synthesis: '', positioning: '', positioning_available: false,
+        news_json: '[]', analyzed_at: new Date().toISOString(),
+      };
+      if (you) await svc.entities.Competitor.update(you.id, youData);
+      else you = await svc.entities.Competitor.create(youData);
+
+      // 4. Persist each competitor (+ web positioning & news via Gemini)
+      for (const c of competitors) {
+        const stats = buildStats(c.domain);
+        const web = await analyzeCompetitorWeb(svc, { name: c.name, domain: c.domain, industry });
+        await svc.entities.Competitor.update(c.id, {
+          ...stats,
+          synthesis: `${c.name} est recommandé sur ${stats.referral_cited}/${stats.referral_total} prompts referral et présent sur ${stats.authority_cited}/${stats.authority_total} requêtes autorité.`,
+          positioning: web.positioning,
+          positioning_available: web.positioning_available,
+          news_json: JSON.stringify(web.news),
+          analyzed_at: new Date().toISOString(),
+        });
+      }
+
+      // 5. Detect 1–2 suggested competitors seen in AI recommendations but not yet tracked (Gemini web)
+      let suggestions = [];
+      try {
+        const trackedDomains = competitors.map(c => c.domain).concat(youDomain);
+        const sugg = await svc.integrations.Core.InvokeLLM({
+          prompt: `Marque : "${brandName}" (${youDomain})${industry ? `, secteur : ${industry}` : ''}.
+
+Via le contexte internet, identifie 1 à 2 concurrents RÉELS de cette marque qui sont fréquemment cités/recommandés par les IA (ChatGPT, Gemini) dans cette catégorie, MAIS qui ne font PAS partie de cette liste déjà suivie : ${trackedDomains.join(', ')}.
+
+JSON strict : { "suggestions": [ { "name": "...", "domain": "domaine.com", "reason": "cité dans X prompts" } ] }. Max 2. Tableau vide si rien de fiable.`,
+          add_context_from_internet: true,
+          model: 'gemini_3_flash',
+          response_json_schema: {
+            type: 'object',
+            properties: {
+              suggestions: {
+                type: 'array',
+                items: { type: 'object', properties: { name: { type: 'string' }, domain: { type: 'string' }, reason: { type: 'string' } } },
+              },
+            },
+          },
+        });
+        suggestions = (sugg?.suggestions || [])
+          .map(s => ({ name: s.name, domain: cleanDomain(s.domain), reason: s.reason || '' }))
+          .filter(s => s.domain && !trackedDomains.includes(s.domain))
+          .slice(0, 2);
+      } catch {}
+
+      // Persist suggestions on the profile JSON blob
+      if (profileRec) {
+        try {
+          let extra = {};
+          if (profileRec.brand_keywords) {
+            if (profileRec.brand_keywords.startsWith('http')) {
+              extra = await fetch(profileRec.brand_keywords).then(r => r.json()).catch(() => ({}));
+            } else { try { extra = JSON.parse(profileRec.brand_keywords); } catch {} }
+          }
+          extra.competitor_suggestions = suggestions;
+          await svc.entities.BusinessProfile.update(profileRec.id, { brand_keywords: JSON.stringify(extra) });
+        } catch {}
+      }
+
+      return Response.json({ success: true, scanned: competitors.length + 1, suggestions });
     }
 
-    const analysis = await analyzeDomain(svc, { name: name || domain, domain, prompts, industry });
-    const competitor = await svc.entities.Competitor.create({
-      user_id: user.id, site_url: siteUrl, name: name || domain, domain, is_you: false,
-      ...analysis,
-    });
-
-    return Response.json({ competitor, you });
+    return Response.json({ error: 'Unknown action' }, { status: 400 });
   } catch (error) {
     console.error('[competitorEngine]', error);
     return Response.json({ error: error?.message || 'Analysis failed' }, { status: 500 });

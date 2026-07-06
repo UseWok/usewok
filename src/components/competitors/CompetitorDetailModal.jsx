@@ -11,9 +11,14 @@ const GREEN = '#10B981';
 
 function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { return fb; } }
 
-export default function CompetitorDetailModal({ competitor, onClose }) {
+const NO_DATA = "Positionnement indisponible — le site n'a pas pu être analysé (site protégé, en JavaScript, ou domaine incorrect). Vérifiez le domaine et relancez le scan.";
+
+export default function CompetitorDetailModal({ competitor, rank, onClose }) {
   const [tab, setTab] = useState('details');
   const news = parseJSON(competitor.news_json, []);
+  const analyzed = !!competitor.analyzed_at;
+  // Rank badge only shown when the competitor is cited in the top 3
+  const showRank = rank && rank <= 3 && (competitor.referral_cited > 0 || competitor.authority_cited > 0);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', padding: 16, fontFamily: F }} onClick={onClose}>
@@ -22,7 +27,12 @@ export default function CompetitorDetailModal({ competitor, onClose }) {
         <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <img src={`https://www.google.com/s2/favicons?domain=${competitor.domain}&sz=64`} width={38} height={38} style={{ borderRadius: 9 }} alt="" />
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: 19, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>{competitor.name}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2 style={{ fontSize: 19, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>{competitor.name}</h2>
+              {showRank && (
+                <span style={{ padding: '2px 9px', background: 'rgba(249,115,22,0.12)', color: ORANGE, borderRadius: 20, fontSize: 11, fontWeight: 800 }}>#{rank}</span>
+              )}
+            </div>
             <p style={{ fontSize: 12.5, color: INK3, margin: '2px 0 0' }}>{competitor.domain}</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3, padding: 4 }}><X size={17} /></button>
@@ -39,6 +49,13 @@ export default function CompetitorDetailModal({ competitor, onClose }) {
         </div>
 
         {tab === 'details' ? (
+          !analyzed ? (
+            <div style={{ padding: '32px 24px' }}>
+              <div style={{ border: '1px solid rgba(249,115,22,0.35)', borderRadius: 10, padding: '14px 16px', background: 'rgba(249,115,22,0.06)' }}>
+                <p style={{ fontSize: 12.5, color: '#C2410C', margin: 0, lineHeight: 1.6 }}>{NO_DATA}</p>
+              </div>
+            </div>
+          ) : (
           <div>
             {/* Stat blocks */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: `1px solid ${BORDER}` }}>
@@ -55,7 +72,7 @@ export default function CompetitorDetailModal({ competitor, onClose }) {
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: GREEN }} />
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>AUTHORITY</span>
                 </div>
-                <p style={{ fontSize: 26, fontWeight: 800, color: '#0B815A', margin: 0 }}>{competitor.authority_pct}%</p>
+                <p style={{ fontSize: 26, fontWeight: 800, color: '#0B815A', margin: 0 }}>{competitor.authority_cited}</p>
                 <p style={{ fontSize: 11.5, color: INK3, margin: '2px 0 0' }}>présent {competitor.authority_cited}/{competitor.authority_total}</p>
               </div>
             </div>
@@ -86,13 +103,12 @@ export default function CompetitorDetailModal({ competitor, onClose }) {
                 </div>
               ) : (
                 <div style={{ border: '1px solid rgba(249,115,22,0.35)', borderRadius: 10, padding: '12px 14px', background: 'rgba(249,115,22,0.06)' }}>
-                  <p style={{ fontSize: 12.5, color: '#C2410C', margin: 0, lineHeight: 1.6 }}>
-                    Positionnement indisponible — le site n'a pas pu être analysé (site protégé, en JavaScript, ou domaine incorrect). Vérifiez le domaine.
-                  </p>
+                  <p style={{ fontSize: 12.5, color: '#C2410C', margin: 0, lineHeight: 1.6 }}>{NO_DATA}</p>
                 </div>
               )}
             </div>
           </div>
+          )
         ) : (
           <div style={{ padding: '18px 24px 24px' }}>
             {news.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Aucune actualité détectée pour le moment.</p>}
