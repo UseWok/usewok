@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const { system_prompt, history, prompt, file_urls } = body;
     if (!prompt) return Response.json({ error: 'prompt required' }, { status: 400 });
 
-    let apiKey = Deno.env.get('Gemini') || '';
+    let apiKey = Deno.env.get('gemini-1.5-flash') || '';
     apiKey = apiKey.trim().replace(/^export\s+/i, '');
     if (apiKey.includes('=')) apiKey = apiKey.split('=').slice(1).join('=').trim();
     apiKey = apiKey.replace(/^["']|["']$/g, '').trim();
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     }
     contents.push({ role: 'user', parts: [{ text: userContent }] });
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
