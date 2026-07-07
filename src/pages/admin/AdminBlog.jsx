@@ -108,7 +108,7 @@ export default function AdminBlog() {
   const newPost = () => { setSelectedId(null); setForm(EMPTY); setIsNew(true); setSaved(false); setConfirmDelete(false); };
 
   const handleTitleChange = (val) => {
-    setForm(f => ({ ...f, title: val, ...(isNew || !f.slug ? { slug: generateSlug(val) } : {}) }));
+    setForm(f => ({ ...f, title: val }));
   };
 
   const handleImageUpload = async (file) => {
@@ -288,6 +288,12 @@ export default function AdminBlog() {
                 onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
                 placeholder="my-article"
                 style={{ fontSize: 11.5, color: CORAL, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'monospace', minWidth: 120 }} />
+              <button type="button" onClick={() => form.title && setForm(f => ({ ...f, slug: generateSlug(form.title) }))}
+                style={{ fontSize: 10, fontWeight: 600, color: INK3, background: BG, border: `1px solid ${BORDER}`, borderRadius: 999, padding: '3px 10px', cursor: 'pointer', fontFamily: F, transition: 'all 120ms' }}
+                onMouseEnter={e => { e.currentTarget.style.color = INK; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.2)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = INK3; e.currentTarget.style.borderColor = BORDER; }}>
+                Generate from title
+              </button>
             </div>
 
             {/* Row: Summary + Category */}
