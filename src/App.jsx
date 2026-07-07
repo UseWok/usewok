@@ -71,7 +71,7 @@ function ScrollToTop() {
   return null;
 }
 
-const PUBLIC_PATHS = ['/', '/agencies', '/ecommerce', '/login', '/register', '/forgot-password', '/reset-password', '/pricing', '/privacy', '/terms', '/legal', '/blog', '/about', '/contact', '/unsubscribe'];
+const PUBLIC_PATHS = ['/', '/welcome', '/start', '/login', '/register', '/forgot-password', '/reset-password', '/pricing', '/privacy', '/terms', '/legal', '/blog', '/about', '/contact', '/unsubscribe'];
 
 const isPublicPath = (pathname) =>
   PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/blog/') || pathname.startsWith('/p/');
@@ -102,8 +102,8 @@ const AuthenticatedApp = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/agencies" element={<ForAgenciesPage />} />
-            <Route path="/ecommerce" element={<ForEcommercePage />} />
+            <Route path="/welcome" element={<ForAgenciesPage />} />
+            <Route path="/start" element={<ForEcommercePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -136,8 +136,8 @@ const AuthenticatedApp = () => {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Navigate to="/app" replace />} />
-          <Route path="/agencies" element={<ForAgenciesPage />} />
-          <Route path="/ecommerce" element={<ForEcommercePage />} />
+          <Route path="/welcome" element={<ForAgenciesPage />} />
+          <Route path="/start" element={<ForEcommercePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="/blog" element={<BlogPage />} />
