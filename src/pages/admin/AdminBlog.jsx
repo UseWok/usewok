@@ -1,21 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Eye, EyeOff, Save, ExternalLink, Upload, FileText, Clock, Tag, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Save, ExternalLink, Upload, FileText, Clock, CheckCircle, X } from 'lucide-react';
+import HtmlPreviewField from '@/components/blog/HtmlPreviewField';
 
-// ── Design tokens — dark confortable, pas fatiguant ──────────────────────────
-const BG      = '#111110';
-const SURFACE = '#1A1918';
-const CARD    = '#201F1E';
-const BORDER  = 'rgba(255,255,255,0.07)';
-const TEXT    = '#E8E6E1';
-const TEXT2   = '#8A8580';
-const TEXT3   = '#5A5650';
+// ── Design tokens — light, aligned with the landing page ──────────────────────
+const BG      = '#F8F7F4';
+const SURFACE = '#FFFFFF';
+const INK     = '#1A1A1A';
+const INK2    = '#6B6660';
+const INK3    = '#A8A49F';
+const BORDER  = 'rgba(21,19,15,0.10)';
 const CORAL   = '#FF5A1F';
-const GREEN   = '#22C55E';
-const F       = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
+const GREEN   = '#1E9E5A';
+const F        = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
 
 const generateSlug = (title) =>
   title.toLowerCase().trim()
@@ -25,51 +22,50 @@ const generateSlug = (title) =>
 
 const EMPTY = { title: '', slug: '', summary: '', content: '', cover_image: '', category: '', published: false, reading_time: 5 };
 
-// ── Petit badge statut ────────────────────────────────────────────────────────
+// ── Status badge ──────────────────────────────────────────────────────────────
 function StatusBadge({ published }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-      background: published ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)',
-      color: published ? GREEN : TEXT3,
+      background: published ? 'rgba(30,158,90,0.10)' : 'rgba(21,19,15,0.05)',
+      color: published ? GREEN : INK3,
       letterSpacing: '0.04em', textTransform: 'uppercase',
     }}>
-      <span style={{ width: 5, height: 5, borderRadius: '50%', background: published ? GREEN : TEXT3 }} />
-      {published ? 'Publié' : 'Brouillon'}
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: published ? GREEN : INK3 }} />
+      {published ? 'Published' : 'Draft'}
     </span>
   );
 }
 
-// ── Carte article dans la liste gauche ────────────────────────────────────────
+// ── Article row in left list ──────────────────────────────────────────────────
 function ArticleRow({ post, selected, onClick }) {
   return (
     <button onClick={onClick} style={{
-      width: '100%', textAlign: 'left', background: selected ? CARD : 'transparent',
-      border: `1px solid ${selected ? 'rgba(255,255,255,0.12)' : 'transparent'}`,
-      borderRadius: 10, padding: '10px 12px', cursor: 'pointer', fontFamily: F,
+      width: '100%', textAlign: 'left', background: selected ? BG : 'transparent',
+      border: `1px solid ${selected ? BORDER : 'transparent'}`,
+      borderRadius: 12, padding: '10px 12px', cursor: 'pointer', fontFamily: F,
       transition: 'all 120ms', display: 'flex', flexDirection: 'column', gap: 6,
     }}
-      onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+      onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(21,19,15,0.03)'; }}
       onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}>
-      {post.cover_image && (
-        <div style={{ width: '100%', height: 80, borderRadius: 7, overflow: 'hidden', marginBottom: 2 }}>
+      {post.cover_image ? (
+        <div style={{ width: '100%', height: 80, borderRadius: 8, overflow: 'hidden', marginBottom: 2 }}>
           <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
-      )}
-      {!post.cover_image && (
-        <div style={{ width: '100%', height: 50, borderRadius: 7, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
-          <FileText size={16} color={TEXT3} />
+      ) : (
+        <div style={{ width: '100%', height: 50, borderRadius: 8, background: 'rgba(21,19,15,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+          <FileText size={16} color={INK3} />
         </div>
       )}
-      <p style={{ fontSize: 12.5, fontWeight: 600, color: TEXT, margin: 0, lineHeight: 1.3,
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: INK, margin: 0, lineHeight: 1.3,
         overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-        {post.title || <span style={{ color: TEXT3 }}>Sans titre</span>}
+        {post.title || <span style={{ color: INK3 }}>Untitled</span>}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <StatusBadge published={post.published} />
         {post.reading_time && (
-          <span style={{ fontSize: 10, color: TEXT3, display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ fontSize: 10, color: INK3, display: 'flex', alignItems: 'center', gap: 3 }}>
             <Clock size={9} /> {post.reading_time} min
           </span>
         )}
@@ -78,20 +74,17 @@ function ArticleRow({ post, selected, onClick }) {
   );
 }
 
-// ── Champ label ───────────────────────────────────────────────────────────────
 function FieldLabel({ children }) {
-  return <p style={{ fontSize: 10.5, fontWeight: 700, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 7px' }}>{children}</p>;
+  return <p style={{ fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 7px' }}>{children}</p>;
 }
 
-// ── Input sombre ──────────────────────────────────────────────────────────────
 const inputStyle = {
   width: '100%', padding: '9px 13px', fontSize: 13, border: `1px solid ${BORDER}`,
-  background: 'rgba(255,255,255,0.04)', color: TEXT, borderRadius: 9, outline: 'none',
+  background: SURFACE, color: INK, borderRadius: 10, outline: 'none',
   fontFamily: F, boxSizing: 'border-box', transition: 'border-color 150ms',
 };
 
 export default function AdminBlog() {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -101,8 +94,6 @@ export default function AdminBlog() {
   const [uploading, setUploading] = useState(false);
   const [isNew, setIsNew] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const quillRef = useRef(null);
-  const imageFileRef = useRef(null);
 
   const loadPosts = () => base44.entities.BlogPost.list('-created_date', 200).then(setPosts).catch(() => {});
 
@@ -126,72 +117,6 @@ export default function AdminBlog() {
     try { const { file_url } = await base44.integrations.Core.UploadFile({ file }); return file_url; }
     catch { return null; }
     finally { setUploading(false); }
-  };
-
-  const imageHandler = useCallback(() => { imageFileRef.current?.click(); }, []);
-
-  const handleImageFileChange = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const url = await handleImageUpload(file); if (!url) return;
-    const quill = quillRef.current?.getEditor();
-    if (quill) { const r = quill.getSelection(true); quill.insertEmbed(r.index, 'image', url, 'user'); quill.setSelection(r.index + 1, 0, 'user'); }
-    e.target.value = '';
-  };
-
-  // Heuristic: does pasted plain text look like code?
-  const looksLikeCode = (text) => {
-    if (!text) return false;
-    const lines = text.split('\n');
-    if (lines.length < 2) return false; // single line = treat as normal text
-    const codeSignals = /[{}();=<>]|=>|\bfunction\b|\bconst\b|\blet\b|\bimport\b|\bexport\b|\breturn\b|\bclass\b|\bdef\b|\bpublic\b|\bvoid\b|^\s{2,}\S|<\/?[a-z][\s\S]*>/im;
-    const indented = lines.filter(l => /^\s{2,}\S/.test(l)).length;
-    return codeSignals.test(text) || indented >= 2;
-  };
-
-  const handlePaste = useCallback(async (e) => {
-    // 1) Image paste → upload & embed
-    const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
-    if (item) {
-      e.preventDefault();
-      const file = item.getAsFile(); if (!file) return;
-      const url = await handleImageUpload(file); if (!url) return;
-      const quill = quillRef.current?.getEditor();
-      if (quill) { const r = quill.getSelection(true); quill.insertEmbed(r.index, 'image', url, 'user'); quill.setSelection(r.index + 1, 0, 'user'); }
-      return;
-    }
-
-    // 2) Code paste → auto-format as a code block (no visible tags, black rounded box on the blog)
-    const plain = e.clipboardData?.getData('text/plain') || '';
-    const html = e.clipboardData?.getData('text/html') || '';
-    // Only auto-convert when there's no rich HTML (rich HTML = intentional formatting) and it looks like code.
-    if (plain && !html && looksLikeCode(plain)) {
-      const quill = quillRef.current?.getEditor();
-      if (quill) {
-        e.preventDefault();
-        const r = quill.getSelection(true);
-        const index = r ? r.index : quill.getLength();
-        // Insert the raw text then mark the covered lines as a code-block.
-        quill.insertText(index, plain.replace(/\n$/, '') + '\n', 'user');
-        quill.formatLine(index, plain.length, 'code-block', true, 'user');
-        quill.setSelection(index + plain.length + 1, 0, 'user');
-      }
-    }
-  }, []);
-
-  const modules = {
-    toolbar: {
-      container: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ color: [] }, { background: [] }],
-        [{ align: [] }],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['blockquote', 'code-block'],
-        ['link', 'image'],
-        ['clean'],
-      ],
-      handlers: { image: imageHandler },
-    },
   };
 
   const handleSave = async () => {
@@ -225,8 +150,7 @@ export default function AdminBlog() {
   const drafts = totalPosts - published;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: BG, fontFamily: F, color: TEXT, overflow: 'hidden' }}>
-      <input ref={imageFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageFileChange} />
+    <div style={{ display: 'flex', height: '100vh', background: BG, fontFamily: F, color: INK, overflow: 'hidden' }}>
 
       {/* ══ LEFT PANEL ══════════════════════════════════════════════════ */}
       <div style={{ width: 280, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${BORDER}`, flexShrink: 0, background: SURFACE }}>
@@ -235,21 +159,21 @@ export default function AdminBlog() {
         <div style={{ padding: '18px 16px 12px', borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <p style={{ fontSize: 15, fontWeight: 800, color: TEXT, margin: 0, letterSpacing: '-0.02em' }}>Blog</p>
-              <p style={{ fontSize: 11, color: TEXT3, margin: '2px 0 0' }}>Gestion des articles</p>
+              <p style={{ fontSize: 15, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Blog</p>
+              <p style={{ fontSize: 11, color: INK3, margin: '2px 0 0' }}>Manage articles</p>
             </div>
-            <button onClick={newPost} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`, background: 'rgba(255,255,255,0.05)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}>
-              <Plus size={14} color={TEXT} />
+            <button onClick={newPost} style={{ width: 32, height: 32, borderRadius: 9, border: `1px solid ${BORDER}`, background: BG, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 120ms' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = BG}>
+              <Plus size={14} color={INK} />
             </button>
           </div>
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-            {[['Total', totalPosts, TEXT], ['Publiés', published, GREEN], ['Brouillons', drafts, TEXT2]].map(([l, v, c]) => (
-              <div key={l} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
+            {[['Total', totalPosts, INK], ['Live', published, GREEN], ['Drafts', drafts, INK2]].map(([l, v, c]) => (
+              <div key={l} style={{ background: BG, borderRadius: 10, padding: '8px 10px', textAlign: 'center' }}>
                 <p style={{ fontSize: 18, fontWeight: 800, color: c, margin: 0, letterSpacing: '-0.03em' }}>{v}</p>
-                <p style={{ fontSize: 9.5, color: TEXT3, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{l}</p>
+                <p style={{ fontSize: 9.5, color: INK3, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{l}</p>
               </div>
             ))}
           </div>
@@ -259,14 +183,14 @@ export default function AdminBlog() {
         <div style={{ padding: '12px 12px 6px' }}>
           <button onClick={newPost} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '8px 0', border: `1px dashed rgba(255,255,255,0.12)`, borderRadius: 9,
-            background: !selectedId ? 'rgba(255,90,31,0.08)' : 'transparent',
-            color: !selectedId ? CORAL : TEXT3, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: F,
+            padding: '9px 0', border: `1px dashed rgba(21,19,15,0.15)`, borderRadius: 10,
+            background: !selectedId ? 'rgba(255,90,31,0.07)' : 'transparent',
+            color: !selectedId ? CORAL : INK3, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: F,
             transition: 'all 120ms',
           }}
             onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,90,31,0.35)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}>
-            <Plus size={12} /> Nouvel article
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(21,19,15,0.15)'}>
+            <Plus size={12} /> New article
           </button>
         </div>
 
@@ -274,8 +198,8 @@ export default function AdminBlog() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {posts.length === 0 && (
             <div style={{ textAlign: 'center', padding: '32px 12px' }}>
-              <FileText size={28} color={TEXT3} style={{ margin: '0 auto 10px', display: 'block' }} />
-              <p style={{ fontSize: 12, color: TEXT3, margin: 0 }}>Aucun article</p>
+              <FileText size={28} color={INK3} style={{ margin: '0 auto 10px', display: 'block' }} />
+              <p style={{ fontSize: 12, color: INK3, margin: 0 }}>No articles yet</p>
             </div>
           )}
           {posts.map(post => (
@@ -290,23 +214,23 @@ export default function AdminBlog() {
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: `1px solid ${BORDER}`, background: SURFACE, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* Toggle publié */}
+            {/* Published toggle */}
             <button onClick={() => setForm(f => ({ ...f, published: !f.published }))}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', border: `1px solid ${form.published ? 'rgba(34,197,94,0.25)' : BORDER}`, borderRadius: 8, background: form.published ? 'rgba(34,197,94,0.08)' : 'rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'all 150ms' }}>
-              <div style={{ width: 28, height: 14, borderRadius: 999, background: form.published ? GREEN : 'rgba(255,255,255,0.12)', position: 'relative', transition: 'background 200ms' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', border: `1px solid ${form.published ? 'rgba(30,158,90,0.25)' : BORDER}`, borderRadius: 999, background: form.published ? 'rgba(30,158,90,0.07)' : BG, cursor: 'pointer', transition: 'all 150ms' }}>
+              <div style={{ width: 28, height: 14, borderRadius: 999, background: form.published ? GREEN : 'rgba(21,19,15,0.15)', position: 'relative', transition: 'background 200ms' }}>
                 <div style={{ position: 'absolute', top: 2, left: form.published ? 16 : 2, width: 10, height: 10, borderRadius: '50%', background: '#fff', transition: 'left 200ms', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
               </div>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: form.published ? GREEN : TEXT2 }}>
-                {form.published ? 'Publié' : 'Brouillon'}
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: form.published ? GREEN : INK2 }}>
+                {form.published ? 'Published' : 'Draft'}
               </span>
             </button>
 
             {!isNew && form.slug && (
               <a href={`/blog/${form.slug}`} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: TEXT2, textDecoration: 'none', padding: '6px 10px', border: `1px solid ${BORDER}`, borderRadius: 8, background: 'rgba(255,255,255,0.03)', transition: 'all 120ms' }}
-                onMouseEnter={e => { e.currentTarget.style.color = TEXT; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = TEXT2; e.currentTarget.style.borderColor = BORDER; }}>
-                <ExternalLink size={11} /> Prévisualiser
+                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: INK2, textDecoration: 'none', padding: '6px 12px', border: `1px solid ${BORDER}`, borderRadius: 999, background: BG, transition: 'all 120ms' }}
+                onMouseEnter={e => { e.currentTarget.style.color = INK; e.currentTarget.style.borderColor = 'rgba(21,19,15,0.2)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = INK2; e.currentTarget.style.borderColor = BORDER; }}>
+                <ExternalLink size={11} /> Preview live
               </a>
             )}
           </div>
@@ -314,135 +238,116 @@ export default function AdminBlog() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {!isNew && !confirmDelete && (
               <button onClick={() => setConfirmDelete(true)}
-                style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${BORDER}`, borderRadius: 8, background: 'transparent', cursor: 'pointer', transition: 'all 120ms' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
+                style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${BORDER}`, borderRadius: 9, background: 'transparent', cursor: 'pointer', transition: 'all 120ms' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = BORDER; }}>
                 <Trash2 size={13} color="#EF4444" />
               </button>
             )}
             {confirmDelete && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: 'rgba(239,68,68,0.12)', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)' }}>
-                <span style={{ fontSize: 12, color: '#EF4444' }}>Supprimer ?</span>
-                <button onClick={handleDelete} disabled={deleting} style={{ fontSize: 11, fontWeight: 700, color: '#EF4444', background: 'rgba(239,68,68,0.15)', border: 'none', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', fontFamily: F }}>
-                  {deleting ? '…' : 'Oui'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: 'rgba(239,68,68,0.08)', borderRadius: 9, border: '1px solid rgba(239,68,68,0.3)' }}>
+                <span style={{ fontSize: 12, color: '#EF4444' }}>Delete?</span>
+                <button onClick={handleDelete} disabled={deleting} style={{ fontSize: 11, fontWeight: 700, color: '#EF4444', background: 'rgba(239,68,68,0.12)', border: 'none', borderRadius: 6, padding: '2px 7px', cursor: 'pointer', fontFamily: F }}>
+                  {deleting ? '…' : 'Yes'}
                 </button>
-                <button onClick={() => setConfirmDelete(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: TEXT3, display: 'flex', padding: 2 }}>
+                <button onClick={() => setConfirmDelete(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: INK3, display: 'flex', padding: 2 }}>
                   <X size={11} />
                 </button>
               </div>
             )}
             <button onClick={handleSave} disabled={saving || !form.title.trim()}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px',
-                background: saved ? 'rgba(34,197,94,0.15)' : CORAL,
-                border: saved ? '1px solid rgba(34,197,94,0.3)' : 'none',
-                borderRadius: 9, fontSize: 13, fontWeight: 700, color: saved ? GREEN : '#fff',
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px',
+                background: saved ? 'rgba(30,158,90,0.12)' : CORAL,
+                border: saved ? '1px solid rgba(30,158,90,0.3)' : 'none',
+                borderRadius: 999, fontSize: 13, fontWeight: 700, color: saved ? GREEN : '#fff',
                 cursor: (saving || !form.title.trim()) ? 'not-allowed' : 'pointer',
                 opacity: !form.title.trim() ? 0.4 : 1, fontFamily: F, transition: 'all 200ms',
               }}>
               {saved ? <CheckCircle size={13} /> : <Save size={13} />}
-              {saving ? 'Sauvegarde…' : saved ? 'Sauvegardé' : 'Sauvegarder'}
+              {saving ? 'Saving…' : saved ? 'Saved' : 'Save'}
             </button>
           </div>
         </div>
 
         {/* Form */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '32px 32px 48px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <div style={{ maxWidth: 820, width: '100%', margin: '0 auto' }}>
 
-          {/* Titre */}
-          <input
-            value={form.title} onChange={e => handleTitleChange(e.target.value)}
-            placeholder="Titre de l'article…"
-            style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.04em', color: TEXT, border: 'none', background: 'transparent', outline: 'none', fontFamily: F, width: '100%', marginBottom: 10, lineHeight: 1.15 }}
-          />
+            {/* Title */}
+            <input
+              value={form.title} onChange={e => handleTitleChange(e.target.value)}
+              placeholder="Article title…"
+              style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.04em', color: INK, border: 'none', background: 'transparent', outline: 'none', fontFamily: F, width: '100%', marginBottom: 10, lineHeight: 1.15 }}
+            />
 
-          {/* Slug */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 28, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11.5, color: TEXT3 }}>usewok.app/blog/</span>
-            <input value={form.slug}
-              onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-              placeholder="mon-article"
-              style={{ fontSize: 11.5, color: '#3B82F6', border: 'none', background: 'transparent', outline: 'none', fontFamily: 'monospace', minWidth: 120 }} />
-          </div>
-
-          {/* Row: Summary + Category */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 14, marginBottom: 20 }}>
-            <div>
-              <FieldLabel>Résumé (SEO)</FieldLabel>
-              <textarea value={form.summary} onChange={e => setForm(f => ({ ...f, summary: e.target.value }))}
-                placeholder="Description affichée dans Google et en intro d'article (160 car. recommandés)…"
-                rows={3}
-                style={{ ...inputStyle, resize: 'vertical' }}
-                onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.18)'}
-                onBlur={e => e.target.style.borderColor = BORDER}
-              />
-              <p style={{ fontSize: 10, color: TEXT3, margin: '4px 0 0', textAlign: 'right' }}>{form.summary.length} car.</p>
+            {/* Slug */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 28, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11.5, color: INK3 }}>usewok.app/blog/</span>
+              <input value={form.slug}
+                onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                placeholder="my-article"
+                style={{ fontSize: 11.5, color: CORAL, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'monospace', minWidth: 120 }} />
             </div>
-            <div>
-              <FieldLabel>Catégorie</FieldLabel>
-              <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                placeholder="ex : Stratégie IA"
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.18)'}
-                onBlur={e => e.target.style.borderColor = BORDER} />
-            </div>
-          </div>
 
-          {/* Cover image */}
-          <div style={{ marginBottom: 24 }}>
-            <FieldLabel>Image de couverture</FieldLabel>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <input value={form.cover_image} onChange={e => setForm(f => ({ ...f, cover_image: e.target.value }))}
-                placeholder="https://… ou uploader une image"
-                style={{ ...inputStyle, flex: 1 }}
-                onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.18)'}
-                onBlur={e => e.target.style.borderColor = BORDER} />
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', border: `1px solid ${BORDER}`, borderRadius: 9, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: TEXT2, background: 'rgba(255,255,255,0.04)', whiteSpace: 'nowrap', transition: 'all 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}>
-                <Upload size={12} /> {uploading ? 'Upload…' : 'Uploader'}
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverUpload} />
-              </label>
-            </div>
-            {form.cover_image && (
-              <div style={{ marginTop: 10, borderRadius: 10, overflow: 'hidden', height: 140, position: 'relative' }}>
-                <img src={form.cover_image} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <button onClick={() => setForm(f => ({ ...f, cover_image: '' }))}
-                  style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={11} color="#fff" />
-                </button>
+            {/* Row: Summary + Category */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 14, marginBottom: 20 }}>
+              <div>
+                <FieldLabel>Summary (SEO)</FieldLabel>
+                <textarea value={form.summary} onChange={e => setForm(f => ({ ...f, summary: e.target.value }))}
+                  placeholder="Shown in Google and as the article intro (≈160 chars recommended)…"
+                  rows={3}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  onFocus={e => e.target.style.borderColor = 'rgba(21,19,15,0.2)'}
+                  onBlur={e => e.target.style.borderColor = BORDER}
+                />
+                <p style={{ fontSize: 10, color: INK3, margin: '4px 0 0', textAlign: 'right' }}>{form.summary.length} chars</p>
               </div>
-            )}
-          </div>
-
-          {/* Éditeur */}
-          <div style={{ marginBottom: 0 }}>
-            <FieldLabel>Contenu</FieldLabel>
-            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', background: '#fff' }} onPaste={handlePaste}>
-              <ReactQuill
-                ref={quillRef}
-                value={form.content}
-                onChange={val => setForm(f => ({ ...f, content: val }))}
-                modules={modules}
-                theme="snow"
-                placeholder="Rédigez votre article ici… Collez des images directement ou utilisez le bouton image."
-                style={{ minHeight: 400 }}
-              />
+              <div>
+                <FieldLabel>Category</FieldLabel>
+                <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  placeholder="e.g. AI Strategy"
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'rgba(21,19,15,0.2)'}
+                  onBlur={e => e.target.style.borderColor = BORDER} />
+              </div>
             </div>
-            {uploading && (
-              <p style={{ fontSize: 11, color: '#3B82F6', marginTop: 6 }}>⏳ Upload en cours…</p>
-            )}
+
+            {/* Cover image */}
+            <div style={{ marginBottom: 24 }}>
+              <FieldLabel>Cover image</FieldLabel>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <input value={form.cover_image} onChange={e => setForm(f => ({ ...f, cover_image: e.target.value }))}
+                  placeholder="https://… or upload an image"
+                  style={{ ...inputStyle, flex: 1 }}
+                  onFocus={e => e.target.style.borderColor = 'rgba(21,19,15,0.2)'}
+                  onBlur={e => e.target.style.borderColor = BORDER} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', border: `1px solid ${BORDER}`, borderRadius: 10, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: INK2, background: BG, whiteSpace: 'nowrap', transition: 'all 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(21,19,15,0.2)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}>
+                  <Upload size={12} /> {uploading ? 'Uploading…' : 'Upload'}
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverUpload} />
+                </label>
+              </div>
+              {form.cover_image && (
+                <div style={{ marginTop: 10, borderRadius: 12, overflow: 'hidden', height: 140, position: 'relative' }}>
+                  <img src={form.cover_image} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button onClick={() => setForm(f => ({ ...f, cover_image: '' }))}
+                    style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <X size={11} color="#fff" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Content — HTML with live rendered preview */}
+            <div style={{ marginBottom: 0 }}>
+              <FieldLabel>Content</FieldLabel>
+              <HtmlPreviewField value={form.content} onChange={val => setForm(f => ({ ...f, content: val }))} />
+            </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .ql-toolbar.ql-snow { background: #fff; border: none !important; border-bottom: 1px solid #E8E8E8 !important; font-family: ${F}; }
-        .ql-container.ql-snow { border: none !important; font-family: ${F}; }
-        .ql-editor { min-height: 400px; line-height: 1.85; font-size: 15px; color: #1A1A1A; }
-        .ql-editor.ql-blank::before { color: #ccc; font-style: normal; }
-        .ql-editor img { max-width: 100%; border-radius: 10px; margin: 12px 0; }
-      `}</style>
     </div>
   );
 }
