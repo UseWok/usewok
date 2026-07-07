@@ -18,8 +18,11 @@ const ENGINE_LOGOS = {
   mistral:    'https://media.base44.com/images/public/6a2edc91082e534601118582/3a3745646_image.png',
   grok:       'https://media.base44.com/images/public/6a2edc91082e534601118582/ddf7fe28b_image.png',
   copilot:    'https://media.base44.com/images/public/6a2edc91082e534601118582/92bb51643_image.png',
-  llama:      'https://media.base44.com/images/public/6a2edc91082e534601118582/1bdc7666b_image.png',
+  llama:      'https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/116d6a5ab_generated_image.png',
 };
+
+// Ordre d'affichage fixe des IA (identique pour tous les plans)
+const ENGINE_ORDER = ['chatgpt', 'gemini', 'claude', 'perplexity', 'copilot', 'grok', 'mistral', 'llama'];
 
 export default function PlanCard({ plan, billing, isCurrent, onCta, loading, ctaLabel }) {
   const isReco = !!plan.badge;
@@ -28,7 +31,10 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
     ? Math.round(plan.price_yearly / 12)
     : plan.price_monthly;
 
-  const engines = plan.engines || [];
+  const engines = [...(plan.engines || [])].sort((a, b) => {
+    const ia = ENGINE_ORDER.indexOf(a), ib = ENGINE_ORDER.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
   const scanLabel = plan.scans_per_period
     ? `${plan.scans_per_period} scan${plan.scans_per_period > 1 ? 's' : ''} /${plan.scan_period === 'day' ? 'jour' : plan.scan_period === 'week' ? 'semaine' : 'mois'}`
     : null;
@@ -44,7 +50,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
     }}>
       {isReco && (
         <div style={{
-          background: 'linear-gradient(90deg, #FF7A45, #F47321)', color: WHITE, textAlign: 'center',
+          background: 'linear-gradient(90deg, #FF9057, #F26A25)', color: WHITE, textAlign: 'center',
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
           textTransform: 'uppercase', padding: '9px',
         }}>{plan.badge}</div>
@@ -75,7 +81,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
                   border: `2px solid ${WHITE}`, boxShadow: `0 0 0 1px ${BORDER}`, marginLeft: i > 0 ? -8 : 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
                 }}>
-                  <img src={ENGINE_LOGOS[eng]} alt={eng} width={14} height={14} style={{ objectFit: 'contain' }} />
+                  <img src={ENGINE_LOGOS[eng]} alt={eng} width={18} height={18} style={{ objectFit: 'contain' }} />
                 </div>
               ))}
             </div>
@@ -87,13 +93,13 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
 
         {isCurrent ? (
           <div style={{
-            marginTop: 18, height: 42, border: `1px solid ${BORDER_STRONG}`,
-            borderRadius: 100, fontSize: 13, fontWeight: 600, textAlign: 'center',
+            marginTop: 18, height: 44, border: `1px solid ${BORDER_STRONG}`,
+            borderRadius: 10, fontSize: 13, fontWeight: 600, textAlign: 'center',
             color: 'rgba(21,19,15,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>Plan actuel</div>
         ) : (
           <button onClick={onCta} disabled={loading} style={{
-            marginTop: 18, height: 42, borderRadius: 100,
+            marginTop: 18, height: 44, borderRadius: 10,
             border: isReco ? 'none' : `1px solid ${BORDER_STRONG}`,
             background: isReco ? ORANGE_BTN : WHITE, color: isReco ? WHITE : INK, fontSize: 13, fontWeight: 600,
             cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
@@ -114,12 +120,21 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
           {(plan.features || []).map((f, i) => (
             <div key={i} style={{ display: 'flex', gap: 9, fontSize: 12.5, alignItems: 'flex-start', lineHeight: 1.45, color: INK }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isReco ? ORANGE : GREEN} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                 <path d="M20 6L9 17l-5-5" />
               </svg>
               <span>{f.text}</span>
             </div>
           ))}
+        </div>
+
+        {/* ── RGPD ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BORDER}` }}>
+          <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/caaf4215e_generated_image.png" alt="RGPD" width={38} height={38} style={{ borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: INK, marginBottom: 2 }}>RGPD</div>
+            <div style={{ fontSize: 11, color: 'rgba(21,19,15,0.5)', lineHeight: 1.4 }}>Règlement sur la protection des données et la vie privée</div>
+          </div>
         </div>
       </div>
     </div>
