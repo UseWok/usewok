@@ -12,7 +12,7 @@ export default function LandingFooter({ logoUrl, footerLinks, disclaimer }) {
       title: 'PRODUCT',
       links: [
         { label: 'Features', url: '/fonctionnalites' },
-        { label: 'Pricing', url: '/tarifs' },
+        { label: 'Pricing', url: '/pricing' },
         ...(footerLinks || []).filter(l => l.label !== 'Features' && l.label !== 'Pricing' && l.label !== 'Terms of Use' && l.label !== 'Support'),
       ],
     },

@@ -194,7 +194,7 @@ export default function BlogPostPage() {
           <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>UseWok</span>
         </a>
         <div style={{ display: 'flex', gap: 18 }}>
-          {[['Home', '/'], ['Blog', '/blog'], ['Pricing', '/tarifs'], ['Terms', '/terms']].map(([l, h]) => (
+          {[['Home', '/'], ['Blog', '/blog'], ['Pricing', '/pricing'], ['Terms', '/terms']].map(([l, h]) => (
             <a key={l} href={h} style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'none' }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}>{l}</a>

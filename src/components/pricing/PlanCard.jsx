@@ -44,18 +44,8 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
   return (
     <div style={{
       position: 'relative', height: '100%',
-      marginTop: isReco ? -30 : 0,
       zIndex: isReco ? 2 : 1,
     }}>
-      {isReco && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3,
-          background: 'linear-gradient(90deg, #FF9057, #F26A25)', color: WHITE, textAlign: 'center',
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-          textTransform: 'uppercase', padding: '9px',
-          borderRadius: '20px 20px 0 0',
-        }}>{plan.badge}</div>
-      )}
     <div style={{
       borderRadius: 20, overflow: 'hidden',
       border: isReco ? `1px solid ${ORANGE_BORDER}` : '1px solid rgba(21,19,15,0.06)',
@@ -63,8 +53,14 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
       fontFamily: F,
       boxShadow: 'none',
       display: 'flex', flexDirection: 'column', height: '100%',
-      marginTop: isReco ? 30 : 0,
     }}>
+      {isReco && (
+        <div style={{
+          background: 'linear-gradient(90deg, #FF9057, #F26A25)', color: WHITE, textAlign: 'center',
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+          textTransform: 'uppercase', padding: '8px 0',
+        }}>{plan.badge}</div>
+      )}
 
       <div style={{ padding: '18px 18px 16px' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: INK, marginBottom: 10, letterSpacing: '-0.01em' }}>

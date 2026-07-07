@@ -79,7 +79,7 @@ export default function LandingNavbar({ onSignup }) {
       <nav style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
         <NavDropdown label="Produit" items={PRODUIT_ITEMS} />
         <NavDropdown label="Pour qui" items={POUR_QUI_ITEMS} />
-        <a href="https://usewok.com/tarifs" style={{ fontSize: 13, color: T2, textDecoration: 'none' }}>Tarifs</a>
+        <a href="https://usewok.com/pricing" style={{ fontSize: 13, color: T2, textDecoration: 'none' }}>Tarifs</a>
         <a href="https://usewok.com/blog" style={{ fontSize: 13, color: T2, textDecoration: 'none' }}>Blog</a>
         <NavDropdown label="Ressources" items={RESSOURCES_ITEMS} />
       </nav>

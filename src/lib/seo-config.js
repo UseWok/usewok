@@ -7,15 +7,15 @@ export const SEO_CONFIG = {
     title: 'Apparaître dans les réponses de ChatGPT, Gemini & co — même sans budget marketing | UseWok',
     description: "UseWok — Agence SEO & Visibilité IA : apparaissez dans les réponses des assistants (ChatGPT, Gemini) grâce à l'AEO, JSON-LD optimisé, contenus stratégiques.",
   },
-  '/pour-agences': {
+  '/agencies': {
     title: 'AI visibility for agencies — track & grow your clients on ChatGPT | UseWok',
     description: "The AI visibility platform built for agencies and freelances. Monitor every client's presence across ChatGPT, Gemini and Claude, deliver white-label reports, and prove your impact month after month.",
   },
-  '/pour-ecommerce': {
+  '/ecommerce': {
     title: 'Get your products recommended by ChatGPT | UseWok for e-commerce',
     description: "The AI visibility platform for online stores. Find out whether ChatGPT, Gemini and Claude recommend your products — and get a clear plan to become the answer when shoppers ask AI what to buy.",
   },
-  '/tarifs': {
+  '/pricing': {
     title: 'Pricing | UseWok - AI Visibility & GEO Platform',
     description: 'Start free. Paid plans from $49/month. Track AI search visibility, citations, crawler logs, and visitor analytics.',
   },

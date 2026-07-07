@@ -10,7 +10,7 @@ export async function getLandingContentFresh() {
 export const DEFAULT_LANDING = {
   nav: {
     logo_url: 'https://media.base44.com/images/public/69cfdd998908694203adf837/10d8a48da_image.png',
-    pricing_url: '/tarifs',
+    pricing_url: '/pricing',
     features_url: '/fonctionnalites',
     tos_url: '#',
     cta_label: 'Start Building',
@@ -70,7 +70,7 @@ export const DEFAULT_LANDING = {
     paid_currency: '$/mo',
     paid_features: ['100+ credits/month', 'Advanced & Expert modes', 'Unlimited discussions', 'Internet search', 'File attachments'],
     paid_cta: 'See all plans →',
-    paid_url: '/tarifs',
+    paid_url: '/pricing',
   },
   faq: [
     { q: 'What is Stensor?', a: 'Stensor is an AI-powered platform that lets you structure your personal finances in minutes. Just use natural language to turn your goals into investment plans, debt strategies, and retirement solutions ready to execute.' },
@@ -87,7 +87,7 @@ export const DEFAULT_LANDING = {
     disclaimer: 'AI responses may contain inaccuracies.',
     links: [
       { label: 'Features', url: '/fonctionnalites' },
-      { label: 'Pricing', url: '/tarifs' },
+      { label: 'Pricing', url: '/pricing' },
       { label: 'Support', url: '/support' },
       { label: 'Terms of Use', url: '#' },
     ],

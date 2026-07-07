@@ -31,7 +31,7 @@ export default function PersonaLanding({ content }) {
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const goRegister = () => navigate('/register');
   const goLogin = () => navigate('/login');
-  const goPricing = () => navigate('/tarifs');
+  const goPricing = () => navigate('/pricing');
   const goBlog = () => navigate('/blog');
 
   return (

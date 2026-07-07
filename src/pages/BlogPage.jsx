@@ -50,7 +50,7 @@ function Navbar() {
           <span style={{ fontSize: 14, fontWeight: 800, color: INK, letterSpacing: '-0.02em' }}>UseWok</span>
         </button>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <a href="/tarifs" style={{ fontSize: 13, color: INK2, textDecoration: 'none', padding: '6px 12px', borderRadius: 999, transition: 'background 120ms' }}
+          <a href="/pricing" style={{ fontSize: 13, color: INK2, textDecoration: 'none', padding: '6px 12px', borderRadius: 999, transition: 'background 120ms' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.06)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>Pricing</a>
           <span style={{ fontSize: 13, fontWeight: 700, color: CORAL, padding: '6px 12px', borderRadius: 999, background: `${CORAL}12` }}>Blog</span>
@@ -276,7 +276,7 @@ export default function BlogPage() {
           <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>UseWok</span>
         </a>
         <div style={{ display: 'flex', gap: 18 }}>
-          {[['Home', '/'], ['Pricing', '/tarifs'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
+          {[['Home', '/'], ['Pricing', '/pricing'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
             <a key={l} href={h} style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'none', transition: 'color 150ms' }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}>{l}</a>

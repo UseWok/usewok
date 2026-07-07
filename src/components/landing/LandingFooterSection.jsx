@@ -8,7 +8,7 @@ const BORDER = 'rgba(255,255,255,0.07)';
 
 const LINKS = [
   ['Produit', 'https://usewok.com/produit'],
-  ['Tarifs', 'https://usewok.com/tarifs'],
+  ['Tarifs', 'https://usewok.com/pricing'],
   ['Score de Visibilité IA', 'https://usewok.com/score'],
   ['Blog', 'https://usewok.com/blog'],
   ['Témoignages', 'https://usewok.com/temoignages'],

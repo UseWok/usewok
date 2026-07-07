@@ -13,10 +13,24 @@
   </url>
 
   <url>
-    <loc>https://usewok.com/tarifs</loc>
+    <loc>https://usewok.com/pricing</loc>
     <lastmod>2026-06-30T13:37:50+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
+  </url>
+
+  <url>
+    <loc>https://usewok.com/agencies</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://usewok.com/ecommerce</loc>
+    <lastmod>2026-06-30T13:37:50+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
 
   <url>
