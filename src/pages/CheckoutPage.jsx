@@ -93,7 +93,7 @@ export default function CheckoutPage() {
     ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
     : 0;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (inIframe) {
       alert('Checkout is only available from the published app.');
       return;
@@ -102,6 +102,19 @@ export default function CheckoutPage() {
     if (url?.startsWith('http')) {
       setLoading(true);
       window.location.href = url;
+      return;
+    }
+    // Fallback: use Stripe price ID to create a checkout session
+    const priceId = billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly;
+    if (priceId) {
+      setLoading(true);
+      try {
+        const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email });
+        if (res.data?.url) { window.location.href = res.data.url; }
+        else { alert('Erreur lors de la création de la session de paiement.'); }
+      } catch (e) {
+        alert('Erreur: ' + (e?.message || e));
+      } finally { setLoading(false); }
     }
   };
 

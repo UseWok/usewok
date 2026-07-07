@@ -188,8 +188,8 @@ export default function PricingPage() {
         <section className="p-hero">
           <div className="wrap">
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 14 }}><span className="dot"></span>Simple pricing</span>
-            <h1>Choose your plan</h1>
-            <p>You're on the <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong> plan. Change or cancel anytime.</p>
+            <h1>Choisissez le forfait qui vous convient</h1>
+            <p>Vous êtes sur le forfait <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong>. Changez ou annulez à tout moment.</p>
             <div className="toggle-wrap">
               <div className="toggle">
                 <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>

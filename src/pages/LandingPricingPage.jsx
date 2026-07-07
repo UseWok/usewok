@@ -5,7 +5,7 @@ import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
 
-const WIX = "'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const WIX = "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();
@@ -142,8 +142,8 @@ export default function LandingPricingPage() {
         <section className="p-hero">
           <div className="wrap">
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 16 }}><span className="dot"></span>Simple pricing</span>
-            <h1>Flexible pricing</h1>
-            <p>Start for free. Change plans or cancel anytime.</p>
+            <h1>Choisissez le forfait qui vous convient</h1>
+            <p>Commencez gratuitement. Changez de forfait ou annulez à tout moment.</p>
             <div className="toggle-wrap">
               <div className="toggle">
                 <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>

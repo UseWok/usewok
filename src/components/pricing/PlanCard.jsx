@@ -2,11 +2,9 @@ import React from 'react';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#15130F';
-const CREAM = '#FAF9F6';
 const WHITE = '#FFFFFF';
-const ORANGE = '#FF5A1F';
+const ORANGE = '#F47321';
 const BORDER = 'rgba(21,19,15,0.10)';
-const BORDER_STRONG = 'rgba(21,19,15,0.14)';
 
 export default function PlanCard({ plan, billing, isCurrent, onCta, loading, ctaLabel }) {
   const isReco = !!plan.badge;
@@ -18,7 +16,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
   return (
     <div style={{
       borderRadius: 16, overflow: 'hidden',
-      border: isReco ? `1px solid ${INK}` : `1px solid ${BORDER}`,
+      border: 'none',
       background: WHITE,
       fontFamily: F,
       boxShadow: isReco ? '0 8px 28px rgba(21,19,15,0.10)' : 'none',
@@ -26,14 +24,14 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
     }}>
       {isReco && (
         <div style={{
-          background: INK, color: CREAM, textAlign: 'center',
+          background: ORANGE, color: WHITE, textAlign: 'center',
           fontSize: 10, fontWeight: 600, letterSpacing: '0.08em',
           textTransform: 'uppercase', padding: '7px',
         }}>{plan.badge}</div>
       )}
 
       {/* ── Header: name + price ── */}
-      <div style={{ padding: '22px 22px 18px', borderBottom: `1px solid ${BORDER}` }}>
+      <div style={{ padding: '22px 22px 18px' }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 10 }}>
           {plan.name}
         </div>
@@ -60,14 +58,14 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
       </div>
 
       {/* ── Features ── */}
-      <div style={{ background: CREAM, padding: '20px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: WHITE, padding: '0 22px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(21,19,15,0.4)', marginBottom: 14 }}>
           {plan.features_header || 'Inclus :'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
           {(plan.features || []).map((f, i) => (
             <div key={i} style={{ display: 'flex', gap: 9, fontSize: 12.5, alignItems: 'flex-start', lineHeight: 1.45, color: INK }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isReco ? ORANGE : INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ORANGE} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                 <path d="M20 6L9 17l-5-5" />
               </svg>
               <span>{f.text}</span>
@@ -77,14 +75,14 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
 
         {isCurrent ? (
           <div style={{
-            marginTop: 20, height: 42, border: `1px solid ${BORDER_STRONG}`,
+            marginTop: 20, height: 42, border: `1px solid ${BORDER}`,
             borderRadius: 100, fontSize: 13, fontWeight: 600, textAlign: 'center',
             color: 'rgba(21,19,15,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>Plan actuel</div>
         ) : (
           <button onClick={onCta} disabled={loading} style={{
             marginTop: 20, height: 42, border: 'none', borderRadius: 100,
-            background: INK, color: '#fff', fontSize: 13, fontWeight: 600,
+            background: isReco ? ORANGE : INK, color: '#fff', fontSize: 13, fontWeight: 600,
             cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             opacity: loading ? 0.6 : 1, transition: 'opacity .15s ease',
