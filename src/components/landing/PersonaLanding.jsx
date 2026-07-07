@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import AnalyzeLeadModal from '@/components/landing/AnalyzeLeadModal';
+const AnalyzeLeadModal = lazy(() => import('@/components/landing/AnalyzeLeadModal'));
 
 /**
  * PersonaLanding — landing page réutilisable pour la stratégie "Pages Personas".
@@ -11,7 +11,6 @@ import AnalyzeLeadModal from '@/components/landing/AnalyzeLeadModal';
  */
 export default function PersonaLanding({ content }) {
   const navigate = useNavigate();
-  const [ready, setReady] = useState(false);
   const [showAnalyze, setShowAnalyze] = useState(false);
   const featuresRef = useRef(null);
   const howRef = useRef(null);
@@ -21,8 +20,8 @@ export default function PersonaLanding({ content }) {
     document.body.style.backgroundColor = '#FBF8F2';
     document.body.style.color = '#15130F';
     base44.auth.isAuthenticated()
-      .then(a => { if (a) navigate('/app', { replace: true }); else setReady(true); })
-      .catch(() => setReady(true));
+      .then(a => { if (a) navigate('/app', { replace: true }); })
+      .catch(() => {});
     return () => {
       document.body.style.backgroundColor = '';
       document.body.style.color = '';
@@ -35,13 +34,6 @@ export default function PersonaLanding({ content }) {
   const goPricing = () => navigate('/tarifs');
   const goBlog = () => navigate('/blog');
 
-  if (!ready) return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBF8F2' }}>
-      <div style={{ width: 20, height: 20, border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
   return (
     <div className="uw-landing">
       <style>{`
@@ -52,7 +44,7 @@ export default function PersonaLanding({ content }) {
           --line-strong:rgba(21,19,15,0.14); --navy:#0E2A33;
         }
         .uw-landing *{box-sizing:border-box;}
-        .uw-landing{ font-family:'Inter',sans-serif; background:var(--cream); color:var(--ink); -webkit-font-smoothing:antialiased; }
+        .uw-landing{ font-family:'Inter',sans-serif; background:var(--cream); color:var(--ink); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
         .uw-landing .wrap{ max-width:1160px; margin:0 auto; padding:0 40px; }
         .uw-landing section{ padding:96px 0; }
         .uw-landing h1,.uw-landing h2,.uw-landing h3{ font-weight:800; letter-spacing:-0.03em; }
@@ -253,13 +245,13 @@ export default function PersonaLanding({ content }) {
           .uw-landing .confidence-top{ flex-direction:column; align-items:flex-start; }
         }
         @media (max-width:640px){
-          .uw-landing section{ padding:56px 0; }
-          .uw-landing .hero{ padding:80px 0 48px; }
-          .uw-landing .hero h1{ font-size:30px; line-height:1.1; }
-          .uw-landing .hero p{ font-size:15px; }
+          .uw-landing section{ padding:48px 0; }
+          .uw-landing .hero{ padding:72px 0 40px; }
+          .uw-landing .hero h1{ font-size:28px; line-height:1.12; }
+          .uw-landing .hero p{ font-size:14.5px; line-height:1.55; }
           .uw-landing .hero-ctas{ flex-direction:column; gap:10px; width:100%; }
-          .uw-landing .hero-ctas .btn{ width:100%; justify-content:center; }
-          .uw-landing .hero-strip{ gap:8px; margin-top:36px; }
+          .uw-landing .hero-ctas .btn{ width:100%; justify-content:center; height:48px; font-size:14px; }
+          .uw-landing .hero-strip{ gap:8px; margin-top:32px; }
           .uw-landing .strip-pill{ font-size:11px; padding:6px 12px; }
           .uw-landing .navright{ gap:10px; }
           .uw-landing .navright .btn-dark{ padding:0 16px; height:40px; font-size:13px; }
@@ -267,12 +259,12 @@ export default function PersonaLanding({ content }) {
           .uw-landing nav .wrap{ height:60px; }
           .uw-landing .brand span{ font-size:14px; }
           .uw-landing .brand .mark{ width:24px; height:24px; }
-          .uw-landing .panel{ padding:28px 22px; min-height:auto; border-radius:16px; }
-          .uw-landing .panel-light h3{ font-size:22px; }
-          .uw-landing .panel-check{ padding:28px 22px; border-radius:16px; }
-          .uw-landing .panel-scores{ padding:28px 22px; border-radius:16px; }
+          .uw-landing .panel{ padding:24px 20px; min-height:auto; border-radius:14px; }
+          .uw-landing .panel-light h3{ font-size:20px; }
+          .uw-landing .panel-check{ padding:24px 20px; border-radius:14px; }
+          .uw-landing .panel-scores{ padding:24px 20px; border-radius:14px; }
           .uw-landing .score-row{ padding:12px 14px; }
-          .uw-landing .score-row .bar{ width:70px; }
+          .uw-landing .score-row .bar{ width:60px; }
           .uw-landing .confidence-top{ gap:20px; margin-bottom:28px; }
           .uw-landing .confidence-top h2{ font-size:26px; }
           .uw-landing .confidence-top p{ font-size:13px; margin-bottom:12px; }
@@ -283,14 +275,15 @@ export default function PersonaLanding({ content }) {
           .uw-landing .explain-item p{ font-size:12.5px; max-width:100%; }
           .uw-landing .stack-cards{ width:170px; height:140px; }
           .uw-landing .stack-cards .c{ width:100px; height:125px; }
-          .uw-landing .stackband{ padding:48px 24px; border-radius:18px; }
-          .uw-landing .stackband h2{ font-size:28px; }
-          .uw-landing .stackband p{ font-size:13px; margin:14px auto 32px; }
-          .uw-landing .logos{ gap:20px; }
-          .uw-landing .logos .lg{ font-size:13px; gap:6px; }
-          .uw-landing .finalcta{ padding:56px 20px; border-radius:18px; }
-          .uw-landing .cta-card{ padding:32px 24px; max-width:100%; }
-          .uw-landing .cta-card h3{ font-size:22px; }
+          .uw-landing .stackband{ padding:40px 20px; border-radius:16px; }
+          .uw-landing .stackband h2{ font-size:24px; }
+          .uw-landing .stackband p{ font-size:13px; margin:12px auto 28px; }
+          .uw-landing .logos{ gap:16px; }
+          .uw-landing .logos .lg{ font-size:12.5px; gap:6px; }
+          .uw-landing .logos .lg .sw{ width:16px; height:16px; }
+          .uw-landing .finalcta{ padding:48px 16px; border-radius:16px; }
+          .uw-landing .cta-card{ padding:28px 22px; max-width:100%; }
+          .uw-landing .cta-card h3{ font-size:20px; }
           .uw-landing .test-card{ padding:20px; border-radius:14px; }
           .uw-landing .stat-card{ padding:20px; min-height:120px; }
           .uw-landing .stat-card .big{ font-size:30px; }
@@ -595,7 +588,7 @@ export default function PersonaLanding({ content }) {
         </div>
       </footer>
 
-      {showAnalyze && <AnalyzeLeadModal onClose={() => setShowAnalyze(false)} />}
+      {showAnalyze && <Suspense fallback={null}><AnalyzeLeadModal onClose={() => setShowAnalyze(false)} /></Suspense>}
     </div>
   );
 }

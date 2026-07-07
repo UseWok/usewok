@@ -10,6 +10,7 @@ export const PLAN_CREDIT_LIMITS = {
   starter:  1_000_000,
   creator:  2_500_000,
   pro:      5_000_000,
+  elite:    15_000_000,
 };
 
 /**
@@ -21,6 +22,7 @@ export const PLAN_FEATURE_FLAGS = {
   starter: { web_search: true,  max_model: false, file_upload: true,  concurrent_builds: 2,  daily_burn_cap: 500_000,   white_label: false, private_builds: false, version_history_days: 7,  code_editor: true,  zip_export: true  },
   creator: { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 5,  daily_burn_cap: 1_000_000, white_label: false, private_builds: true,  version_history_days: 30, code_editor: true,  zip_export: true  },
   pro:     { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 10, daily_burn_cap: 5_000_000, white_label: true,  private_builds: true,  version_history_days: 90, code_editor: true,  zip_export: true  },
+  elite:   { web_search: true,  max_model: true,  file_upload: true,  concurrent_builds: 20, daily_burn_cap: 15_000_000, white_label: true,  private_builds: true,  version_history_days: 365, code_editor: true,  zip_export: true  },
 };
 
 export const DEFAULT_PLANS = [
@@ -103,6 +105,33 @@ export const DEFAULT_PLANS = [
     history_days: 365,
     engines: ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'],
   },
+  {
+    id: 'elite',
+    name: 'Elite',
+    price_monthly: 299,
+    price_yearly: 2870,
+    credits_limit: PLAN_CREDIT_LIMITS.elite,
+    checkout_url_monthly: null,
+    checkout_url_yearly: null,
+    description: 'For agencies and teams managing AI visibility at scale across multiple clients.',
+    features_header: 'Everything in Pro, plus:',
+    features: [
+      { text: 'Unlimited sites analyzed' },
+      { text: '8 AI engines continuously' },
+      { text: 'Unlimited scans (daily + on-demand)' },
+      { text: 'Unlimited chatbot messages' },
+      { text: 'White-label & PDF export' },
+      { text: 'Priority support & onboarding' },
+      { text: 'API access' },
+      { text: 'Dedicated account manager' },
+    ],
+    chatbot_messages: -1,
+    scans_per_period: -1,
+    scan_period: 'day',
+    max_sites: -1,
+    history_days: 730,
+    engines: ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'],
+  },
 ];
 
 /** The full catalog of AI engines that can be enabled per plan (id + label). */
@@ -121,40 +150,41 @@ export const COMPARISON_FEATURES = [
   {
     category: 'AI Engines',
     items: [
-      { name: 'Active engines', free: '1 (Gemini)', starter: '5 engines', pro: '8 engines' },
-      { name: 'ChatGPT', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'Claude', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'Gemini', free: 'Yes', starter: 'Yes', pro: 'Yes' },
-      { name: 'Perplexity', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'Copilot', free: '-', starter: '-', pro: 'Yes' },
-      { name: 'Grok', free: '-', starter: '-', pro: 'Yes' },
+      { name: 'Active engines', free: '1 (Gemini)', starter: '5 engines', pro: '8 engines', elite: '8 engines' },
+      { name: 'ChatGPT', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Claude', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Gemini', free: 'Yes', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Perplexity', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Copilot', free: '-', starter: '-', pro: 'Yes', elite: 'Yes' },
+      { name: 'Grok', free: '-', starter: '-', pro: 'Yes', elite: 'Yes' },
     ],
   },
   {
     category: 'Analysis',
     items: [
-      { name: 'Monitored sites', free: '1', starter: '5', pro: '10' },
-      { name: 'Scans per month', free: '1', starter: '12', pro: '30 (daily)' },
-      { name: 'Automatic scan', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'Action plan', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'Competitor analysis', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'Technical SEO audit', free: '-', starter: 'Yes', pro: 'Yes' },
+      { name: 'Monitored sites', free: '1', starter: '5', pro: '10', elite: 'Unlimited' },
+      { name: 'Scans per month', free: '1', starter: '12', pro: '30 (daily)', elite: 'Unlimited' },
+      { name: 'Automatic scan', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Action plan', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Competitor analysis', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'Technical SEO audit', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
     ],
   },
   {
     category: 'Chatbot & Export',
     items: [
-      { name: 'Chatbot messages/month', free: '5', starter: '50', pro: '200' },
-      { name: 'PDF export', free: '-', starter: 'Yes', pro: 'Yes' },
-      { name: 'White-label', free: '-', starter: '-', pro: 'Yes' },
-      { name: 'Integrations', free: '-', starter: 'Yes', pro: 'Yes' },
+      { name: 'Chatbot messages/month', free: '5', starter: '50', pro: '200', elite: 'Unlimited' },
+      { name: 'PDF export', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'White-label', free: '-', starter: '-', pro: 'Yes', elite: 'Yes' },
+      { name: 'Integrations', free: '-', starter: 'Yes', pro: 'Yes', elite: 'Yes' },
+      { name: 'API access', free: '-', starter: '-', pro: '-', elite: 'Yes' },
     ],
   },
   {
     category: 'History & Support',
     items: [
-      { name: 'History', free: '30 days', starter: '6 months', pro: '12 months' },
-      { name: 'Support', free: 'Community', starter: 'Email', pro: 'Priority' },
+      { name: 'History', free: '30 days', starter: '6 months', pro: '12 months', elite: '24 months' },
+      { name: 'Support', free: 'Community', starter: 'Email', pro: 'Priority', elite: 'Dedicated manager' },
     ],
   },
 ];
@@ -216,7 +246,7 @@ export function getUserPlan(user) {
 /** Normalizes a subscription_plan id to free/starter/pro */
 export function getNormalizedPlanId(user) {
   const raw = user?.subscription_plan || 'free';
-  if (raw === 'free' || raw === 'starter' || raw === 'pro') return raw;
+  if (raw === 'free' || raw === 'starter' || raw === 'pro' || raw === 'elite') return raw;
   // No subscription set → always free
   if (!raw || raw === '') return 'free';
   // Legacy ids: check price of matched plan
@@ -225,7 +255,8 @@ export function getNormalizedPlanId(user) {
   if (!matched) return 'free';
   if (!matched.price_monthly || matched.price_monthly === 0) return 'free';
   if (matched.price_monthly <= 55) return 'starter';
-  return 'pro';
+  if (matched.price_monthly <= 150) return 'pro';
+  return 'elite';
 }
 
 /**

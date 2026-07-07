@@ -12,7 +12,7 @@
 
 import { base44 } from '@/api/base44Client';
 
-export const PLAN_RANK = { free: 0, starter: 1, pro: 2 };
+export const PLAN_RANK = { free: 0, starter: 1, pro: 2, elite: 3 };
 
 // ─────────────────────────────────────────────────────────────
 //  VALEURS PAR DÉFAUT — modifiables via Admin > Paramètres
@@ -104,6 +104,34 @@ export const WOK_PLAN_FEATURES_DEFAULT = {
     integrations: true,             // Intégrations Google Search Console & Analytics
     monitored_questions: null,      // Questions IA surveillées : illimité
   },
+
+  elite: {
+    // Scans
+    scan_type: 'full',
+    scans_per_period: -1,           // Illimité (daily + on-demand)
+    scan_period: 'day',
+    auto_scan: true,
+    auto_scan_hour: 6,
+    // Moteurs IA — 8 moteurs actifs
+    engines: ['gemini', 'chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'copilot', 'grok'],
+    engines_locked: [],
+    engines_blurred: [],
+    engines_count: 8,
+    // Sites
+    max_sites: -1,                  // Illimité
+    // Historique
+    history_days: 730,              // 24 mois
+    // Chatbot IA
+    chatbot_messages: -1,           // Illimité
+    // Features
+    fix_instructions: true,
+    see_competitors: true,
+    pdf_export: true,
+    white_label: true,
+    audit_access: true,
+    integrations: true,
+    monitored_questions: null,
+  },
 };
 
 // Valeurs actives en mémoire (fusionnées avec les overrides Admin)
@@ -126,7 +154,7 @@ export async function loadPlanSettings() {
         try {
           const overrides = JSON.parse(results[0].value);
           // Fusionner chaque plan : défaut + override Admin
-          for (const planId of ['free', 'starter', 'pro']) {
+          for (const planId of ['free', 'starter', 'pro', 'elite']) {
             if (overrides[planId]) {
               _activePlanFeatures[planId] = { ...WOK_PLAN_FEATURES_DEFAULT[planId], ...overrides[planId] };
             }
@@ -162,24 +190,26 @@ export const PLAN_LABELS = {
   free: 'Free',
   starter: 'Starter',
   pro: 'Pro',
+  elite: 'Elite',
 };
 
 export const PLAN_PRICES = {
   free: { monthly: 0, yearly: 0 },
   starter: { monthly: 49, yearly: 468 },
   pro: { monthly: 99, yearly: 960 },
+  elite: { monthly: 299, yearly: 2870 },
 };
 
 export function getWokFeatures(user) {
-  if (user?.role === 'admin') return _activePlanFeatures.pro || WOK_PLAN_FEATURES_DEFAULT.pro;
+  if (user?.role === 'admin') return _activePlanFeatures.elite || WOK_PLAN_FEATURES_DEFAULT.elite;
   const planId = user?.subscription_plan || 'free';
   return _activePlanFeatures[planId] || WOK_PLAN_FEATURES_DEFAULT[planId] || WOK_PLAN_FEATURES_DEFAULT.free;
 }
 
 export function getWokPlanId(user) {
-  if (user?.role === 'admin') return 'pro';
+  if (user?.role === 'admin') return 'elite';
   const raw = user?.subscription_plan || 'free';
-  if (raw === 'free' || raw === 'starter' || raw === 'pro') return raw;
+  if (raw === 'free' || raw === 'starter' || raw === 'pro' || raw === 'elite') return raw;
   return 'free';
 }
 
@@ -209,7 +239,7 @@ export function canUseFeature(user, featureKey) {
  * Retourne le plan minimum requis pour une feature.
  */
 export function requiredPlanFor(featureKey) {
-  for (const planId of ['free', 'starter', 'pro']) {
+  for (const planId of ['free', 'starter', 'pro', 'elite']) {
     const features = _activePlanFeatures[planId] || WOK_PLAN_FEATURES_DEFAULT[planId];
     const val = features[featureKey];
     if (val === true || (typeof val === 'number' && val > 0) || (typeof val === 'string' && val !== '')) {

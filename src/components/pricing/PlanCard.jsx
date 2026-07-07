@@ -36,25 +36,35 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
     return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
   });
   const scanLabel = plan.scans_per_period
-    ? `${plan.scans_per_period} scan${plan.scans_per_period > 1 ? 's' : ''} /${plan.scan_period === 'day' ? 'day' : plan.scan_period === 'week' ? 'week' : 'month'}`
+    ? plan.scans_per_period === -1
+      ? 'Unlimited scans'
+      : `${plan.scans_per_period} scan${plan.scans_per_period > 1 ? 's' : ''} /${plan.scan_period === 'day' ? 'day' : plan.scan_period === 'week' ? 'week' : 'month'}`
     : null;
 
   return (
     <div style={{
-      borderRadius: 20, overflow: 'hidden',
-      border: isReco ? `1px solid ${ORANGE_BORDER}` : 'none',
-      background: WHITE,
-      fontFamily: F,
-      boxShadow: 'none',
-      display: 'flex', flexDirection: 'column', height: '100%',
+      position: 'relative', height: '100%',
+      marginTop: isReco ? -30 : 0,
+      zIndex: isReco ? 2 : 1,
     }}>
       {isReco && (
         <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3,
           background: 'linear-gradient(90deg, #FF9057, #F26A25)', color: WHITE, textAlign: 'center',
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
           textTransform: 'uppercase', padding: '9px',
+          borderRadius: '14px 14px 0 0',
         }}>{plan.badge}</div>
       )}
+    <div style={{
+      borderRadius: 20, overflow: 'hidden',
+      border: isReco ? `1px solid ${ORANGE_BORDER}` : '1px solid rgba(21,19,15,0.06)',
+      background: WHITE,
+      fontFamily: F,
+      boxShadow: isReco ? '0 12px 40px rgba(244,115,33,0.18)' : '0 1px 3px rgba(0,0,0,0.04)',
+      display: 'flex', flexDirection: 'column', height: '100%',
+      marginTop: isReco ? 30 : 0,
+    }}>
 
       <div style={{ padding: '22px 22px 18px' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: INK, marginBottom: 10, letterSpacing: '-0.01em' }}>
@@ -130,6 +140,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
           ))}
         </div>
       </div>
+    </div>
     </div>
   );
 }

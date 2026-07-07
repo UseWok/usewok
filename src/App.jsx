@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
 import PageNotFound from './lib/PageNotFound';
+import { appParams } from '@/lib/app-params';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { LanguageProvider } from '@/lib/i18n';
@@ -70,10 +71,21 @@ function ScrollToTop() {
   return null;
 }
 
+const PUBLIC_PATHS = ['/', '/pour-agences', '/pour-ecommerce', '/login', '/register', '/forgot-password', '/reset-password', '/tarifs', '/privacy', '/terms', '/legal', '/blog', '/about', '/contact', '/unsubscribe'];
+
+const isPublicPath = (pathname) =>
+  PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/blog/') || pathname.startsWith('/p/');
+
 const AuthenticatedApp = () => {
+  const { pathname } = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  // Performance: visitors without a token on public routes get instant rendering
+  // — no need to wait for the auth/settings API call that 99% of visitors don't need.
+  const hasToken = !!appParams.token;
+  const isPublic = isPublicPath(pathname);
+
+  if ((isLoadingPublicSettings || isLoadingAuth) && (hasToken || !isPublic)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
