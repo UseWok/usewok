@@ -54,6 +54,8 @@ const SiteAuditDetail = lazy(() => import('./pages/SiteAuditDetail'));
 const CompetitorsPage = lazy(() => import('./pages/CompetitorsPage'));
 const TasksPage = lazy(() => import('./pages/TasksPage'));
 const BrandPerceptionPage = lazy(() => import('./pages/BrandPerceptionPage'));
+const ForAgenciesPage = lazy(() => import('./pages/ForAgenciesPage'));
+const ForEcommercePage = lazy(() => import('./pages/ForEcommercePage'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#FBF8F2' }}>
@@ -88,6 +90,8 @@ const AuthenticatedApp = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/pour-agences" element={<ForAgenciesPage />} />
+            <Route path="/pour-ecommerce" element={<ForEcommercePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -120,6 +124,8 @@ const AuthenticatedApp = () => {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Navigate to="/app" replace />} />
+          <Route path="/pour-agences" element={<ForAgenciesPage />} />
+          <Route path="/pour-ecommerce" element={<ForEcommercePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="/blog" element={<BlogPage />} />
