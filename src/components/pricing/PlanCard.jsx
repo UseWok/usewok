@@ -36,7 +36,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
     return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
   });
   const scanLabel = plan.scans_per_period
-    ? `${plan.scans_per_period} scan${plan.scans_per_period > 1 ? 's' : ''} /${plan.scan_period === 'day' ? 'jour' : plan.scan_period === 'week' ? 'semaine' : 'mois'}`
+    ? `${plan.scans_per_period} scan${plan.scans_per_period > 1 ? 's' : ''} /${plan.scan_period === 'day' ? 'day' : plan.scan_period === 'week' ? 'week' : 'month'}`
     : null;
 
   return (
@@ -62,11 +62,11 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
           {isFree ? (
-            <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', color: INK }}>Gratuit</span>
+            <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', color: INK }}>Free</span>
           ) : (
             <>
-              <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', color: INK }}>{price}€</span>
-              <span style={{ fontSize: 13, color: 'rgba(21,19,15,0.5)', fontWeight: 500 }}>/mois</span>
+              <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', color: INK }}>${price}</span>
+              <span style={{ fontSize: 13, color: 'rgba(21,19,15,0.5)', fontWeight: 500 }}>/mo</span>
             </>
           )}
         </div>
@@ -77,11 +77,13 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {engines.map((eng, i) => (
                 <div key={eng} style={{
-                  width: 26, height: 26, borderRadius: '50%', background: WHITE,
-                  border: `2px solid ${WHITE}`, boxShadow: `0 0 0 1px ${BORDER}`, marginLeft: i > 0 ? -8 : 0,
+                  width: 28, height: 28, borderRadius: '50%', background: WHITE,
+                  border: `2px solid ${WHITE}`, boxShadow: `0 0 0 1px ${BORDER}`, marginLeft: i > 0 ? -5 : 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
                 }}>
-                  <img src={ENGINE_LOGOS[eng]} alt={eng} width={18} height={18} style={{ objectFit: 'contain' }} />
+                  <img src={ENGINE_LOGOS[eng]} alt={eng}
+                    width={eng === 'llama' ? 24 : 19} height={eng === 'llama' ? 24 : 19}
+                    style={{ objectFit: 'contain' }} />
                 </div>
               ))}
             </div>
@@ -96,7 +98,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
             marginTop: 18, height: 44, border: `1px solid ${BORDER_STRONG}`,
             borderRadius: 10, fontSize: 13, fontWeight: 600, textAlign: 'center',
             color: 'rgba(21,19,15,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>Plan actuel</div>
+          }}>Current plan</div>
         ) : (
           <button onClick={onCta} disabled={loading} style={{
             marginTop: 18, height: 44, borderRadius: 10,
@@ -106,7 +108,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             opacity: loading ? 0.6 : 1, transition: 'opacity .15s ease', width: '100%',
           }}>
-            {loading ? 'Chargement…' : ctaLabel}
+            {loading ? 'Loading…' : ctaLabel}
           </button>
         )}
       </div>
@@ -115,7 +117,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
       <div style={{ height: 1, background: BORDER, margin: '0 22px' }} />
       <div style={{ background: WHITE, padding: '18px 22px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(21,19,15,0.4)', marginBottom: 14 }}>
-          {plan.features_header || 'Points forts du plan :'}
+          {plan.features_header || 'Plan highlights:'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
           {(plan.features || []).map((f, i) => (
@@ -126,15 +128,6 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
               <span>{f.text}</span>
             </div>
           ))}
-        </div>
-
-        {/* ── RGPD ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BORDER}` }}>
-          <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/caaf4215e_generated_image.png" alt="RGPD" width={38} height={38} style={{ borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
-          <div>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: INK, marginBottom: 2 }}>RGPD</div>
-            <div style={{ fontSize: 11, color: 'rgba(21,19,15,0.5)', lineHeight: 1.4 }}>Règlement sur la protection des données et la vie privée</div>
-          </div>
         </div>
       </div>
     </div>

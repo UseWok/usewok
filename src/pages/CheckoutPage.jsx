@@ -111,9 +111,9 @@ export default function CheckoutPage() {
       try {
         const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email });
         if (res.data?.url) { window.location.href = res.data.url; }
-        else { alert('Erreur lors de la création de la session de paiement.'); }
+        else { alert('Error while creating the payment session.'); }
       } catch (e) {
-        alert('Erreur: ' + (e?.message || e));
+        alert('Error: ' + (e?.message || e));
       } finally { setLoading(false); }
     }
   };
@@ -155,7 +155,7 @@ export default function CheckoutPage() {
           {/* Price big */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
             <span style={{ fontSize: 38, fontWeight: 800, color: WHITE, letterSpacing: '-0.03em' }}>
-              {billing === 'yearly' ? yearlyPrice : monthlyPrice}€
+              ${billing === 'yearly' ? yearlyPrice : monthlyPrice}
             </span>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
               {billing === 'yearly' ? '/year' : '/month'}
@@ -164,7 +164,7 @@ export default function CheckoutPage() {
 
           {billing === 'yearly' && (
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
-              that's {displayPrice}€/month
+              that's ${displayPrice}/month
             </div>
           )}
 
@@ -202,7 +202,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <span style={{ fontSize: 13, color: WHITE }}>
-                {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
+                {billing === 'yearly' ? `$${yearlyPrice}` : `$${monthlyPrice}`}
               </span>
             </div>
           </div>
@@ -212,13 +212,13 @@ export default function CheckoutPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Subtotal</span>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
+                {billing === 'yearly' ? `$${yearlyPrice}` : `$${monthlyPrice}`}
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total due today</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: WHITE }}>
-                {billing === 'yearly' ? `${yearlyPrice}€` : `${monthlyPrice}€`}
+                {billing === 'yearly' ? `$${yearlyPrice}` : `$${monthlyPrice}`}
               </span>
             </div>
           </div>

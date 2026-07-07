@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Check, ArrowRight, X } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
+import SecurityBadges from '@/components/pricing/SecurityBadges';
 
 const WIX = "'Inter', 'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const SERIF = "'Fraunces', 'Helvetica Neue', serif";
@@ -188,8 +189,8 @@ export default function PricingPage() {
         <section className="p-hero">
           <div className="wrap">
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 14 }}><span className="dot"></span>Simple pricing</span>
-            <h1>Choisissez le forfait qui vous convient</h1>
-            <p>Vous êtes sur le forfait <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong>. Changez ou annulez à tout moment.</p>
+            <h1>Choose the plan that fits you</h1>
+            <p>You're on the <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong> plan. Change or cancel anytime.</p>
             <div className="toggle-wrap">
               <div className="toggle">
                 <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>
@@ -222,6 +223,13 @@ export default function PricingPage() {
           </div>
         </section>
 
+        {/* SECURITY BADGES */}
+        <section style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <SecurityBadges />
+          </div>
+        </section>
+
         {/* ENTERPRISE STRIP */}
         <section style={{ paddingTop: 0 }}>
           <div className="wrap">
@@ -251,19 +259,35 @@ export default function PricingPage() {
               <h2>Frequently asked questions</h2>
               <details open>
                 <summary>What is UseWok?</summary>
-                <p>UseWok is an AI visibility platform that shows where and how your brand appears in AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini.</p>
+                <p>UseWok is an AI visibility platform that shows where and how your brand appears across AI engines like ChatGPT, Perplexity, Google AI Overviews, Claude and Gemini — and tells you exactly what to do to improve your presence.</p>
+              </details>
+              <details>
+                <summary>What's included in the free plan?</summary>
+                <p>The free plan lets you run a limited number of scans, track your AI visibility score across major engines, and see your top priority actions — no credit card required.</p>
               </details>
               <details>
                 <summary>Which AI engines can I track?</summary>
-                <p>UseWok tracks the major AI engines: ChatGPT, Perplexity, Google AI Overviews, Claude, Microsoft Copilot and Gemini.</p>
+                <p>UseWok tracks the major AI engines: ChatGPT, Perplexity, Google AI Overviews, Claude, Microsoft Copilot, Gemini and more, depending on your plan.</p>
               </details>
               <details>
-                <summary>Can I change plans at any time?</summary>
-                <p>Yes, you can change plans or cancel at any time, with no commitment.</p>
+                <summary>How often are my scans refreshed?</summary>
+                <p>Scan frequency depends on your plan — from occasional manual scans on Free to automated recurring scans on paid tiers, so your visibility data stays up to date.</p>
               </details>
               <details>
-                <summary>Is my data hosted in France?</summary>
-                <p>Yes — UseWok is built and hosted in France, in compliance with GDPR.</p>
+                <summary>Can I change or cancel my plan anytime?</summary>
+                <p>Yes. You can upgrade, downgrade or cancel at any time in one click from your dashboard — no fees and no commitment. You keep access until the end of the period you already paid for.</p>
+              </details>
+              <details>
+                <summary>Is my payment secure?</summary>
+                <p>Yes. All payments are processed by Stripe, a leader in payment security. We never see or store your card details.</p>
+              </details>
+              <details>
+                <summary>What happens when I reach my plan limits?</summary>
+                <p>You'll be notified when you approach your plan's limits. You can upgrade anytime to unlock more scans, engines and features — your existing data is always preserved.</p>
+              </details>
+              <details>
+                <summary>Is my data secure and compliant?</summary>
+                <p>Yes — UseWok is designed and hosted in France, ISO 27001 aligned and fully GDPR compliant.</p>
               </details>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
+import SecurityBadges from '@/components/pricing/SecurityBadges';
 
 const WIX = "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
@@ -142,8 +143,8 @@ export default function LandingPricingPage() {
         <section className="p-hero">
           <div className="wrap">
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 16 }}><span className="dot"></span>Simple pricing</span>
-            <h1>Choisissez le forfait qui vous convient</h1>
-            <p>Commencez gratuitement. Changez de forfait ou annulez à tout moment.</p>
+            <h1>Choose the plan that fits you</h1>
+            <p>Start for free. Change your plan or cancel anytime.</p>
             <div className="toggle-wrap">
               <div className="toggle">
                 <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>
@@ -167,6 +168,9 @@ export default function LandingPricingPage() {
                   ctaLabel={!plan.price_monthly || plan.price_monthly === 0 ? 'Start for free' : `Choose ${plan.name}`}
                 />
               ))}
+            </div>
+            <div style={{ marginTop: 40 }}>
+              <SecurityBadges />
             </div>
           </div>
         </section>
