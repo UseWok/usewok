@@ -1,4 +1,5 @@
 @import url('https://rsms.me/inter/inter.css');
+@import url('https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:wght@400;500;600;700&family=Wix+Madefor+Display:wght@400;500;600;700;800&display=swap');
 /* Anthropic Sans — loaded from system/Claude.ai context; fallback to Inter */
 
 @tailwind base;

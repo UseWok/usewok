@@ -75,8 +75,8 @@ export default function LandingPricingPage() {
         .uw-pricing .toggle span.on { background: #15130F; color: #FAF9F6; }
         .uw-pricing .toggle .save { font-size: 10.5px; font-weight: 700; color: #C43E14; background: #FFE7D6; padding: 2px 7px; border-radius: 100px; }
         .uw-pricing .toggle-wrap { text-align: center; }
-        .uw-pricing .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 82px; align-items: start; }
-        @media (max-width: 1100px) and (min-width: 901px) { .uw-pricing .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+        .uw-pricing .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 82px auto 0; max-width: 960px; align-items: start; }
+        @media (max-width: 1100px) and (min-width: 901px) { .uw-pricing .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 640px; } }
         .uw-pricing .trustbar { padding: 70px 0; text-align: center; }
         .uw-pricing .trustlogos { display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; margin-top: 28px; }
         .uw-pricing .tlogo { display: flex; align-items: center; gap: 8px; opacity: 0.75; }

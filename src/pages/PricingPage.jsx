@@ -148,8 +148,8 @@ export default function PricingPage() {
         .uw-app-pricing .toggle-wrap { text-align: center; }
 
         /* PRICING GRID */
-        .uw-app-pricing .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 74px; align-items: start; }
-        @media (max-width: 1100px) and (min-width: 901px) { .uw-app-pricing .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+        .uw-app-pricing .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 74px auto 0; max-width: 960px; align-items: start; }
+        @media (max-width: 1100px) and (min-width: 901px) { .uw-app-pricing .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 640px; } }
 
         /* ENTERPRISE STRIP */
         .uw-app-pricing .ent-strip {

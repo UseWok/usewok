@@ -1,6 +1,6 @@
 import React from 'react';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Display', 'Wix Madefor Text', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const INK = '#15130F';
 const WHITE = '#FFFFFF';
 const ORANGE = '#F47321';
@@ -53,7 +53,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
           background: 'linear-gradient(90deg, #FF9057, #F26A25)', color: WHITE, textAlign: 'center',
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
           textTransform: 'uppercase', padding: '9px',
-          borderRadius: '14px 14px 0 0',
+          borderRadius: '20px 20px 0 0',
         }}>{plan.badge}</div>
       )}
     <div style={{
@@ -61,21 +61,21 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
       border: isReco ? `1px solid ${ORANGE_BORDER}` : '1px solid rgba(21,19,15,0.06)',
       background: WHITE,
       fontFamily: F,
-      boxShadow: isReco ? '0 12px 40px rgba(244,115,33,0.18)' : '0 1px 3px rgba(0,0,0,0.04)',
+      boxShadow: 'none',
       display: 'flex', flexDirection: 'column', height: '100%',
       marginTop: isReco ? 30 : 0,
     }}>
 
-      <div style={{ padding: '22px 22px 18px' }}>
+      <div style={{ padding: '18px 18px 16px' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: INK, marginBottom: 10, letterSpacing: '-0.01em' }}>
           {plan.name}
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
           {isFree ? (
-            <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', color: INK }}>Free</span>
+            <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>Free</span>
           ) : (
             <>
-              <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', color: INK }}>${price}</span>
+              <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>${price}</span>
               <span style={{ fontSize: 13, color: 'rgba(21,19,15,0.5)', fontWeight: 500 }}>/mo</span>
             </>
           )}
@@ -83,7 +83,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
         {/* ── AI engines + scans ── */}
         {engines.length > 0 && (
           <>
-            <div style={{ height: 1, background: BORDER, margin: '18px 0 14px' }} />
+
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {engines.map((eng, i) => (
                 <div key={eng} style={{
@@ -124,8 +124,8 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
       </div>
 
       {/* ── Features ── */}
-      <div style={{ height: 1, background: BORDER, margin: '0 22px' }} />
-      <div style={{ background: WHITE, padding: '18px 22px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+      <div style={{ background: WHITE, padding: '16px 18px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(21,19,15,0.4)', marginBottom: 14 }}>
           {plan.features_header || 'Plan highlights:'}
         </div>
