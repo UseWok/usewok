@@ -4,6 +4,8 @@ const F = 'Inter, system-ui, sans-serif';
 const INK = '#15130F';
 const WHITE = '#FFFFFF';
 const ORANGE = '#F47321';
+const ORANGE_BORDER = '#F9A26C';
+const ORANGE_BTN = '#FF7A33';
 const GREEN = '#1E9E5A';
 const BORDER = 'rgba(21,19,15,0.10)';
 const BORDER_STRONG = 'rgba(21,19,15,0.14)';
@@ -34,7 +36,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
   return (
     <div style={{
       borderRadius: 20, overflow: 'hidden',
-      border: isReco ? `1px solid ${ORANGE}` : `1px solid ${BORDER}`,
+      border: isReco ? `1px solid ${ORANGE_BORDER}` : 'none',
       background: WHITE,
       fontFamily: F,
       boxShadow: 'none',
@@ -62,12 +64,6 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
             </>
           )}
         </div>
-        {billing === 'yearly' && !isFree && plan.price_yearly && (
-          <div style={{ fontSize: 11, color: 'rgba(21,19,15,0.4)' }}>
-            soit {plan.price_yearly}€ facturé annuellement
-          </div>
-        )}
-
         {/* ── AI engines + scans ── */}
         {engines.length > 0 && (
           <>
@@ -75,8 +71,8 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {engines.map((eng, i) => (
                 <div key={eng} style={{
-                  width: 26, height: 26, borderRadius: '50%', background: '#F0EFEB',
-                  border: `2px solid ${WHITE}`, marginLeft: i > 0 ? -8 : 0,
+                  width: 26, height: 26, borderRadius: '50%', background: WHITE,
+                  border: `2px solid ${WHITE}`, boxShadow: `0 0 0 1px ${BORDER}`, marginLeft: i > 0 ? -8 : 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
                 }}>
                   <img src={ENGINE_LOGOS[eng]} alt={eng} width={14} height={14} style={{ objectFit: 'contain' }} />
@@ -99,7 +95,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
           <button onClick={onCta} disabled={loading} style={{
             marginTop: 18, height: 42, borderRadius: 100,
             border: isReco ? 'none' : `1px solid ${BORDER_STRONG}`,
-            background: isReco ? ORANGE : WHITE, color: isReco ? WHITE : INK, fontSize: 13, fontWeight: 600,
+            background: isReco ? ORANGE_BTN : WHITE, color: isReco ? WHITE : INK, fontSize: 13, fontWeight: 600,
             cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             opacity: loading ? 0.6 : 1, transition: 'opacity .15s ease', width: '100%',
@@ -110,7 +106,8 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
       </div>
 
       {/* ── Features ── */}
-      <div style={{ background: WHITE, padding: '18px 22px 22px', borderTop: `1px solid ${BORDER}`, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: 1, background: BORDER, margin: '0 22px' }} />
+      <div style={{ background: WHITE, padding: '18px 22px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(21,19,15,0.4)', marginBottom: 14 }}>
           {plan.features_header || 'Points forts du plan :'}
         </div>
