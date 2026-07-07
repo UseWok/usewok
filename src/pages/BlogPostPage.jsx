@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Clock, Tag, ArrowRight } from 'lucide-react';
+import BlogContent from '@/components/blog/BlogContent';
 
 const F      = '"Anthropic Sans", "Anthropic Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 const BG     = '#F8F7F4';
@@ -10,10 +11,12 @@ const INK    = '#1A1A1A';
 const INK2   = '#6B6660';
 const INK3   = '#A8A49F';
 const CORAL  = '#FF5A1F';
-const CARD   = '#FFFFFF';
 const BORDER = 'rgba(21,19,15,0.10)';
 
-function Navbar({ showBack = false }) {
+const fmtDate = (d) =>
+  new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+
+function Navbar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
@@ -50,11 +53,11 @@ function Navbar({ showBack = false }) {
           style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600, color: INK2, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F }}
           onMouseEnter={e => e.currentTarget.style.color = INK}
           onMouseLeave={e => e.currentTarget.style.color = INK2}>
-          <ArrowLeft size={13} /> Retour au blog
+          <ArrowLeft size={13} /> Back to blog
         </button>
         {isAuth
-          ? <button onClick={() => navigate('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: INK, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Ouvrir l'app →</button>
-          : <button onClick={() => base44.auth.redirectToLogin('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: CORAL, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Démarrer gratuitement →</button>
+          ? <button onClick={() => navigate('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: INK, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Open app →</button>
+          : <button onClick={() => base44.auth.redirectToLogin('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: CORAL, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Get started free →</button>
         }
       </div>
     </header>
@@ -89,7 +92,7 @@ export default function BlogPostPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-    return () => { document.title = 'UseWok · Visibilité IA'; };
+    return () => { document.title = 'UseWok · AI Visibility'; };
   }, [slug]);
 
   if (loading) return (
@@ -103,11 +106,11 @@ export default function BlogPostPage() {
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: F, padding: 24, textAlign: 'center' }}>
       <Navbar />
       <p style={{ fontSize: 48, marginBottom: 16 }}>🔍</p>
-      <h1 style={{ fontSize: 24, fontWeight: 800, color: INK, margin: '0 0 8px', letterSpacing: '-0.03em' }}>Article introuvable</h1>
-      <p style={{ fontSize: 14, color: INK3, marginBottom: 28 }}>Cet article n'existe pas ou n'est pas encore publié.</p>
+      <h1 style={{ fontSize: 24, fontWeight: 800, color: INK, margin: '0 0 8px', letterSpacing: '-0.03em' }}>Article not found</h1>
+      <p style={{ fontSize: 14, color: INK3, marginBottom: 28 }}>This article doesn't exist or hasn't been published yet.</p>
       <button onClick={() => navigate('/blog')}
         style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: INK, color: '#fff', border: 'none', borderRadius: 999, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-        <ArrowLeft size={14} /> Retour au blog
+        <ArrowLeft size={14} /> Back to blog
       </button>
     </div>
   );
@@ -144,11 +147,11 @@ export default function BlogPostPage() {
             )}
             {post.reading_time && (
               <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: INK3 }}>
-                <Clock size={11} /> {post.reading_time} min
+                <Clock size={11} /> {post.reading_time} min read
               </span>
             )}
             <span style={{ fontSize: 11.5, color: INK3, marginLeft: 'auto' }}>
-              {new Date(post.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {fmtDate(post.created_date)}
             </span>
           </div>
 
@@ -166,29 +169,7 @@ export default function BlogPostPage() {
           <div style={{ width: 40, height: 3, background: CORAL, borderRadius: 999, marginBottom: 36 }} />
 
           {/* Content */}
-          <div dangerouslySetInnerHTML={{ __html: post.content || '' }} className="blog-content" />
-
-          <style>{`
-            .blog-content { font-size: 16.5px; line-height: 1.85; color: #2D2A26; }
-            .blog-content p { margin: 0 0 1.3em; }
-            .blog-content strong, .blog-content b { font-weight: 700; color: ${INK}; }
-            .blog-content h1 { font-size: 1.85rem; font-weight: 800; margin: 2em 0 0.6em; color: ${INK}; letter-spacing: -0.03em; }
-            .blog-content h2 { font-size: 1.4rem; font-weight: 700; margin: 1.8em 0 0.5em; color: ${INK}; letter-spacing: -0.02em; }
-            .blog-content h3 { font-size: 1.15rem; font-weight: 700; margin: 1.4em 0 0.4em; color: ${INK}; }
-            .blog-content ul { list-style: none; padding: 0; margin: 0.5em 0 1.2em; }
-            .blog-content ul li { padding-left: 1.4em; position: relative; margin: 0.4em 0; }
-            .blog-content ul li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 6px; height: 6px; border-radius: 50%; background: ${CORAL}; }
-            .blog-content ol { list-style: decimal; padding-left: 1.5em; margin: 0.5em 0 1.2em; }
-            .blog-content li { margin: 0.35em 0; }
-            .blog-content blockquote { border-left: 3px solid ${CORAL}; padding: 12px 20px; margin: 1.5em 0; color: ${INK2}; font-style: italic; background: rgba(255,90,31,0.04); border-radius: 0 10px 10px 0; }
-            .blog-content img { max-width: 100%; border-radius: 14px; margin: 1.5em 0; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-            .blog-content a { color: ${CORAL}; text-decoration: underline; text-underline-offset: 3px; }
-            .blog-content a:hover { opacity: 0.75; }
-            .blog-content code { background: rgba(21,19,15,0.06); border-radius: 5px; padding: 2px 7px; font-size: 0.88em; font-family: 'Monaco', 'Menlo', monospace; color: ${INK}; }
-            .blog-content pre { background: ${INK}; border-radius: 12px; padding: 20px; margin: 1.5em 0; overflow-x: auto; }
-            .blog-content pre code { background: none; color: #e8e8e0; padding: 0; font-size: 0.86em; }
-            .blog-content hr { border: none; border-top: 1px solid ${BORDER}; margin: 2.5em 0; }
-          `}</style>
+          <BlogContent html={post.content} />
         </motion.div>
       </div>
 
@@ -196,13 +177,13 @@ export default function BlogPostPage() {
       <div style={{ background: INK, padding: '56px 24px', textAlign: 'center', fontFamily: F }}>
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 14 }}>UseWok</p>
         <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.4rem)', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', margin: '0 0 12px', lineHeight: 1.1 }}>
-          Vérifiez votre visibilité IA<br />
-          <span style={{ color: CORAL }}>en 2 minutes, gratuit.</span>
+          Check your AI visibility<br />
+          <span style={{ color: CORAL }}>in 2 minutes, free.</span>
         </h2>
-        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>Sans carte bancaire · 8 moteurs IA analysés</p>
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>No credit card · 8 AI engines analyzed</p>
         <button onClick={() => base44.auth.redirectToLogin('/app')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 28px', background: CORAL, color: '#fff', border: 'none', borderRadius: 999, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-          Démarrer l'analyse <ArrowRight size={15} />
+          Start the analysis <ArrowRight size={15} />
         </button>
       </div>
 
@@ -213,7 +194,7 @@ export default function BlogPostPage() {
           <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>UseWok</span>
         </a>
         <div style={{ display: 'flex', gap: 18 }}>
-          {[['Accueil', '/'], ['Blog', '/blog'], ['Tarifs', '/tarifs'], ['CGU', '/terms']].map(([l, h]) => (
+          {[['Home', '/'], ['Blog', '/blog'], ['Pricing', '/tarifs'], ['Terms', '/terms']].map(([l, h]) => (
             <a key={l} href={h} style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'none' }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}>{l}</a>

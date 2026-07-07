@@ -138,13 +138,44 @@ export default function AdminBlog() {
     e.target.value = '';
   };
 
+  // Heuristic: does pasted plain text look like code?
+  const looksLikeCode = (text) => {
+    if (!text) return false;
+    const lines = text.split('\n');
+    if (lines.length < 2) return false; // single line = treat as normal text
+    const codeSignals = /[{}();=<>]|=>|\bfunction\b|\bconst\b|\blet\b|\bimport\b|\bexport\b|\breturn\b|\bclass\b|\bdef\b|\bpublic\b|\bvoid\b|^\s{2,}\S|<\/?[a-z][\s\S]*>/im;
+    const indented = lines.filter(l => /^\s{2,}\S/.test(l)).length;
+    return codeSignals.test(text) || indented >= 2;
+  };
+
   const handlePaste = useCallback(async (e) => {
+    // 1) Image paste → upload & embed
     const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
-    if (!item) return; e.preventDefault();
-    const file = item.getAsFile(); if (!file) return;
-    const url = await handleImageUpload(file); if (!url) return;
-    const quill = quillRef.current?.getEditor();
-    if (quill) { const r = quill.getSelection(true); quill.insertEmbed(r.index, 'image', url, 'user'); quill.setSelection(r.index + 1, 0, 'user'); }
+    if (item) {
+      e.preventDefault();
+      const file = item.getAsFile(); if (!file) return;
+      const url = await handleImageUpload(file); if (!url) return;
+      const quill = quillRef.current?.getEditor();
+      if (quill) { const r = quill.getSelection(true); quill.insertEmbed(r.index, 'image', url, 'user'); quill.setSelection(r.index + 1, 0, 'user'); }
+      return;
+    }
+
+    // 2) Code paste → auto-format as a code block (no visible tags, black rounded box on the blog)
+    const plain = e.clipboardData?.getData('text/plain') || '';
+    const html = e.clipboardData?.getData('text/html') || '';
+    // Only auto-convert when there's no rich HTML (rich HTML = intentional formatting) and it looks like code.
+    if (plain && !html && looksLikeCode(plain)) {
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        e.preventDefault();
+        const r = quill.getSelection(true);
+        const index = r ? r.index : quill.getLength();
+        // Insert the raw text then mark the covered lines as a code-block.
+        quill.insertText(index, plain.replace(/\n$/, '') + '\n', 'user');
+        quill.formatLine(index, plain.length, 'code-block', true, 'user');
+        quill.setSelection(index + plain.length + 1, 0, 'user');
+      }
+    }
   }, []);
 
   const modules = {

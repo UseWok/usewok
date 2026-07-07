@@ -13,6 +13,9 @@ const CORAL  = '#FF5A1F';
 const BORDER = 'rgba(21,19,15,0.10)';
 const DARK   = '#15130F';
 
+const fmtDate = (d, long = false) =>
+  new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: long ? 'long' : 'short', year: 'numeric' });
+
 function Navbar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -49,11 +52,11 @@ function Navbar() {
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <a href="/tarifs" style={{ fontSize: 13, color: INK2, textDecoration: 'none', padding: '6px 12px', borderRadius: 999, transition: 'background 120ms' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.06)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>Tarifs</a>
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>Pricing</a>
           <span style={{ fontSize: 13, fontWeight: 700, color: CORAL, padding: '6px 12px', borderRadius: 999, background: `${CORAL}12` }}>Blog</span>
           {isAuth
-            ? <button onClick={() => navigate('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: INK, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Ouvrir l'app →</button>
-            : <button onClick={() => base44.auth.redirectToLogin('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: CORAL, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Démarrer gratuitement →</button>
+            ? <button onClick={() => navigate('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: INK, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Open app →</button>
+            : <button onClick={() => base44.auth.redirectToLogin('/app')} style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: CORAL, border: 'none', borderRadius: 999, padding: '8px 18px', cursor: 'pointer', fontFamily: F }}>Get started free →</button>
           }
         </div>
       </div>
@@ -61,7 +64,7 @@ function Navbar() {
   );
 }
 
-// Article mis en avant — plein largueur, grand format sombre
+// Featured article — full width, large dark format
 function FeaturedCard({ post }) {
   const navigate = useNavigate();
   const [hov, setHov] = useState(false);
@@ -92,7 +95,7 @@ function FeaturedCard({ post }) {
               {post.category}
             </span>
           )}
-          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>À la une</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Featured</span>
         </div>
         <h2 style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)', fontWeight: 800, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
           {post.title}
@@ -104,10 +107,10 @@ function FeaturedCard({ post }) {
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)' }}>
-            {new Date(post.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {fmtDate(post.created_date, true)}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: CORAL, fontSize: 13, fontWeight: 700 }}>
-            Lire <ArrowUpRight size={15} />
+            Read <ArrowUpRight size={15} />
           </div>
         </div>
       </div>
@@ -115,7 +118,7 @@ function FeaturedCard({ post }) {
   );
 }
 
-// Carte normale — fond crème/blanc, hover noir
+// Standard card — cream/white background, dark on hover
 function PostCard({ post, index }) {
   const navigate = useNavigate();
   const [hov, setHov] = useState(false);
@@ -144,7 +147,7 @@ function PostCard({ post, index }) {
       <div style={{ padding: '22px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           {post.category && (
-            <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: hov ? CORAL : CORAL }}>
+            <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: CORAL }}>
               {post.category}
             </span>
           )}
@@ -168,10 +171,10 @@ function PostCard({ post, index }) {
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: `1px solid ${hov ? 'rgba(255,255,255,0.08)' : BORDER}`, marginTop: 'auto', transition: 'border-color 200ms' }}>
           <span style={{ fontSize: 11, color: hov ? 'rgba(255,255,255,0.25)' : INK3, transition: 'color 200ms' }}>
-            {new Date(post.created_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+            {fmtDate(post.created_date)}
           </span>
           <span style={{ fontSize: 12, fontWeight: 700, color: CORAL, display: 'flex', alignItems: 'center', gap: 3 }}>
-            Lire <ArrowRight size={12} />
+            Read <ArrowRight size={12} />
           </span>
         </div>
       </div>
@@ -197,7 +200,7 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'Blog — UseWok · Visibilité IA';
+    document.title = 'Blog — UseWok · AI Visibility';
     base44.entities.BlogPost.filter({ published: true }, '-created_date', 50)
       .then(setPosts).catch(() => {}).finally(() => setLoading(false));
   }, []);
@@ -209,31 +212,31 @@ export default function BlogPage() {
     <div style={{ fontFamily: F, background: BG, minHeight: '100vh' }}>
       <Navbar />
 
-      {/* ── Hero sombre, dans la continuité de la landing ── */}
+      {/* ── Dark hero, in line with the landing ── */}
       <div style={{ background: DARK, paddingTop: 90 }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '72px 32px 80px', textAlign: 'center' }}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `${CORAL}18`, border: `1px solid ${CORAL}35`, borderRadius: 999, padding: '5px 14px', marginBottom: 28 }}>
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: CORAL, display: 'inline-block', animation: 'blink 1.8s ease-in-out infinite' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: CORAL, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Le Blog UseWok</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: CORAL, letterSpacing: '0.08em', textTransform: 'uppercase' }}>The UseWok Blog</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 800, color: '#fff', letterSpacing: '-0.05em', lineHeight: 1.0, margin: '0 0 20px' }}>
-            Tout savoir sur<br />
-            <span style={{ color: CORAL }}>la visibilité IA</span>
+            Everything about<br />
+            <span style={{ color: CORAL }}>AI visibility</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-            style={{ fontSize: 16, color: 'rgba(255,255,255,0.42)', maxWidth: 460, margin: '0 auto', lineHeight: 1.65 }}>
-            Conseils, stratégies et études pour apparaître dans ChatGPT, Gemini et les autres IA.
+            style={{ fontSize: 16, color: 'rgba(255,255,255,0.42)', maxWidth: 480, margin: '0 auto', lineHeight: 1.65 }}>
+            Tips, strategies and studies to help you show up in ChatGPT, Gemini and the other AI engines.
           </motion.p>
         </div>
       </div>
 
-      {/* ── Contenu ── */}
+      {/* ── Content ── */}
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px 100px' }}>
 
-        {/* Article mis en avant — remonté sur la frontière dark/light */}
+        {/* Featured article — pulled up onto the dark/light boundary */}
         <div style={{ marginTop: -48, marginBottom: 32 }}>
           {loading ? (
             <div style={{ height: 380, background: DARK, borderRadius: 20, opacity: 0.5 }} />
@@ -242,7 +245,7 @@ export default function BlogPage() {
           ) : null}
         </div>
 
-        {/* Grille articles */}
+        {/* Article grid */}
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
@@ -250,13 +253,13 @@ export default function BlogPage() {
         ) : rest.length === 0 && !featured ? (
           <div style={{ textAlign: 'center', padding: '80px 24px' }}>
             <p style={{ fontSize: 44, marginBottom: 16 }}>✍️</p>
-            <p style={{ fontSize: 22, fontWeight: 800, color: INK, marginBottom: 8, letterSpacing: '-0.03em' }}>Bientôt disponible</p>
-            <p style={{ fontSize: 14, color: INK3 }}>Des articles sur la visibilité IA arrivent très vite.</p>
+            <p style={{ fontSize: 22, fontWeight: 800, color: INK, marginBottom: 8, letterSpacing: '-0.03em' }}>Coming soon</p>
+            <p style={{ fontSize: 14, color: INK3 }}>Articles about AI visibility are on their way.</p>
           </div>
         ) : rest.length > 0 ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Tous les articles</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>All articles</p>
               <div style={{ flex: 1, height: 1, background: BORDER }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
@@ -273,7 +276,7 @@ export default function BlogPage() {
           <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>UseWok</span>
         </a>
         <div style={{ display: 'flex', gap: 18 }}>
-          {[['Accueil', '/'], ['Tarifs', '/tarifs'], ['CGU', '/terms'], ['Confidentialité', '/privacy']].map(([l, h]) => (
+          {[['Home', '/'], ['Pricing', '/tarifs'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([l, h]) => (
             <a key={l} href={h} style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textDecoration: 'none', transition: 'color 150ms' }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}>{l}</a>
