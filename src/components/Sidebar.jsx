@@ -13,7 +13,9 @@ export const COLLAPSED_W = 52;
 export const EXPANDED_W = 232;
 export const SIDEBAR_MARGIN = 0;
 
-const T = { duration: 0.22, ease: [0.4, 0, 0.2, 1] };
+// Custom cubic-bezier: fast start, strong deceleration toward the end
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
+const T = { duration: 0.3, ease: EASE_OUT_EXPO };
 
 // ─── Referral Banner ──────────────────────────────────────────────
 function ReferralBanner({ expanded, onClick }) {
@@ -473,20 +475,21 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
       {/* Floating collapse/expand toggle — sits just outside the sidebar, no background */}
       {!isMobile && (
-        <button
+        <motion.button
           onClick={() => setExpanded(!expanded)}
           title={expanded ? 'Collapse' : 'Expand'}
+          animate={{ left: (expanded ? EXPANDED_W : COLLAPSED_W) + 12, top: 22 }}
+          transition={T}
           style={{
-            position: 'fixed', top: 18, left: (expanded ? EXPANDED_W : COLLAPSED_W) + 8, zIndex: 41,
+            position: 'fixed', zIndex: 41,
             width: 26, height: 26, borderRadius: 6, border: 'none',
             background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', padding: 0,
-            transition: 'left 220ms cubic-bezier(0.4,0,0.2,1)',
           }}
           onMouseEnter={e => e.currentTarget.style.color = '#333'}
         >
           <PanelLeft size={15} color="#999" strokeWidth={2} />
-        </button>
+        </motion.button>
       )}
 
       <motion.aside
@@ -508,7 +511,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 9, padding: expanded ? '16px 12px 14px' : '16px 0 14px' }}>
-            <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
               <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/02ac593f2_pcloud_552088188_3_202607_1_common-20260707001315-30789-22a14-cf87f.jpg" alt="UseWok" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             {expanded && <span style={{ fontSize: 16, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
