@@ -8,6 +8,7 @@ import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
 import { useCredits } from '@/hooks/useCredits';
+import { AVATAR_GRADIENTS } from '@/lib/user-color';
 
 export const COLLAPSED_W = 52;
 export const EXPANDED_W = 232;
@@ -42,7 +43,7 @@ function ReferralBanner({ expanded, onClick }) {
   );
 }
 
-// ─── Account menu (bottom trigger: avatar + name + plan) ───────────
+// ─── Account menu (bottom trigger: gradient avatar + name + plan) ───
 function AccountMenu({ user, userPlan, navigate, expanded }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -56,11 +57,13 @@ function AccountMenu({ user, userPlan, navigate, expanded }) {
     return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('keydown', esc); };
   }, [open]);
 
+  const avatarGradient = AVATAR_GRADIENTS.find(c => c.id === user?.avatar_color)?.value || AVATAR_GRADIENTS[0].value;
+
   const items = [
-    { label: 'Settings', action: () => navigate('/settings') },
-    { label: 'Get help', action: () => navigate('/support') },
-    { label: 'Upgrade', action: () => navigate('/pricing') },
-    { label: 'Log out', action: async () => { await base44.auth.logout(); window.location.reload(); }, danger: true },
+    { label: 'Settings', icon: Settings, action: () => navigate('/settings') },
+    { label: 'Get help', icon: HelpCircle, action: () => navigate('/support') },
+    { label: 'Upgrade', icon: Zap, action: () => navigate('/pricing') },
+    { label: 'Log out', icon: LogOut, action: async () => { await base44.auth.logout(); window.location.reload(); }, danger: false },
   ];
 
   return (
@@ -68,25 +71,36 @@ function AccountMenu({ user, userPlan, navigate, expanded }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.98 }}
-            transition={{ duration: 0.1 }}
+            initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              position: 'absolute', bottom: 'calc(100% + 6px)', left: expanded ? 8 : '50%',
+              position: 'absolute', bottom: 'calc(100% + 8px)', left: expanded ? 8 : '50%',
               transform: expanded ? 'none' : 'translateX(-50%)',
-              background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 12,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.14)', zIndex: 9999, width: 200, overflow: 'hidden', padding: 6,
+              background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 14,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.04)', zIndex: 9999,
+              width: 200, overflow: 'hidden', padding: 5,
             }}
           >
-            {items.map((it, i) => (
-              <button key={i}
-                onClick={() => { setOpen(false); it.action(); }}
-                style={{ width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: it.danger ? '#E8184A' : '#222', fontFamily: 'inherit', transition: 'background 100ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                {it.label}
-              </button>
-            ))}
+            {items.map((it, i) => {
+              const Icon = it.icon;
+              return (
+                <button key={i}
+                  onClick={() => { setOpen(false); it.action(); }}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '7px 9px', border: 'none',
+                    background: 'transparent', borderRadius: 8, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 9,
+                    fontSize: 13, fontWeight: 500, color: '#111', fontFamily: 'inherit',
+                    transition: 'background 100ms',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Icon size={14} color="#666" strokeWidth={1.8} style={{ flexShrink: 0 }} />
+                  {it.label}
+                </button>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -95,23 +109,21 @@ function AccountMenu({ user, userPlan, navigate, expanded }) {
         onClick={() => setOpen(v => !v)}
         title={!expanded ? 'Account' : undefined}
         style={{
-          display: 'flex', alignItems: 'center', gap: 9,
-          width: expanded ? '100%' : 32, height: expanded ? 'auto' : 32,
+          display: 'flex', alignItems: 'center', gap: 10,
+          width: expanded ? '100%' : 36, height: expanded ? 'auto' : 36,
           padding: expanded ? '7px 8px' : 0,
-          borderRadius: expanded ? 10 : 8,
-          border: '1px solid rgba(0,0,0,0.08)',
-          background: open ? 'rgba(0,0,0,0.04)' : '#fff',
+          borderRadius: expanded ? 11 : 9,
+          border: `1px solid ${open ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.07)'}`,
+          background: open ? 'rgba(0,0,0,0.03)' : '#fff',
           cursor: 'pointer', fontFamily: 'inherit',
           justifyContent: expanded ? 'flex-start' : 'center',
           margin: expanded ? 0 : '0 auto',
-          transition: 'background 100ms',
+          transition: 'background 100ms, border-color 100ms',
         }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'rgba(0,0,0,0.025)'; }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#fff'; }}
       >
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Settings size={14} color="#666" strokeWidth={1.8} />
-        </div>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: avatarGradient, flexShrink: 0 }} />
         {expanded && (
           <div style={{ minWidth: 0, textAlign: 'left' }}>
             <p style={{ fontSize: 12.5, fontWeight: 600, color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -511,10 +523,10 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 9, padding: expanded ? '16px 12px 14px' : '16px 0 14px' }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
               <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/02ac593f2_pcloud_552088188_3_202607_1_common-20260707001315-30789-22a14-cf87f.jpg" alt="UseWok" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            {expanded && <span style={{ fontSize: 16, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
+            {expanded && <span style={{ fontSize: 17, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
           </div>
         </div>
 
