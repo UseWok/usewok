@@ -29,20 +29,20 @@ async function runPromptsMatrix(svc, { prompts, brands }) {
   const brandList = brands.map(b => `- ${b.name} (${b.domain})`).join('\n');
 
   const result = await svc.integrations.Core.InvokeLLM({
-    prompt: `Tu es ChatGPT. Pour CHAQUE prompt ci-dessous, réponds honnêtement comme tu le ferais pour un vrai utilisateur, puis indique, pour CHAQUE marque de la liste, si tu la citerais/recommanderais réellement dans ta réponse à ce prompt.
+    prompt: `You are ChatGPT. For EACH prompt below, answer honestly as you would for a real user, then indicate, for EACH brand in the list, whether you would actually cite/recommend it in your answer to that prompt.
 
-Sois RÉALISTE et sévère : une marque peu connue n'est presque jamais citée. Ne cite une marque que si tu la recommanderais vraiment.
+Be REALISTIC and strict: a little-known brand is almost never cited. Only cite a brand if you would genuinely recommend it.
 
-## PROMPTS (index 0-based)
+## PROMPTS (0-based index)
 ${promptList}
 
-## MARQUES À ÉVALUER
+## BRANDS TO EVALUATE
 ${brandList}
 
-## À RETOURNER (JSON strict)
-"matrix": tableau. Une entrée par (prompt, marque) où la marque EST citée :
-  { "prompt_index": number, "domain": "domaine exact de la marque citée" }
-N'inclus QUE les couples réellement cités. Les autres sont considérés non cités.`,
+## RETURN (strict JSON)
+"matrix": array. One entry per (prompt, brand) where the brand IS cited:
+  { "prompt_index": number, "domain": "exact domain of the cited brand" }
+Include ONLY the pairs actually cited. All others are considered not cited.`,
     model: 'gpt_5_mini',
     response_json_schema: {
       type: 'object',

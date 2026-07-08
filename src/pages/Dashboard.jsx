@@ -18,7 +18,7 @@ const INK3 = 'rgba(21,19,15,0.5)';
 const BG = '#FBF8F2';
 const ORANGE = '#FF5A1F';
 const ORANGE_DEEP = '#C43E14';
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', system-ui, sans-serif";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function Dashboard() {
   const domain = data?.domain || (profile?.site_url || '').replace(/https?:\/\//, '').split('/')[0];
   const brand = data?.brand_name || profile?.identity_name || domain;
   const lastAudit = data?.analyzed_at
-    ? new Date(data.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }).replace('.', '')
+    ? new Date(data.analyzed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }).replace('.', '')
     : '';
 
   return (
@@ -88,14 +88,14 @@ export default function Dashboard() {
         {/* ── Header ── */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 14 }}>
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Aperçu</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Overview</h1>
             <div style={{ fontSize: 13, color: INK3 }}>
-              Performance GEO de {brand}{lastAudit ? ` · Dernier audit le ${lastAudit}` : ''}
+              GEO performance for {brand}{lastAudit ? ` · Last audit on ${lastAudit}` : ''}
             </div>
           </div>
           <button onClick={() => setCustomizeOpen(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 10, border: `1px solid ${ORANGE}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-            <SlidersHorizontal size={14} /> Personnaliser
+            <SlidersHorizontal size={14} /> Customize
           </button>
         </div>
 
@@ -111,8 +111,8 @@ export default function Dashboard() {
         {phase === 'thinking' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '55vh', textAlign: 'center' }}>
             <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.09)', borderTopColor: ORANGE, animation: 'spin 0.9s linear infinite', marginBottom: 16 }} />
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Construction de votre aperçu…</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>Analyse de votre visibilité IA sur les moteurs de votre plan</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Building your overview…</p>
+            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>Analyzing your AI visibility across the engines in your plan</p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         )}
@@ -122,17 +122,17 @@ export default function Dashboard() {
             <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: '1px solid rgba(21,19,15,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
               <Zap size={22} color={INK3} />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Aucun site analysé</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Analysez votre site depuis la page d'accueil.</p>
-            <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Retour</button>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>No site analyzed yet</p>
+            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Analyze your site from the home page.</p>
+            <button onClick={() => navigate('/app')} style={{ padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>← Back</button>
           </div>
         )}
 
         {phase === 'error' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '55vh', textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 16px' }}>L'analyse a échoué</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 16px' }}>Analysis failed</p>
             <button onClick={() => load(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <RefreshCw size={13} /> Réessayer
+              <RefreshCw size={13} /> Try again
             </button>
           </div>
         )}
@@ -144,7 +144,7 @@ export default function Dashboard() {
             return (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12 }}>
                 <Info size={18} color="#2563EB" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 13.5, color: '#1E40AF' }}>Toutes les cartes sont masquées. Ouvre « Personnaliser » pour en réafficher.</span>
+                <span style={{ fontSize: 13.5, color: '#1E40AF' }}>All cards are hidden. Open "Customize" to show them again.</span>
               </div>
             );
           }
@@ -168,8 +168,8 @@ export default function Dashboard() {
             {/* Row 2 : Concurrents + LLM + Pages citées */}
             {(row2[0] || row2[1] || row2[2]) && (
               <div style={{ display: 'grid', gridTemplateColumns: cols(row2), gap: '5%', alignItems: 'stretch' }}>
-                {vis('competitors') && <CompetitorsCard competitors={data.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'Comment atteindre la 2ème place vs mes concurrents dans les recommandations IA ?' } })} />}
-                {vis('llms') && <LLMCitingCard llms={data.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'Comment être cité plus souvent par les moteurs IA ?' } })} />}
+                {vis('competitors') && <CompetitorsCard competitors={data.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />}
+                {vis('llms') && <LLMCitingCard llms={data.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />}
                 {vis('pages') && <CitedPagesCard pages={data.cited_pages} />}
               </div>
             )}
