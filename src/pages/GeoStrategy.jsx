@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { RotateCcw, Check, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
+import { peekCache, setCache } from '@/lib/data-cache';
 import {
   loadGeoStrategy, saveGeoStrategy, emptyGeoStrategy,
   POSITIONING_TARGETS, QUERY_INTENTS, KNOWN_SOURCES,
@@ -21,10 +22,12 @@ const VIOLET = '#7B4FE0';
 
 export default function GeoStrategy() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [extra, setExtra] = useState({});
-  const [s, setS] = useState(emptyGeoStrategy());
-  const [phase, setPhase] = useState('loading');
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`geo_${_active0?.url || 'all'}`);
+  const [profile, setProfile] = useState(_seed?.profile || null);
+  const [extra, setExtra] = useState(_seed?.extra || {});
+  const [s, setS] = useState(_seed?.strategy || emptyGeoStrategy());
+  const [phase, setPhase] = useState(_seed ? 'ready' : 'loading');
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
@@ -32,16 +35,17 @@ export default function GeoStrategy() {
   const set = (field, value) => { setS(prev => ({ ...prev, [field]: value })); setDirty(true); };
 
   const load = async () => {
-    setPhase('loading');
+    const active = getActiveDomain();
+    setPhase(prev => (peekCache(`geo_${active?.url || 'all'}`) ? 'ready' : 'loading'));
     try {
-      const active = getActiveDomain();
       const { profile: p, extra: ex, strategy } = await loadGeoStrategy(active?.url);
-      if (!p) { setPhase('no_profile'); return; }
+      if (!p) { if (!peekCache(`geo_${active?.url || 'all'}`)) setPhase('no_profile'); return; }
       setProfile(p); setExtra(ex); setS(strategy);
       setUpdatedAt(ex.geo_strategy_updated_at || null);
       setDirty(false);
       setPhase('ready');
-    } catch { setPhase('no_profile'); }
+      setCache(`geo_${active?.url || 'all'}`, { profile: p, extra: ex, strategy });
+    } catch { if (!peekCache(`geo_${active?.url || 'all'}`)) setPhase('no_profile'); }
   };
 
   useEffect(() => {
@@ -58,6 +62,7 @@ export default function GeoStrategy() {
       setExtra(newExtra);
       setUpdatedAt(newExtra.geo_strategy_updated_at);
       setDirty(false);
+      setCache(`geo_${profile?.site_url || 'all'}`, { profile, extra: newExtra, strategy: s });
       toast.success('GEO Strategy saved');
     } catch {
       toast.error('Failed to save');

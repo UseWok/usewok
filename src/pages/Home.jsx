@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Trash2, ArrowUp, Link2, BarChart2, ClipboardCheck, TrendingUp, Mic, Zap, Loader, AlertCircle, ChevronDown, ArrowRight, Check, Globe, Lock } from 'lucide-react';
 import { setActiveDomain, getActiveDomain, initActiveDomainFromUser } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
@@ -477,8 +478,8 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user: authUser } = useAuth();
-  const [user, setUser] = useState(authUser || null);
-  const [profiles, setProfiles] = useState([]);
+  const [user, setUser] = useState(authUser || peekCache('__user__') || null);
+  const [profiles, setProfiles] = useState(() => peekCache('__home_profiles__') || []);
   const [activeUrl, setActiveUrl] = useState(() => getActiveDomain()?.url || null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [onboardingData, setOnboardingData] = useState(null);
@@ -550,16 +551,17 @@ export default function Home() {
 
   const loadAll = async () => {
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) return null;
       setUser(u);
       await initActiveDomainFromUser();
-      const list = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const list = await getCachedProfiles(u.id);
       const enriched = await Promise.all(list.map(async p => {
         const extra = await getProfileData(p).catch(() => ({}));
         return { ...p, ...extra };
       }));
       setProfiles(enriched);
+      setCache('__home_profiles__', enriched);
       if (!activeUrl && enriched.length > 0) {
         const first = enriched[0];
         setActiveUrl(first.site_url);

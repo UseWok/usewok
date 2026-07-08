@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
+import { getCachedUser, peekCache, setCache } from '@/lib/data-cache';
 import { Search, Zap, Play, Check, Ban, Trash2, ChevronDown } from 'lucide-react';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
@@ -74,8 +75,11 @@ const STATUS_CFG = {
 };
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const _active0 = getActiveDomain();
+  const _tkey0 = `tasks_${_active0?.url || 'all'}`;
+  const _seed = peekCache(_tkey0);
+  const [tasks, setTasks] = useState(_seed || []);
+  const [loading, setLoading] = useState(!_seed);
   const [q, setQ] = useState('');
   const [fStatus, setFStatus] = useState('all');
   const [fType, setFType] = useState('all');
@@ -84,13 +88,14 @@ export default function TasksPage() {
 
   const load = async () => {
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) return;
       const active = getActiveDomain();
       const query = { user_id: u.id };
       if (active?.url) query.site_url = active.url;
       const list = await base44.entities.ActionTask.filter(query, '-created_date', 200);
       setTasks(list);
+      setCache(`tasks_${active?.url || 'all'}`, list);
     } catch {}
     setLoading(false);
   };

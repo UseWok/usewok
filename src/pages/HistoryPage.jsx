@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Trophy, CheckCircle2, Clock, Zap } from 'lucide-react';
 import { getActiveDomain } from '@/lib/active-domain';
+import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 import TrophyCard from '@/components/history/TrophyCard';
 import RangePills, { RANGES } from '@/components/history/RangePills';
 import ScoreTimeline from '@/components/history/ScoreTimeline';
@@ -27,24 +28,26 @@ function KPI({ label, value, sub }) {
 
 export default function HistoryPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState(null);
-  const [user, setUser] = useState(null);
-  const [doneTasks, setDoneTasks] = useState([]);
-  const [records, setRecords] = useState([]);
-  const [historyDays, setHistoryDays] = useState(30);
-  const [plan, setPlan] = useState('free');
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`hist_${_active0?.url || 'all'}`);
+  const [loading, setLoading] = useState(!_seed);
+  const [profile, setProfile] = useState(_seed?.profile || null);
+  const [user, setUser] = useState(_seed?.user || null);
+  const [doneTasks, setDoneTasks] = useState(_seed?.doneTasks || []);
+  const [records, setRecords] = useState(_seed?.records || []);
+  const [historyDays, setHistoryDays] = useState(_seed?.historyDays ?? 30);
+  const [plan, setPlan] = useState(_seed?.plan || 'free');
   const [range, setRange] = useState('30d');
 
   useEffect(() => {
     (async () => {
       try {
-        const u = await base44.auth.me();
+        const u = await getCachedUser();
         if (!u) { setLoading(false); return; }
         setUser(u);
         const active = getActiveDomain();
         const [profiles, tasks, win] = await Promise.all([
-          base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []),
+          getCachedProfiles(u.id),
           base44.entities.ActionTask.filter({ user_id: u.id, status: 'done' }).catch(() => []),
           getHistoryWindow(),
         ]);
@@ -53,10 +56,12 @@ export default function HistoryPage() {
         setDoneTasks(tasks);
         setHistoryDays(win?.history_days ?? 30);
         setPlan(win?.plan || 'free');
+        let recs = [];
         if (matched) {
-          const recs = await base44.entities.ScanRecord.filter({ user_id: u.id, site_url: matched.site_url }, 'created_date', 500).catch(() => []);
+          recs = await base44.entities.ScanRecord.filter({ user_id: u.id, site_url: matched.site_url }, 'created_date', 500).catch(() => []);
           setRecords(recs || []);
         }
+        setCache(`hist_${active?.url || 'all'}`, { profile: matched || null, user: u, doneTasks: tasks, records: recs || [], historyDays: win?.history_days ?? 30, plan: win?.plan || 'free' });
       } catch {}
       setLoading(false);
     })();

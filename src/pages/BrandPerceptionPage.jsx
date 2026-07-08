@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
+import { getCachedUser, peekCache, setCache } from '@/lib/data-cache';
 import { Settings, RefreshCw, Zap } from 'lucide-react';
 import BrandStatsRow from '@/components/brandperception/BrandStatsRow';
 import BrandPromptTable from '@/components/brandperception/BrandPromptTable';
@@ -26,28 +27,33 @@ export default function BrandPerceptionPage({ kind = 'brand' }) {
     ? "Concrete actions to improve your presence in AI answers, prioritized by impact."
     : "How AI engines talk about your brand — narrative, authority and sentiment.";
 
-  const [record, setRecord] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`bp_${kind}_${_active0?.url || 'all'}`);
+  const [record, setRecord] = useState(_seed?.record || null);
+  const [loading, setLoading] = useState(!_seed);
   const [running, setRunning] = useState(false);
-  const [siteUrl, setSiteUrl] = useState('');
+  const [siteUrl, setSiteUrl] = useState(_active0?.url || '');
   const [showConfig, setShowConfig] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
-  const [addedKeys, setAddedKeys] = useState([]);
+  const [addedKeys, setAddedKeys] = useState(_seed?.addedKeys || []);
   const [userId, setUserId] = useState('');
 
   const load = async () => {
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) return;
       setUserId(u.id);
       const active = getActiveDomain();
       setSiteUrl(active?.url || '');
       if (!active?.url) { setLoading(false); return; }
       const list = await base44.entities.BrandPerception.filter({ user_id: u.id, site_url: active.url, kind });
-      setRecord(list[0] || null);
+      const rec = list[0] || null;
+      setRecord(rec);
       // which recos already added as tasks
       const tasks = await base44.entities.ActionTask.filter({ user_id: u.id, site_url: active.url }).catch(() => []);
-      setAddedKeys(tasks.map(t => { try { return JSON.parse(t.note || '{}').reco_key; } catch { return null; } }).filter(Boolean));
+      const keys = tasks.map(t => { try { return JSON.parse(t.note || '{}').reco_key; } catch { return null; } }).filter(Boolean);
+      setAddedKeys(keys);
+      setCache(`bp_${kind}_${active.url}`, { record: rec, addedKeys: keys });
     } catch {}
     setLoading(false);
   };

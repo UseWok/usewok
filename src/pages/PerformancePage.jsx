@@ -15,6 +15,7 @@ import CitationTracker from '@/components/performance/CitationTracker';
 import CitationGaps from '@/components/performance/CitationGaps';
 import { FeatureGate } from '@/lib/usePlanFeatures.jsx';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
@@ -93,36 +94,45 @@ function LeverCard({ lever, index }) {
 
 export default function PerformancePage() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [perfData, setPerfData] = useState(null);
-  const [phase, setPhase] = useState('loading');
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`perf_${_active0?.url || 'all'}`);
+  const [profile, setProfile] = useState(_seed?.profile || null);
+  const [perfData, setPerfData] = useState(_seed?.perfData || null);
+  const [phase, setPhase] = useState(_seed?.perfData ? 'done' : 'loading');
 
   const loadPerf = async (forceRefresh = false) => {
-    setPhase('loading');
+    const active = getActiveDomain();
+    const cacheKey = `perf_${active?.url || 'all'}`;
+    setPhase(prev => (perfData ? 'done' : 'loading'));
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) { navigate('/'); return; }
-      const active = getActiveDomain();
-      const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const profiles = await getCachedProfiles(u.id);
       const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
-      if (!p?.site_url) { setPhase('no_profile'); return; }
+      if (!p?.site_url) { if (!perfData) setPhase('no_profile'); return; }
       const extra = await getProfileData(p);
-      setProfile({ ...p, ...extra });
+      const merged = { ...p, ...extra };
+      setProfile(merged);
 
       if (!forceRefresh && extra.perf_data && extra.perf_analyzed_at) {
         const age = Date.now() - new Date(extra.perf_analyzed_at).getTime();
-        if (age < 24 * 60 * 60 * 1000) { setPerfData(extra.perf_data); setPhase('done'); return; }
+        if (age < 24 * 60 * 60 * 1000) {
+          setPerfData(extra.perf_data); setPhase('done');
+          setCache(cacheKey, { profile: merged, perfData: extra.perf_data });
+          return;
+        }
       }
 
-      setPhase('thinking');
+      if (!perfData) setPhase('thinking');
       const res = await base44.functions.invoke('analyzePerformance', { url: p.site_url, business_name: p.identity_name || '' });
-      if (!res?.data || res.data.error) { setPhase('error'); return; }
+      if (!res?.data || res.data.error) { if (!perfData) setPhase('error'); return; }
       setPerfData(res.data);
       setPhase('done');
+      setCache(cacheKey, { profile: merged, perfData: res.data });
       const newExtra = { ...extra, perf_data: res.data, perf_analyzed_at: new Date().toISOString() };
       const brand_keywords = await uploadProfileData(newExtra);
       base44.entities.BusinessProfile.update(p.id, { brand_keywords }).catch(() => {});
-    } catch { setPhase('error'); }
+    } catch { if (!perfData) setPhase('error'); }
   };
 
   useEffect(() => {

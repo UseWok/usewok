@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
+import { getCachedUser, peekCache, setCache } from '@/lib/data-cache';
 import { RefreshCw, Zap, Loader } from 'lucide-react';
 import { StatusBadge, AgentDots } from '@/components/siteaudit/AuditBits';
 
@@ -15,14 +16,16 @@ function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { re
 
 export default function SiteAuditPage() {
   const navigate = useNavigate();
-  const [audits, setAudits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`audits_${_active0?.url || 'all'}`);
+  const [audits, setAudits] = useState(_seed || []);
+  const [loading, setLoading] = useState(!_seed);
   const [running, setRunning] = useState(false);
-  const [siteUrl, setSiteUrl] = useState('');
+  const [siteUrl, setSiteUrl] = useState(_active0?.url || '');
 
   const load = async () => {
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) return;
       const active = getActiveDomain();
       setSiteUrl(active?.url || '');
@@ -30,6 +33,7 @@ export default function SiteAuditPage() {
       if (active?.url) q.site_url = active.url;
       const list = await base44.entities.SiteAudit.filter(q, '-created_date', 50);
       setAudits(list);
+      setCache(`audits_${active?.url || 'all'}`, list);
     } catch {}
     setLoading(false);
   };

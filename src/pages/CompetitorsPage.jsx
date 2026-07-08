@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { getProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 import { Plus, Trash2, Loader, RefreshCw } from 'lucide-react';
 import CompetitorDetailModal from '@/components/competitors/CompetitorDetailModal';
 import PromptsMatrix from '@/components/competitors/PromptsMatrix';
@@ -18,9 +19,11 @@ const GREEN = '#0B815A';
 const RANK_COLORS = ['#F97316', '#EF4444', '#7C3AED'];
 
 export default function CompetitorsPage() {
-  const [all, setAll] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`comp_${_active0?.url || 'all'}`);
+  const [all, setAll] = useState(_seed?.all || []);
+  const [suggestions, setSuggestions] = useState(_seed?.suggestions || []);
+  const [loading, setLoading] = useState(!_seed);
   const [scanning, setScanning] = useState(false);
   const [addError, setAddError] = useState('');
   const [name, setName] = useState('');
@@ -31,7 +34,7 @@ export default function CompetitorsPage() {
 
   const load = async () => {
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) return;
       const active = getActiveDomain();
       setSiteUrl(active?.url || '');
@@ -40,12 +43,15 @@ export default function CompetitorsPage() {
       const list = await base44.entities.Competitor.filter(q, '-created_date', 50);
       setAll(list);
       // Load suggestions stored on the profile
+      let sugg = [];
       try {
-        const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id });
+        const profiles = await getCachedProfiles(u.id);
         const p = profiles.find(x => x.site_url === active?.url) || profiles[0];
         const extra = await getProfileData(p);
-        setSuggestions(Array.isArray(extra.competitor_suggestions) ? extra.competitor_suggestions.slice(0, 2) : []);
+        sugg = Array.isArray(extra.competitor_suggestions) ? extra.competitor_suggestions.slice(0, 2) : [];
+        setSuggestions(sugg);
       } catch {}
+      setCache(`comp_${active?.url || 'all'}`, { all: list, suggestions: sugg });
     } catch {}
     setLoading(false);
   };

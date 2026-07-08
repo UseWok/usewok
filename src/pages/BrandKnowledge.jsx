@@ -5,6 +5,7 @@ import { Pencil, Check, X, Sparkles, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
+import { getCachedUser, peekCache, setCache } from '@/lib/data-cache';
 import {
   loadBrandKnowledge, saveBrandKnowledge, emptyBrandKnowledge,
   SCOPES,
@@ -23,10 +24,12 @@ const GREEN_BG = '#D1FAE5';
 
 export default function BrandKnowledge() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [extra, setExtra] = useState({});
-  const [k, setK] = useState(emptyBrandKnowledge());
-  const [phase, setPhase] = useState('loading');
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`bk_${_active0?.url || 'all'}`);
+  const [profile, setProfile] = useState(_seed?.profile || null);
+  const [extra, setExtra] = useState(_seed?.extra || {});
+  const [k, setK] = useState(_seed?.knowledge || emptyBrandKnowledge());
+  const [phase, setPhase] = useState(_seed ? 'ready' : 'loading');
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -37,19 +40,21 @@ export default function BrandKnowledge() {
   const set = (field, value) => { setK(prev => ({ ...prev, [field]: value })); setDirty(true); };
 
   const load = async () => {
-    setPhase('loading');
+    const active = getActiveDomain();
+    // Keep showing cached content instead of the full-screen spinner if we have it.
+    setPhase(prev => (peekCache(`bk_${active?.url || 'all'}`) ? 'ready' : 'loading'));
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       setUser(u);
-      const active = getActiveDomain();
       const { profile: p, extra: ex, knowledge } = await loadBrandKnowledge(active?.url);
-      if (!p) { setPhase('no_profile'); return; }
+      if (!p) { if (!peekCache(`bk_${active?.url || 'all'}`)) setPhase('no_profile'); return; }
       setProfile(p); setExtra(ex); setK(knowledge);
       setUpdatedAt(ex.brand_knowledge_updated_at || null);
       setDirty(false);
       setEditMode(false);
       setPhase('ready');
-    } catch { setPhase('no_profile'); }
+      setCache(`bk_${active?.url || 'all'}`, { profile: p, extra: ex, knowledge });
+    } catch { if (!peekCache(`bk_${active?.url || 'all'}`)) setPhase('no_profile'); }
   };
 
   useEffect(() => {
@@ -67,6 +72,7 @@ export default function BrandKnowledge() {
       setUpdatedAt(newExtra.brand_knowledge_updated_at);
       setDirty(false);
       setEditMode(false);
+      setCache(`bk_${profile?.site_url || 'all'}`, { profile, extra: newExtra, knowledge: k });
       toast.success('Brand Knowledge saved');
     } catch {
       toast.error('Failed to save');

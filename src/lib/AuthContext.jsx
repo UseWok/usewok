@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { loadPlanSettings } from '@/lib/wok-plans';
 import { initActiveDomainFromUser } from '@/lib/active-domain';
+import { setCache } from '@/lib/data-cache';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
@@ -95,6 +96,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      setCache('__user__', currentUser); // seed shared cache → pages read user instantly
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       // Charger les overrides Admin des plans + active domain depuis le cloud
@@ -116,6 +118,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      setCache('__user__', currentUser);
       return currentUser;
     } catch { return null; }
   };

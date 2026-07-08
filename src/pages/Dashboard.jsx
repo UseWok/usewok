@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 import { SlidersHorizontal, RefreshCw, Zap, Info } from 'lucide-react';
 
 import CustomizePanel, { DASHBOARD_WIDGETS } from '@/components/dashboard/CustomizePanel';
@@ -22,12 +23,15 @@ const F = "'Wix Madefor Text', 'Wix Madefor Display', system-ui, sans-serif";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [data, setData] = useState(null);
-  const [phase, setPhase] = useState('loading');
+  const active0 = getActiveDomain();
+  const cacheKey0 = active0?.url ? `dash_${active0.url}` : null;
+  const seed = cacheKey0 ? peekCache(cacheKey0) : undefined;
+  const [profile, setProfile] = useState(seed?.profile || null);
+  const [data, setData] = useState(seed?.data || null);
+  const [phase, setPhase] = useState(seed?.data ? 'done' : 'loading');
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [visibility, setVisibility] = useState({});
-  const profileIdRef = useRef(null);
+  const [visibility, setVisibility] = useState(seed?.visibility || {});
+  const profileIdRef = useRef(seed?.profile?.id || null);
 
   const toggleWidget = (id) => {
     setVisibility(prev => {
@@ -40,33 +44,43 @@ export default function Dashboard() {
   };
 
   const load = async (forceRefresh = false) => {
-    setPhase('loading');
+    const active = getActiveDomain();
+    const cacheKey = active?.url ? `dash_${active.url}` : null;
+    // Only show the skeleton when we have nothing to display yet.
+    setPhase(prev => (data ? 'done' : 'loading'));
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) { navigate('/'); return; }
-      const active = getActiveDomain();
-      const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const profiles = await getCachedProfiles(u.id);
       const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
       if (!p?.site_url) { setPhase('no_profile'); return; }
       const extra = await getProfileData(p);
-      setProfile({ ...p, ...extra });
+      const mergedProfile = { ...p, ...extra };
+      setProfile(mergedProfile);
       profileIdRef.current = p.id;
-      try { setVisibility(p.dashboard_widgets ? JSON.parse(p.dashboard_widgets) : {}); } catch { setVisibility({}); }
+      let vis = {};
+      try { vis = p.dashboard_widgets ? JSON.parse(p.dashboard_widgets) : {}; } catch { vis = {}; }
+      setVisibility(vis);
 
       if (!forceRefresh && extra.overview_data && extra.overview_analyzed_at) {
         const age = Date.now() - new Date(extra.overview_analyzed_at).getTime();
-        if (age < 24 * 60 * 60 * 1000) { setData(extra.overview_data); setPhase('done'); return; }
+        if (age < 24 * 60 * 60 * 1000) {
+          setData(extra.overview_data); setPhase('done');
+          if (cacheKey) setCache(cacheKey, { profile: mergedProfile, data: extra.overview_data, visibility: vis });
+          return;
+        }
       }
 
-      setPhase('thinking');
+      if (!data) setPhase('thinking');
       const res = await base44.functions.invoke('dashboardOverview', { url: p.site_url, business_name: p.identity_name || '' });
-      if (!res?.data || res.data.error) { setPhase('error'); return; }
+      if (!res?.data || res.data.error) { if (!data) setPhase('error'); return; }
       setData(res.data);
       setPhase('done');
+      if (cacheKey) setCache(cacheKey, { profile: mergedProfile, data: res.data, visibility: vis });
       const newExtra = { ...extra, overview_data: res.data, overview_analyzed_at: new Date().toISOString() };
       const brand_keywords = await uploadProfileData(newExtra);
       base44.entities.BusinessProfile.update(p.id, { brand_keywords }).catch(() => {});
-    } catch { setPhase('error'); }
+    } catch { if (!data) setPhase('error'); }
   };
 
   useEffect(() => {

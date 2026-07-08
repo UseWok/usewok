@@ -9,6 +9,7 @@ import AuditIssues from '../components/audit/AuditIssues';
 import AuditPages from '../components/audit/AuditPages';
 import AuditPerformance from '../components/audit/AuditPerformance';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 import { usePlanFeatures } from '@/lib/usePlanFeatures';
 import UpgradeModal from '@/components/upsell/UpgradeModal';
 
@@ -132,10 +133,12 @@ function AuditLockedPreview({ onUpgrade }) {
 export default function AuditPage() {
   const navigate = useNavigate();
   const { can, isFree } = usePlanFeatures();
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`audit_${_active0?.url || 'all'}`);
   const [activeTab, setActiveTab] = useState('overview');
-  const [auditData, setAuditData] = useState(null);
-  const [phase, setPhase] = useState('loading');
-  const [profile, setProfile] = useState(null);
+  const [auditData, setAuditData] = useState(_seed?.auditData || null);
+  const [phase, setPhase] = useState(_seed?.auditData ? 'done' : 'loading');
+  const [profile, setProfile] = useState(_seed?.profile || null);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const hasAuditAccess = can('audit_access');
@@ -144,13 +147,14 @@ export default function AuditPage() {
     if (!hasAuditAccess) { setPhase('locked'); return; }
 
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) { setPhase('no_profile'); return; }
 
       const active = getActiveDomain();
-      const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const cacheKey = `audit_${active?.url || 'all'}`;
+      const profiles = await getCachedProfiles(u.id);
       const p = active ? (profiles.find(pr => pr.site_url === active.url) || profiles[0]) : profiles[0];
-      if (!p || !p.site_url) { setPhase('no_profile'); return; }
+      if (!p || !p.site_url) { if (!auditData) setPhase('no_profile'); return; }
       setProfile(p);
 
       if (!forceRefresh) {
@@ -160,27 +164,27 @@ export default function AuditPage() {
           if (age < 24 * 60 * 60 * 1000) {
             setAuditData(extra.audit_data);
             setPhase('done');
+            setCache(cacheKey, { profile: p, auditData: extra.audit_data });
             return;
           }
         }
       }
 
-      setPhase('thinking');
+      if (!auditData) setPhase('thinking');
       const res = await base44.functions.invoke('analyzeAudit', { url: p.site_url });
-      if (!res?.data || res.data.error) { setPhase('error'); return; }
+      if (!res?.data || res.data.error) { if (!auditData) setPhase('error'); return; }
 
       setAuditData(res.data);
       setPhase('done');
+      setCache(cacheKey, { profile: p, auditData: res.data });
 
-      base44.entities.BusinessProfile.filter({ created_by_id: (await base44.auth.me().catch(() => null))?.id }).then(async ps => {
-        if (!ps?.length) return;
-        const fresh = await getProfileData(ps[0]);
+      getProfileData(p).then(async fresh => {
         const merged = { ...fresh, audit_data: res.data, audit_analyzed_at: new Date().toISOString() };
         const brand_keywords = await uploadProfileData(merged);
-        base44.entities.BusinessProfile.update(ps[0].id, { brand_keywords }).catch(() => {});
+        base44.entities.BusinessProfile.update(p.id, { brand_keywords }).catch(() => {});
       }).catch(() => {});
     } catch {
-      setPhase('error');
+      if (!auditData) setPhase('error');
     }
   };
 
