@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 import { getWokPlanId } from '@/lib/wok-plans';
 import UpgradeModal from '@/components/upsell/UpgradeModal';
 import FadeUp from '@/components/report/FadeUp';
@@ -26,16 +27,20 @@ import PriorityActions from '@/components/report/PriorityActions';
 
 export default function AIVisibilityReport() {
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const _active0 = getActiveDomain();
+  const _seed = peekCache(`aivr_${_active0?.url || 'all'}`);
+  const [data, setData] = useState(_seed?.data || null);
+  const [loading, setLoading] = useState(!_seed);
   const [scanning, setScanning] = useState(false);
   const [activeDrawer, setActiveDrawer] = useState(null);
-  const [tasks, setTasks] = useState({});
-  const [user, setUser] = useState(null);
+  const [tasks, setTasks] = useState(_seed?.tasks || {});
+  const [user, setUser] = useState(peekCache('__user__') || null);
   const [savingTask, setSavingTask] = useState({});
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const [planId, setPlanId] = useState('free');
+  const [planId, setPlanId] = useState(_seed?.planId || 'free');
   const [gscData, setGscData] = useState(null);
+  const dataRef = useRef(_seed?.data || null);
+  dataRef.current = data;
 
   const isFree = planId === 'free';
   const isStarter = planId === 'starter';
@@ -49,22 +54,25 @@ export default function AIVisibilityReport() {
   const PLAN_ENGINES_BLURRED = isFree ? ['chatgpt', 'claude', 'mistral', 'llama', 'perplexity', 'grok', 'copilot'] : [];
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    if (dataRef.current) setLoading(false); else setLoading(true);
     try {
-      const u = await base44.auth.me();
+      const u = await getCachedUser();
       if (!u) { navigate('/'); return; }
       setUser(u);
-      setPlanId(getWokPlanId(u));
+      const pid = getWokPlanId(u);
+      setPlanId(pid);
       const active = getActiveDomain();
-      const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+      const profiles = await getCachedProfiles(u.id);
       const matched = active ? profiles.find((p) => p.site_url === active.url) || null : profiles[0] || null;
       if (matched) {
         const extra = await getProfileData(matched);
-        setData({ ...matched, ...extra });
+        const merged = { ...matched, ...extra };
+        setData(merged);
         const existing = await base44.entities.ActionTask.filter({ user_id: u.id, site_url: matched.site_url }).catch(() => []);
         const map = {};
         for (const t of existing) map[t.action_index] = t;
         setTasks(map);
+        setCache(`aivr_${active?.url || 'all'}`, { data: merged, tasks: map, planId: pid });
       }
     } catch {}
     setLoading(false);

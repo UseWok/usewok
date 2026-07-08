@@ -6,6 +6,7 @@ import { getActiveDomain } from '@/lib/active-domain';
 import { useAuth } from '@/lib/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import { getProfileData } from '@/lib/profile-storage';
+import { getCachedProfiles } from '@/lib/data-cache';
 import { checkChatQuota } from '@/lib/quota-enforcement';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ModeSelector, ModeDropdown } from '@/components/home/ModeSelector';
@@ -487,8 +488,8 @@ export default function WokAIPage({ user: userProp }) {
     const domain = getActiveDomain();
     setActiveDomainState(domain);
     if (!domain?.url || !user?.id) return;
-    base44.entities.BusinessProfile.filter({ site_url: domain.url }).then(async results => {
-      const mine = results.find(r => r.created_by_id === user?.id) || results[0];
+    getCachedProfiles(user.id).then(async profiles => {
+      const mine = profiles.find(p => p.site_url === domain.url) || profiles[0];
       if (mine) {
         const extra = await getProfileData(mine);
         setProfile({ ...mine, ...extra });

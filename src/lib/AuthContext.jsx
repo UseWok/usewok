@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { loadPlanSettings } from '@/lib/wok-plans';
 import { initActiveDomainFromUser } from '@/lib/active-domain';
-import { setCache } from '@/lib/data-cache';
+import { setCache, getCachedProfiles } from '@/lib/data-cache';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
@@ -99,6 +99,8 @@ export const AuthProvider = ({ children }) => {
       setCache('__user__', currentUser); // seed shared cache → pages read user instantly
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
+      // Pre-load profiles into cache so the first page navigation is instant
+      getCachedProfiles(currentUser.id).catch(() => {});
       // Charger les overrides Admin des plans + active domain depuis le cloud
       loadPlanSettings().catch(() => {});
       initActiveDomainFromUser().catch(() => {});

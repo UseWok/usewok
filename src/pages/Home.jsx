@@ -657,6 +657,7 @@ export default function Home() {
       const updatedProfiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const updatedP = updatedProfiles.find(p => p.site_url === cleanUrl);
       if (updatedP) base44.entities.BusinessProfile.update(updatedP.id, { scan_in_progress: false }).catch(() => {});
+      invalidateProfiles(u.id);
       await loadAll();
       setOnboardingData(result);
     } catch (err) { console.error(err); }
@@ -724,7 +725,12 @@ export default function Home() {
   const handleDeleteDomain = async (p) => {
     try {
       if (p.id) await base44.entities.BusinessProfile.delete(p.id);
-      setProfiles(prev => prev.filter(x => x.site_url !== p.site_url));
+      invalidateProfiles(user?.id);
+      setProfiles(prev => {
+        const next = prev.filter(x => x.site_url !== p.site_url);
+        setCache('__home_profiles__', next);
+        return next;
+      });
       if (activeUrl === p.site_url) {
         const rem = profiles.filter(x => x.site_url !== p.site_url);
         if (rem.length > 0) switchDomain(rem[0]);
