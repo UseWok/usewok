@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Star, Trash2, Plus, Eye, EyeOff, Check, Pencil, X } from 'lucide-react';
+import { Star, Trash2, Plus, Eye, EyeOff, Check, Pencil, X, RefreshCw } from 'lucide-react';
 import { AVATAR_GRADIENTS } from '@/lib/user-color';
 
 const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
@@ -11,6 +11,12 @@ const CORAL = '#FF5A1F';
 const BLUE = '#3B8BEB';
 
 const EMPTY = { author_name: '', author_role: '', rating: 5, text: '', avatar_url: '', avatar_color: 'sunset', verified: false, visible: true, order: 0 };
+
+const DEFAULT_TESTIMONIALS = [
+  { author_name: 'Sofiane B.', author_role: 'Post at Stensor', rating: 5, text: "franchement j'étais sceptique au début, mais j'ai suivi le plan sans rien comprendre à l'IA, et en genre 10 jours mon score avait déjà bougé, ChatGPT me cite maintenant sur des recherches locales", avatar_color: 'mint', verified: true, visible: true, order: 0 },
+  { author_name: 'Amel K.', author_role: 'Founder of Dh-hd', rating: 5, text: "super simple à utiliser, j'ai pas d'équipe marketing donc ça tombait bien, résultat visible en à peine 2 semaines sans prise de tête", avatar_color: 'violet', verified: true, visible: true, order: 1 },
+  { author_name: 'Moussa D.', author_role: 'Founder of Varileo', rating: 5, text: "je m'attendais à un truc compliqué mais non, j'ai juste coché les étapes une par une, ma visibilité sur les IA a clairement augmenté en quelques semaines", avatar_color: 'ink', verified: true, visible: true, order: 2 },
+];
 
 function initials(name) {
   const p = (name || '').trim().split(/[\s\-\.]+/);
@@ -113,12 +119,32 @@ export default function AdminTestimonialsPage() {
     load();
   };
 
+  const resetToDefaults = async () => {
+    if (!confirm('Remplacer tous les avis par les 3 avis par défaut ?')) return;
+    setSaving(true);
+    try {
+      for (const t of items) {
+        await base44.entities.Testimonial.delete(t.id);
+      }
+      await base44.entities.Testimonial.bulkCreate(DEFAULT_TESTIMONIALS);
+      await load();
+    } catch {}
+    setSaving(false);
+  };
+
   const inp = { width: '100%', padding: '8px 11px', border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, fontFamily: F, outline: 'none', boxSizing: 'border-box' };
 
   return (
     <div style={{ padding: '28px 32px', fontFamily: F, maxWidth: 900 }}>
-      <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 4px' }}>Avis clients</h1>
-      <p style={{ fontSize: 13, color: INK2, margin: '0 0 24px' }}>Gérez les avis affichés sur la landing page. Couleur d'avatar, badge certifié, ordre et visibilité.</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 4px' }}>Avis clients</h1>
+          <p style={{ fontSize: 13, color: INK2, margin: 0 }}>Gérez les avis affichés sur la landing page. Couleur d'avatar, badge certifié, ordre et visibilité.</p>
+        </div>
+        <button onClick={resetToDefaults} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#fff', color: INK, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: F, whiteSpace: 'nowrap', opacity: saving ? 0.5 : 1 }}>
+          <RefreshCw size={13} /> Réinitialiser
+        </button>
+      </div>
 
       {/* Create form */}
       <form onSubmit={handleCreate} style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 18, marginBottom: 28 }}>
