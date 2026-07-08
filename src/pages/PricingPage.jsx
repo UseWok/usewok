@@ -72,7 +72,7 @@ export default function PricingPage() {
   const [userPlanId, setUserPlanId] = useState('free');
   const [userEmail, setUserEmail] = useState('');
   const [loadingPlanId, setLoadingPlanId] = useState(null);
-  const [billing, setBilling] = useState('monthly');
+  const billing = 'monthly';
 
   useEffect(() => {
     loadPlansFromDB()
@@ -111,9 +111,6 @@ export default function PricingPage() {
   const isFree = (plan) => !plan.price_monthly || plan.price_monthly === 0;
 
   const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
-
-  const samplePaid = sortedPlans.find(p => p.price_monthly && p.price_yearly);
-  const discount = samplePaid ? Math.round((1 - (samplePaid.price_yearly / (samplePaid.price_monthly * 12))) * 100) : 0;
 
   if (loading) return (
     <div style={{ minHeight: '100%', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
@@ -192,12 +189,6 @@ export default function PricingPage() {
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 14 }}><span className="dot"></span>Simple pricing</span>
             <h1>Choose the plan that fits you</h1>
             <p>You're on the <strong style={{ color: '#15130F', fontWeight: 600 }}>{userPlanId}</strong> plan. Change or cancel anytime.</p>
-            <div className="toggle-wrap">
-              <div className="toggle">
-                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>
-                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Yearly {discount > 0 && <span className="save">-{discount}%</span>}</button>
-              </div>
-            </div>
           </div>
         </section>
 

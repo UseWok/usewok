@@ -8,14 +8,14 @@ const T2 = 'rgba(255,255,255,0.55)';
 const BORDER = 'rgba(255,255,255,0.07)';
 
 const FAQ = [
-  { q: 'Dois-je être expert en IA ou en marketing pour utiliser UseWok ?', a: "Non. C'est exactement l'objectif de UseWok : multiplier facilement votre visibilité IA, sans expertise technique ni équipe marketing. Vous suivez le plan d'action fourni, UseWok s'occupe du reste." },
-  { q: 'Pourquoi les IA comme ChatGPT ne recommandent pas mon entreprise ?', a: "Les moteurs IA ne fonctionnent pas comme Google. Ils synthétisent des informations publiques, structurées et cohérentes sur votre activité. Si vos données sont absentes, incomplètes ou contradictoires sur le web, l'IA recommande le concurrent qui, lui, a des données complètes." },
-  { q: 'Qu\'est-ce que le Score de Visibilité IA ?', a: "C'est votre score sur 100, calculé à partir de l'analyse de 8 moteurs IA : ChatGPT, Gemini, Claude, Perplexity, Grok, Mistral, Copilot et Llama." },
-  { q: "Mon entreprise n'a pas d'équipe marketing, UseWok me convient-il ?", a: "Oui, c'est le cœur de cible : les entreprises digitales qui ont les moyens d'investir mais pas ceux de monter une équipe marketing en interne. Pas de jargon, un plan d'action clair et actionnable dès la première connexion." },
-  { q: "Comment fonctionne l'essai gratuit ?", a: "Vous démarrez gratuitement, sans carte bancaire, avec votre premier score de visibilité. Pour aller plus loin (audit complet, plan d'action, assistant IA), vous avez 7 jours d'essai gratuit sur les plans Starter et Pro avant d'être facturé." },
-  { q: 'Je gère plusieurs sites, UseWok peut-il tous les suivre ?', a: "Oui, le plan Pro permet de suivre jusqu'à 10 sites en simultané, chacun avec son propre score et son propre plan d'action." },
-  { q: 'UseWok remplace-t-il le SEO classique ?', a: "Non, c'est complémentaire. Le SEO optimise votre place dans les résultats Google. UseWok optimise votre présence dans les réponses générées par les IA — un canal de découverte distinct, en forte croissance." },
-  { q: 'UseWok est-il conforme au RGPD ?', a: "Oui, solution française, données hébergées en Europe." },
+  { q: 'Do I need to be an AI or marketing expert to use UseWok?', a: "No. That's exactly the point of UseWok: easily multiply your AI visibility, without technical expertise or a marketing team. You follow the provided action plan, UseWok handles the rest." },
+  { q: 'Why don\'t AI engines like ChatGPT recommend my business?', a: "AI engines don't work like Google. They synthesize public, structured and consistent information about your business. If your data is missing, incomplete or contradictory across the web, the AI recommends the competitor who has complete data instead." },
+  { q: 'What is the AI Visibility Score?', a: "It's your score out of 100, calculated from the analysis of 8 AI engines: ChatGPT, Gemini, Claude, Perplexity, Grok, Mistral, Copilot and Llama." },
+  { q: "My company doesn't have a marketing team — is UseWok right for me?", a: "Yes, that's the core audience: digital businesses that can afford to invest but can't justify building an in-house marketing team. No jargon, a clear and actionable plan from the very first login." },
+  { q: "How does the free trial work?", a: "You start for free, no credit card required, with your first visibility score. To go further (full audit, action plan, AI assistant), you get a 7-day free trial on Starter and Pro plans before being charged." },
+  { q: 'I manage multiple sites — can UseWok track them all?', a: "Yes, the Pro plan lets you track up to 10 sites simultaneously, each with its own score and its own action plan." },
+  { q: 'Does UseWok replace traditional SEO?', a: "No, it's complementary. SEO optimizes your ranking in Google results. UseWok optimizes your presence in AI-generated answers — a distinct discovery channel that's growing fast." },
+  { q: 'Is UseWok GDPR compliant?', a: "Yes — a French solution with data hosted in Europe." },
 ];
 
 function FAQItem({ item, open, onToggle }) {

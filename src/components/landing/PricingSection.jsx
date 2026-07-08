@@ -9,9 +9,9 @@ const CORAL = '#F95738';
 const BORDER = 'rgba(255,255,255,0.07)';
 
 const PLANS = [
-  { name: 'Découverte', price: 'Gratuit', sub: 'sans carte bancaire', highlight: false },
-  { name: 'Starter', price: '45€', per: '/mois', sub: '7 jours d\'essai gratuit', highlight: true },
-  { name: 'Pro', price: '85€', per: '/mois', sub: "jusqu'à 10 sites en simultané", highlight: false },
+  { name: 'Discovery', price: 'Free', sub: 'no credit card', highlight: false },
+  { name: 'Starter', price: '$45', per: '/mo', sub: '7-day free trial', highlight: true },
+  { name: 'Pro', price: '$85', per: '/mo', sub: 'up to 10 sites simultaneously', highlight: false },
 ];
 
 export default function PricingSection({ onSignup }) {
@@ -20,7 +20,7 @@ export default function PricingSection({ onSignup }) {
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
         <FadeIn>
           <h2 style={{ fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 800, color: T1, letterSpacing: '-0.04em', margin: '0 0 clamp(32px, 5vw, 56px)', textAlign: 'center' }}>
-            Tarifs
+            Pricing
           </h2>
         </FadeIn>
 
@@ -36,7 +36,7 @@ export default function PricingSection({ onSignup }) {
               }}>
                 {p.highlight && (
                   <div style={{ position: 'absolute', top: -11, left: 26, background: CORAL, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.04em' }}>
-                    LE PLUS CHOISI
+                    MOST POPULAR
                   </div>
                 )}
                 <p style={{ fontSize: 13, fontWeight: 700, color: T2, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>{p.name}</p>
@@ -51,7 +51,7 @@ export default function PricingSection({ onSignup }) {
                   background: p.highlight ? CORAL : 'rgba(255,255,255,0.08)',
                   color: p.highlight ? '#fff' : T1,
                 }}>
-                  Démarrer
+                  Get started
                 </button>
               </div>
             </FadeIn>
@@ -60,9 +60,9 @@ export default function PricingSection({ onSignup }) {
 
         <FadeIn delay={0.3}>
           <p style={{ fontSize: 13, color: T2, lineHeight: 1.75, maxWidth: 720, margin: '32px auto 0', textAlign: 'center' }}>
-            À titre de comparaison, une agence spécialisée démarre généralement au-delà de 100€/mois et suppose d'avoir déjà un minimum d'expertise en interne. UseWok est pensé pour s'en passer.
+            For comparison, a specialized agency typically starts well above $100/mo and assumes you already have some in-house expertise. UseWok is designed to make that unnecessary.
             <br /><br />
-            <strong style={{ color: T1 }}>Et contrairement à la plupart des autres outils de visibilité IA qui se contentent de vous donner un score et vous laissent seul face au jargon technique, UseWok est le seul à aller jusqu'au bout : diagnostic, plan d'action détaillé et assistant dédié — sans supplément.</strong>
+            <strong style={{ color: T1 }}>And unlike most AI visibility tools that just give you a score and leave you alone with technical jargon, UseWok is the only one that goes all the way: diagnosis, detailed action plan and a dedicated assistant — at no extra cost.</strong>
           </p>
         </FadeIn>
       </div>

@@ -12,7 +12,7 @@ export default function LandingPricingPage() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [billing, setBilling] = useState('monthly');
+  const billing = 'monthly';
 
   useEffect(() => {
     document.body.style.backgroundColor = '#FAF9F6';
@@ -29,9 +29,6 @@ export default function LandingPricingPage() {
   const goBlog = () => navigate('/blog');
 
   const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
-
-  const samplePaid = sortedPlans.find(p => p.price_monthly && p.price_yearly);
-  const discount = samplePaid ? Math.round((1 - (samplePaid.price_yearly / (samplePaid.price_monthly * 12))) * 100) : 0;
 
   if (loading) return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAF9F6', fontFamily: WIX }}>
@@ -146,12 +143,6 @@ export default function LandingPricingPage() {
             <span className="eyebrow" style={{ justifyContent: 'center', display: 'flex', marginBottom: 16 }}><span className="dot"></span>Simple pricing</span>
             <h1>Choose the plan that fits you</h1>
             <p>Start for free. Change your plan or cancel anytime.</p>
-            <div className="toggle-wrap">
-              <div className="toggle">
-                <button className={billing === 'monthly' ? 'on' : ''} onClick={() => setBilling('monthly')}>Monthly</button>
-                <button className={billing === 'yearly' ? 'on' : ''} onClick={() => setBilling('yearly')}>Yearly {discount > 0 && <span className="save">-{discount}%</span>}</button>
-              </div>
-            </div>
           </div>
         </section>
 
