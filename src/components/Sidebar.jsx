@@ -626,7 +626,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               {[
                 {
-                  section: 'STRATÉGIE',
+                  section: 'STRATEGY',
                   items: [
                     { id: 'brand', label: 'Brand Knowledge', icon: BookOpen, route: '/brand-knowledge' },
                     { id: 'geo',   label: 'GEO Strategy',    icon: Sparkle,  route: '/geo-strategy' },
@@ -635,21 +635,21 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 {
                   section: 'AUDIT',
                   items: [
-                    { id: 'siteaudit',   label: 'Audit du site',  icon: FileSearch, route: '/site-audit' },
-                    { id: 'competitors', label: 'Concurrents',    icon: Users,      route: '/competitors' },
+                    { id: 'siteaudit',   label: 'Site audit',   icon: FileSearch, route: '/site-audit' },
+                    { id: 'competitors', label: 'Competitors',  icon: Users,      route: '/competitors' },
                   ],
                 },
                 {
                   section: 'ACTIONS',
                   items: [
-                    { id: 'tasks', label: 'Tâches',     icon: CheckSquare, route: '/tasks' },
+                    { id: 'tasks', label: 'Tasks',     icon: CheckSquare, route: '/tasks' },
                   ],
                 },
                 {
-                  section: 'VISIBILITÉ IA',
+                  section: 'AI VISIBILITY',
                   items: [
-                    { id: 'auth',  label: 'Autorité',         icon: Award,    route: '/ai-report' },
-                    { id: 'reco',  label: 'Recommandations',  icon: Target,   route: '/recommendations' },
+                    { id: 'auth',  label: 'Authority',        icon: Award,    route: '/ai-report' },
+                    { id: 'reco',  label: 'Recommendations',  icon: Target,   route: '/recommendations' },
                   ],
                 },
               ].map(group => (

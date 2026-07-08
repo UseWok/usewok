@@ -1,6 +1,6 @@
 import React from 'react';
 
-const F = "'Wix Madefor Display', 'Wix Madefor Text', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const F = "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const INK = '#15130F';
 const WHITE = '#FFFFFF';
 const ORANGE = '#F47321';
@@ -45,6 +45,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
     <div style={{
       position: 'relative', height: '100%',
       zIndex: isReco ? 2 : 1,
+      paddingTop: isReco ? 0 : 34,
     }}>
     <div style={{
       borderRadius: 20, overflow: 'hidden',
@@ -94,7 +95,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
               ))}
             </div>
             {scanLabel && (
-              <div style={{ fontSize: 12, color: 'rgba(21,19,15,0.5)', marginTop: 8 }}>{scanLabel}</div>
+              <div style={{ fontSize: 12, color: INK, marginTop: 8 }}>{scanLabel}</div>
             )}
           </>
         )}

@@ -84,28 +84,28 @@ function PreferencesPanel({ user, profile, onSave }) {
       await base44.entities.BusinessProfile.update(profile.id, {
         user_preferences: JSON.stringify(newPrefs),
       });
-      toast.success('Profil mis à jour');
+      toast.success('Profile updated');
       if (onSave) onSave();
     } catch {
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error('Something went wrong while saving');
     } finally {
       setSaving(false);
     }
   };
 
   const techLevels = [
-    { key: 'no_code', icon: '🖱️', label: 'Sans code', desc: 'Wix, WordPress, Squarespace — je clique, je ne code pas', recommended: true },
-    { key: 'ai_nocode', icon: '🤖', label: 'Avec ChatGPT/Claude', desc: 'Je copie-colle un prompt dans une IA, puis le résultat dans mon site' },
-    { key: 'developer', icon: '💻', label: 'Développeur', desc: 'Code exact, JSON-LD, API' },
+    { key: 'no_code', icon: '🖱️', label: 'No code', desc: 'Wix, WordPress, Squarespace — I click, I don\'t code', recommended: true },
+    { key: 'ai_nocode', icon: '🤖', label: 'With ChatGPT/Claude', desc: 'I paste a prompt into an AI, then the result into my site' },
+    { key: 'developer', icon: '💻', label: 'Developer', desc: 'Exact code, JSON-LD, API' },
   ];
 
   if (!profile) return null;
 
   return (
     <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-      <SectionTitle>Comment je corrige mon site</SectionTitle>
+      <SectionTitle>How I fix my site</SectionTitle>
       <p style={{ fontSize: 12, color: '#666', margin: '0 0 14px', lineHeight: 1.5 }}>
-        Choisissez votre niveau. Chaque correction s'adaptera automatiquement.
+        Pick your level. Every fix will adapt automatically.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {techLevels.map(t => {
@@ -127,7 +127,7 @@ function PreferencesPanel({ user, profile, onSave }) {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{t.label}</span>
-                  {t.recommended && <span style={{ fontSize: 9, fontWeight: 700, color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>Recommandé</span>}
+                  {t.recommended && <span style={{ fontSize: 9, fontWeight: 700, color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>Recommended</span>}
                 </div>
                 <p style={{ fontSize: 11, color: '#888', margin: '2px 0 0', lineHeight: 1.4 }}>{t.desc}</p>
               </div>
@@ -148,14 +148,14 @@ function CodeRedeemer({ user, setUser }) {
 
   const handleRedeem = async () => {
     setError(''); setSuccess('');
-    if (!code.trim()) { setError('Entrez un code.'); return; }
+    if (!code.trim()) { setError('Enter a code.'); return; }
     setLoading(true);
     try {
       const results = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase(), visible: true });
       const usable = results.filter(r => !r.used || r.unlimited || (r.max_uses && (r.use_count || 0) < r.max_uses));
       if (usable.length === 0) {
         const any = await base44.entities.AccessCode.filter({ code: code.trim().toUpperCase() });
-        setError(any.length > 0 ? 'Ce code a déjà été utilisé.' : 'Code invalide.');
+        setError(any.length > 0 ? 'This code has already been used.' : 'Invalid code.');
         setLoading(false); return;
       }
       const rec = usable[0];
@@ -194,7 +194,7 @@ function CodeRedeemer({ user, setUser }) {
       setCode('');
     } catch (e) {
       writeAuditLog(user?.id || 'anonymous', { action: 'save', resource_type: 'AccessCode', resource_id: 'failed_redemption', status: 'failed', error_message: e?.message || 'Validation error', metadata: { attempted_code: code.trim(), email: user?.email } }).catch(() => {});
-      setError('Erreur de validation.');
+      setError('Validation error.');
     }
     setLoading(false);
   };
@@ -208,7 +208,7 @@ function CodeRedeemer({ user, setUser }) {
           style={{ ...inputStyle, flex: 1, border: `1px solid ${error ? '#ef4444' : 'rgba(0,0,0,0.10)'}` }} />
         <button onClick={handleRedeem} disabled={loading || !code.trim()}
           style={{ padding: '7px 14px', background: code.trim() ? '#111' : '#F0F0EE', color: code.trim() ? '#fff' : '#aaa', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: code.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-          {loading ? '…' : 'Activer'}
+          {loading ? '…' : 'Activate'}
         </button>
       </div>
       {error && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 5 }}>{error}</p>}
@@ -226,7 +226,7 @@ function AutoScanToggle({ user }) {
   }, [user?.auto_scan_enabled]);
 
   const planId = user?.subscription_plan || 'free';
-  const planLabel = planId === 'pro' ? 'Pro (30/mois)' : planId === 'starter' ? 'Starter (12/mois)' : 'Free (1/mois)';
+  const planLabel = planId === 'pro' ? 'Pro (30/mo)' : planId === 'starter' ? 'Starter (12/mo)' : 'Free (1/mo)';
 
   const toggle = async () => {
     const next = !enabled;
@@ -236,8 +236,8 @@ function AutoScanToggle({ user }) {
 
   return (
     <SettingRow
-      label="Lancement automatique des scans"
-      description={`Les scans seront planifiés automatiquement selon votre forfait · ${planLabel}`}
+      label="Automatic scan scheduling"
+      description={`Scans will be scheduled automatically based on your plan · ${planLabel}`}
       noBorder
     >
       <button
@@ -269,7 +269,7 @@ function getRenewalDate(user) {
   return d;
 }
 
-const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const formatK = n => n >= 1000 ? `${Math.round(n / 1000)}k` : String(n ?? 0);
 
 function CreditsGauge({ used, limit }) {
@@ -278,15 +278,15 @@ function CreditsGauge({ used, limit }) {
   return (
     <div style={{ marginTop: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 13, color: '#555' }}>{formatK(used)} utilisés</span>
+        <span style={{ fontSize: 13, color: '#555' }}>{formatK(used)} used</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{formatK(limit)} total</span>
       </div>
       <div style={{ height: 10, background: '#EBEBEA', borderRadius: 999, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 999, transition: 'width 0.4s ease' }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{pct}% consommés</span>
-        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{formatK(Math.max(0, limit - used))} restants</span>
+        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{pct}% used</span>
+        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{formatK(Math.max(0, limit - used))} left</span>
       </div>
     </div>
   );
@@ -427,7 +427,7 @@ export default function SettingsPage() {
     </div>
   );
 
-  const sectionTitles = { profile: 'Profil', usage: 'Utilisation', plan: 'Facturation', integrations: 'Intégrations' };
+  const sectionTitles = { profile: 'Profile', usage: 'Usage', plan: 'Billing', integrations: 'Integrations' };
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#F8F7F5', fontFamily: 'Inter, system-ui, sans-serif', scrollbarWidth: 'none' }}>
@@ -449,19 +449,19 @@ export default function SettingsPage() {
               />
             )}
 
-            <SectionTitle>Général</SectionTitle>
+            <SectionTitle>General</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Email" description="Votre adresse email de connexion — non modifiable.">
+              <SettingRow label="Email" description="Your login email address — can't be changed.">
                 <input value={user?.email || ''} disabled style={{ ...inputStyle, width: 220, opacity: 0.5, cursor: 'not-allowed', background: '#F0F0EE' }} />
               </SettingRow>
-              <SettingRow label="Nom complet" description="Votre nom d'affichage dans l'application." noBorder>
+              <SettingRow label="Full name" description="Your display name in the app." noBorder>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input value={fullName} onChange={e => setFullName(e.target.value)}
                       style={{ ...inputStyle, width: 200, border: `1px solid ${profileError ? '#ef4444' : 'rgba(0,0,0,0.10)'}` }} />
                     <button onClick={saveProfile} disabled={savingProfile}
                       style={{ padding: '7px 13px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: savingProfile ? 0.6 : 1, whiteSpace: 'nowrap' }}>
-                      {savingProfile ? 'Enregistrement…' : 'Sauvegarder'}
+                      {savingProfile ? 'Saving…' : 'Save'}
                     </button>
                   </div>
                   {profileError && <p style={{ fontSize: 11, color: '#ef4444', margin: 0 }}>{profileError}</p>}
@@ -470,12 +470,12 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Intégrations</SectionTitle>
+            <SectionTitle>Integrations</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Google Drive" description="Importez vos documents depuis Drive pour enrichir le contexte de WOK AI." noBorder>
+              <SettingRow label="Google Drive" description="Import your documents from Drive to enrich WOK AI's context." noBorder>
                 <button onClick={() => { window.location.href = '/wok-ai'; }}
                   style={{ padding: '7px 13px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-                  Ouvrir WOK AI
+                  Open WOK AI
                 </button>
               </SettingRow>
             </div>
@@ -483,13 +483,13 @@ export default function SettingsPage() {
             <div style={{ height: 28 }} />
             <SectionTitle>Notifications</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Emails marketing" description="Rapports, conseils et séquences d'onboarding par email." noBorder>
+              <SettingRow label="Marketing emails" description="Reports, tips and onboarding sequences by email." noBorder>
                 <button
                   onClick={async () => {
                     const next = !user?.email_unsubscribed;
                     await base44.auth.updateMe({ email_unsubscribed: next });
                     setUser(u => ({ ...u, email_unsubscribed: next }));
-                    toast.success(next ? 'Emails désactivés' : 'Emails réactivés');
+                    toast.success(next ? 'Emails turned off' : 'Emails turned back on');
                   }}
                   style={{
                     width: 42, height: 24, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 2,
@@ -525,20 +525,20 @@ export default function SettingsPage() {
         {activeSection === 'usage' && (
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
-              <StatCard label="Plan actuel" value={userPlan?.name || 'Free'} sub={isYearly ? 'Annuel' : 'Mensuel'} accent />
-              <StatCard label="Sites surveillés" value={`${planFeatures?.max_sites || 1}`} sub="max simultanément" />
+              <StatCard label="Current plan" value={userPlan?.name || 'Free'} sub={isYearly ? 'Yearly' : 'Monthly'} accent />
+              <StatCard label="Monitored sites" value={`${planFeatures?.max_sites || 1}`} sub="max at once" />
             </div>
 
-            <SectionTitle>Analyses de site ce mois</SectionTitle>
+            <SectionTitle>Site scans this month</SectionTitle>
             <div style={{ marginTop: 8, background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 18px', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Scan style={{ width: 16, height: 16, color: '#555' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>{scansUsed} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>/ {scanLimit} {planFeatures?.scan_period === 'day' ? 'analyses par jour' : 'analyses ce mois'}</span></p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>{scansUsed} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>/ {scanLimit} {planFeatures?.scan_period === 'day' ? 'scans per day' : 'scans this month'}</span></p>
                   <p style={{ fontSize: 12, color: scansRemaining === 0 ? '#ef4444' : '#888', margin: '2px 0 0' }}>
-                    {scansRemaining === 0 ? 'Quota atteint — passez à un plan supérieur' : `${scansRemaining} restante${scansRemaining > 1 ? 's' : ''}`}
+                    {scansRemaining === 0 ? 'Quota reached — upgrade to a higher plan' : `${scansRemaining} left`}
                   </p>
                 </div>
               </div>
@@ -546,12 +546,12 @@ export default function SettingsPage() {
                 <div style={{ height: '100%', width: `${scanPct}%`, background: scanPct >= 90 ? '#ef4444' : scanPct >= 70 ? '#f97316' : '#111', borderRadius: 999, transition: 'width 0.4s ease' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{scanPct}% utilisé</span>
-                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{planFeatures?.scan_type === 'lite' ? 'Analyse rapide' : 'Analyse complète'} · {planFeatures?.engines_count || 1} moteur{(planFeatures?.engines_count || 1) > 1 ? 's' : ''}</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{scanPct}% used</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{planFeatures?.scan_type === 'lite' ? 'Quick scan' : 'Full scan'} · {planFeatures?.engines_count || 1} engine{(planFeatures?.engines_count || 1) > 1 ? 's' : ''}</span>
               </div>
             </div>
 
-            <SectionTitle>Messages WOK AI ce mois</SectionTitle>
+            <SectionTitle>WOK AI messages this month</SectionTitle>
             <div style={{ marginTop: 8, background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -560,7 +560,7 @@ export default function SettingsPage() {
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>{chatMsgsUsed} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>/ {chatLimit} messages</span></p>
                   <p style={{ fontSize: 12, color: chatRemaining === 0 ? '#ef4444' : '#888', margin: '2px 0 0' }}>
-                    {chatRemaining === 0 ? 'Quota épuisé — passez à un plan supérieur' : `${chatRemaining} restants ce mois`}
+                    {chatRemaining === 0 ? 'Quota reached — upgrade to a higher plan' : `${chatRemaining} left this month`}
                   </p>
                 </div>
               </div>
@@ -568,29 +568,29 @@ export default function SettingsPage() {
                 <div style={{ height: '100%', width: `${chatPct}%`, background: chatPct >= 90 ? '#ef4444' : chatPct >= 70 ? '#f97316' : '#111', borderRadius: 999, transition: 'width 0.4s ease' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{chatPct}% utilisé</span>
-                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>Reset le 1er du mois</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{chatPct}% used</span>
+                <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>Resets on the 1st</span>
               </div>
             </div>
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Scans automatiques</SectionTitle>
+            <SectionTitle>Automatic scans</SectionTitle>
             <div style={{ marginTop: 8 }}>
               <AutoScanToggle user={user} />
             </div>
 
             <div style={{ height: 28 }} />
-            <SectionTitle>Cycle de facturation</SectionTitle>
+            <SectionTitle>Billing cycle</SectionTitle>
             <div style={{ marginTop: 8 }}>
               {getRenewalDate(user) && (
-                <SettingRow label="Prochain renouvellement" description="Le quota de messages se réinitialise à cette date.">
+                <SettingRow label="Next renewal" description="Your message quota resets on this date.">
                   <span style={{ fontSize: 13, color: '#444', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Calendar style={{ width: 12, height: 12, color: '#999' }} />
                     {formatDate(getRenewalDate(user))}
                   </span>
                 </SettingRow>
               )}
-              <SettingRow label="Début du cycle" description="Date de début de votre abonnement actuel." noBorder>
+              <SettingRow label="Cycle start" description="The start date of your current subscription." noBorder>
                 <span style={{ fontSize: 13, color: '#444' }}>{formatDate(user?.subscription_date || user?.created_date)}</span>
               </SettingRow>
             </div>
@@ -602,23 +602,23 @@ export default function SettingsPage() {
           <div>
             <SectionTitle>Google Drive</SectionTitle>
             <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', margin: '4px 0 16px', lineHeight: 1.5 }}>
-              Importez vos documents Google Drive directement dans WOK AI pour enrichir l'analyse et le contexte de l'IA.
+              Import your Google Drive documents directly into WOK AI to enrich the analysis and the AI's context.
             </p>
             <div style={{ background: '#F9F9F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: '0 0 3px' }}>Connecter Google Drive</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: '0 0 3px' }}>Connect Google Drive</p>
                 <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', margin: 0 }}>
-                  Sélectionnez vos fichiers depuis WOK AI via le bouton "+" dans la barre de saisie.
+                  Select your files from WOK AI using the "+" button in the input bar.
                 </p>
               </div>
               <button onClick={() => { window.location.href = '/wok-ai'; }}
                 style={{ padding: '8px 16px', background: '#111', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                Ouvrir WOK AI →
+                Open WOK AI →
               </button>
             </div>
             <div style={{ marginTop: 12, padding: '12px 14px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8 }}>
               <p style={{ fontSize: 12, color: '#16a34a', margin: 0 }}>
-                ✓ Pour importer : ouvrez WOK AI, cliquez sur <strong>"+"</strong> dans la barre de saisie, puis choisissez <strong>"Google Drive"</strong>.
+                ✓ To import: open WOK AI, click <strong>"+"</strong> in the input bar, then choose <strong>"Google Drive"</strong>.
               </p>
             </div>
           </div>
