@@ -103,7 +103,7 @@ export default function Layout() {
   const FRAME_BG = '#FFFFFF';
   const BORDER_TOP = 11;
   const BORDER_SIDE = 11;
-  const BORDER_BOTTOM = 36;
+  const BORDER_BOTTOM = 48;
   const CORNER_R = 14;
 
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
@@ -172,11 +172,11 @@ export default function Layout() {
 
       {/* Bottom bar: fire + active domain */}
       {!isMobile && (
-        <div style={{ position: 'fixed', bottom: 10, right: 16, zIndex: 60, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ position: 'fixed', bottom: 12, right: 16, zIndex: 80, display: 'flex', alignItems: 'center', gap: 8 }}>
           {activeDomain && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 10px', borderRadius: 8, background: 'rgba(0,0,0,0.05)', maxWidth: 180 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 30, padding: '0 11px', borderRadius: 9, background: 'rgba(0,0,0,0.045)', border: '1px solid rgba(0,0,0,0.06)', maxWidth: 180 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {activeDomain.url.replace(/https?:\/\//, '').split('/')[0]}
               </span>
             </div>
@@ -185,13 +185,13 @@ export default function Layout() {
             onClick={() => setShowFeedback(true)}
             title="Give feedback"
             style={{
-              width: 28, height: 28, borderRadius: 8,
-              background: 'rgba(0,0,0,0.05)', border: 'none',
+              width: 30, height: 30, borderRadius: 9,
+              background: 'rgba(0,0,0,0.045)', border: '1px solid rgba(0,0,0,0.06)',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, transition: 'background 120ms',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.10)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.045)'}
           >
             <Flame size={14} color="#F95738" strokeWidth={2} />
           </button>
