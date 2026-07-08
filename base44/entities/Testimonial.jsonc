@@ -24,6 +24,17 @@
       "type": "string",
       "title": "Photo (URL)"
     },
+    "avatar_color": {
+      "type": "string",
+      "title": "Couleur avatar",
+      "default": "sunset",
+      "description": "sunset, violet, ocean, mint, ink"
+    },
+    "verified": {
+      "type": "boolean",
+      "title": "Certifi\u00e9",
+      "default": false
+    },
     "visible": {
       "type": "boolean",
       "title": "Visible sur le site",
