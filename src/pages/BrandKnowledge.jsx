@@ -143,7 +143,7 @@ export default function BrandKnowledge() {
       <div style={{ padding: '24px 32px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${BORDER}` }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Your business, explained to AI 🏷️</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Brand Knowledge</h1>
             {isSaved && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: GREEN_BG, color: GREEN, borderRadius: 999, fontSize: 11, fontWeight: 600 }}>
                 <Check size={11} /> Saved
@@ -155,7 +155,7 @@ export default function BrandKnowledge() {
               </span>
             )}
           </div>
-          <p style={{ fontSize: 12.5, color: INK3, margin: '6px 0 0', lineHeight: 1.5, maxWidth: 540 }}>This is the heart of everything. The clearer you describe your business here, the better ChatGPT, Gemini and Claude will recommend you. Not sure what to write? Let AI fill it for you, then tweak.</p>
+          <p style={{ fontSize: 12.5, color: INK3, margin: '4px 0 0' }}>Tell the AI who you are — the clearer it is, the better it talks about you.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
           {!editMode ? (

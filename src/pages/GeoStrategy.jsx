@@ -98,12 +98,9 @@ export default function GeoStrategy() {
       {/* Sticky header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, background: SURFACE, padding: '18px 24px 12px', paddingTop: 'max(18px, env(safe-area-inset-top))', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>How you want AI to talk about you 💬</h1>
-          <p style={{ fontSize: 12.5, color: INK3, margin: '6px 0 0', lineHeight: 1.5, maxWidth: 520 }}>
-            Fill this once and every AI engine — ChatGPT, Gemini, Claude — learns to present you the right way. No expertise needed, just answer like you'd explain your business to a friend.
-          </p>
-          <p style={{ fontSize: 11.5, color: INK3, margin: '4px 0 0', opacity: 0.7 }}>
-            {domainLabel}{updatedAt ? ` · updated ${new Date(updatedAt).toLocaleDateString('en-US')}` : ''}
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Your AI visibility plan</h1>
+          <p style={{ fontSize: 12, color: INK3, margin: '4px 0 0' }}>
+            Tell the AI how you want to be seen · {domainLabel}{updatedAt ? ` · updated ${new Date(updatedAt).toLocaleDateString('en-US')}` : ''}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>

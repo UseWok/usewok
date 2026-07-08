@@ -22,10 +22,10 @@ function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { re
  */
 export default function BrandPerceptionPage({ kind = 'brand' }) {
   const isReco = kind === 'reco';
-  const title = isReco ? 'What to do to get recommended 🎯' : 'What AI really says about you 💬';
+  const title = isReco ? 'Recommendations' : 'Brand image';
   const subtitle = isReco
-    ? "The exact moves to get named more often by AI — sorted so the biggest wins come first. Add any of them to your to-do list in one click."
-    : "We ask ChatGPT, Gemini and Claude about your brand and show you their real answers: how they describe you, how much they trust you, and the overall vibe.";
+    ? "Concrete actions to improve your presence in AI answers, prioritized by impact."
+    : "How AI engines talk about your brand — narrative, authority and sentiment.";
 
   const _active0 = getActiveDomain();
   const _seed = peekCache(`bp_${kind}_${_active0?.url || 'all'}`);

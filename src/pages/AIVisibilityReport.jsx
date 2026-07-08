@@ -234,9 +234,8 @@ export default function AIVisibilityReport() {
 
         {/* ── Title ── */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 21, fontWeight: 600, color: INK }}>How visible you are on AI 📊</div>
-          <div style={{ fontSize: 13, color: INK2, marginTop: 4, lineHeight: 1.5, maxWidth: 500 }}>Your single score across every AI engine, in plain words — plus the top moves to climb higher.</div>
-          <div style={{ fontSize: 12, color: INK3, marginTop: 4 }}>{domainLabel} · Updated {data.last_scan ? new Date(data.last_scan).toLocaleDateString('en-US') : "today"}</div>
+          <div style={{ fontSize: 21, fontWeight: 500, color: INK }}>Your AI Visibility</div>
+          <div style={{ fontSize: 13, color: INK2, marginTop: 3 }}>{domainLabel} · Updated {data.last_scan ? new Date(data.last_scan).toLocaleDateString('en-US') : "today"}</div>
         </div>
 
         {/* ── Dark hero: score ring + mentions ── */}

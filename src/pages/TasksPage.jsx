@@ -129,8 +129,8 @@ export default function TasksPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#F7F5F0', fontFamily: F }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Your to-do list ✅</h1>
-        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px', lineHeight: 1.5, maxWidth: 560 }}>Everything to become more visible on AI, in one place — sorted so you always know what to do first. Start with the Quick Wins: biggest impact, least effort.</p>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Tasks</h1>
+        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>Action center — recommendations from your audits, ranked by impact.</p>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 18 }}>
