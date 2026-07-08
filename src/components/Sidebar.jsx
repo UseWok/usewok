@@ -6,7 +6,6 @@ import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditC
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
-import { getUserColor } from '@/lib/user-color';
 import { toast } from 'sonner';
 import { useCredits } from '@/hooks/useCredits';
 
@@ -54,9 +53,6 @@ function AccountMenu({ user, userPlan, navigate, expanded }) {
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('keydown', esc); };
   }, [open]);
-
-  const initials = (user?.full_name || user?.email || '?').charAt(0).toUpperCase();
-  const color = getUserColor(user);
 
   const items = [
     { label: 'Settings', action: () => navigate('/settings') },
@@ -111,8 +107,8 @@ function AccountMenu({ user, userPlan, navigate, expanded }) {
         onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#fff'; }}
       >
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: color, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          {initials}
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Settings size={14} color="#666" strokeWidth={1.8} />
         </div>
         {expanded && (
           <div style={{ minWidth: 0, textAlign: 'left' }}>
@@ -475,20 +471,21 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         )}
       </AnimatePresence>
 
-      {/* Floating collapse/expand toggle — sits on the sidebar's outer edge */}
+      {/* Floating collapse/expand toggle — sits just outside the sidebar, no background */}
       {!isMobile && (
         <button
           onClick={() => setExpanded(!expanded)}
           title={expanded ? 'Collapse' : 'Expand'}
           style={{
-            position: 'fixed', top: 18, left: (expanded ? EXPANDED_W : COLLAPSED_W) - 11, zIndex: 41,
-            width: 22, height: 22, borderRadius: 6, border: '1px solid rgba(0,0,0,0.10)',
-            background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+            position: 'fixed', top: 18, left: (expanded ? EXPANDED_W : COLLAPSED_W) + 8, zIndex: 41,
+            width: 26, height: 26, borderRadius: 6, border: 'none',
+            background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', padding: 0,
             transition: 'left 220ms cubic-bezier(0.4,0,0.2,1)',
           }}
+          onMouseEnter={e => e.currentTarget.style.color = '#333'}
         >
-          <PanelLeft size={12} color="#777" strokeWidth={2} />
+          <PanelLeft size={15} color="#999" strokeWidth={2} />
         </button>
       )}
 
@@ -510,11 +507,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       >
         {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 8, padding: expanded ? '16px 12px 22px' : '16px 0 22px' }}>
-            <div style={{ width: 24, height: 24, borderRadius: 6, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 9, padding: expanded ? '16px 12px 14px' : '16px 0 14px' }}>
+            <div style={{ width: 30, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
               <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/02ac593f2_pcloud_552088188_3_202607_1_common-20260707001315-30789-22a14-cf87f.jpg" alt="UseWok" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
-            {expanded && <span style={{ fontSize: 15, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
+            {expanded && <span style={{ fontSize: 16, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
           </div>
         </div>
 
