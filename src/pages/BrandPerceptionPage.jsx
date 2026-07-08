@@ -7,7 +7,7 @@ import BrandPromptTable from '@/components/brandperception/BrandPromptTable';
 import RecoGrid from '@/components/brandperception/RecoGrid';
 import PromptsConfigModal from '@/components/brandperception/PromptsConfigModal';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
 const BORDER = 'rgba(21,19,15,0.10)';

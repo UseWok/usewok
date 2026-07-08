@@ -16,30 +16,30 @@ Deno.serve(async (req) => {
     const brandLabel = businessName || domain;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Tu analyses le site web "${brandLabel}" (${cleanUrl}) via le contexte internet, pour une personne qui n'y connaît RIEN en marketing.
+      prompt: `You are analyzing the website "${brandLabel}" (${cleanUrl}) using internet context, for someone who knows NOTHING about marketing.
 
-Génère un "Brand Knowledge" simple et concret. Règles STRICTES :
-- Langage SIMPLE et grand public. INTERDIT : jargon marketing (persona, proposition de valeur, sales play, GEO, autorité, notoriété…). Écris comme si tu expliquais à un ami.
-- Chaque tableau contient EXACTEMENT 3 à 5 éléments (jamais plus de 5), spécifiques à cette marque, pas de générique.
-- Chaque pastille de tableau = 2 à 5 mots MAX, court et clair.
-- Si une info est incertaine, laisse VIDE ("").
-- Réponds en français.
+Generate a simple, concrete "Brand Knowledge". STRICT rules:
+- Use SIMPLE, everyday language. FORBIDDEN: marketing jargon (persona, value proposition, sales play, GEO, authority, brand awareness…). Write as if explaining to a friend.
+- Each array contains EXACTLY 3 to 5 items (never more than 5), specific to this brand, not generic.
+- Each array item = 2 to 5 words MAX, short and clear.
+- If info is uncertain, leave EMPTY ("").
+- Respond in friendly English.
 
-Retourne un JSON avec exactement ces champs :
+Return a JSON with exactly these fields:
 {
-  "business_name": "Nom de l'entreprise",
-  "industry": "Ce qu'elle fait, en mots simples (ex: logiciel marketing, boutique de vêtements)",
-  "headquarters": "Ville, Pays",
-  "audience": "Ses clients types, en 1 phrase simple",
+  "business_name": "Company name",
+  "industry": "What they do, in simple words (e.g. marketing software, clothing store)",
+  "headquarters": "City, Country",
+  "audience": "Their typical customers, in 1 simple sentence",
   "business_model": "B2B | B2C | B2B2C | Marketplace",
-  "target_segment": "Type de clients en mots simples (ex: petites entreprises, particuliers)",
-  "value_description": "En 1-2 phrases simples, ce qu'elle fait de mieux que les autres",
-  "value_keywords": ["point fort court 1", "point fort 2", "... 5 max"],
-  "use_cases": ["situation d'usage courte 1", "... 5 max"],
-  "authority_topics": ["sujet d'expertise court 1", "... 5 max"],
-  "pre_purchase_questions": ["question simple d'un client 1", "... 5 max"],
-  "objections": ["hésitation courante 1", "... 5 max"],
-  "avoid_topics": ["sujet à éviter 1", "... 5 max"],
+  "target_segment": "Type of customers in simple words (e.g. small businesses, individuals)",
+  "value_description": "In 1-2 simple sentences, what they do better than others",
+  "value_keywords": ["short strength 1", "strength 2", "... 5 max"],
+  "use_cases": ["short use case 1", "... 5 max"],
+  "authority_topics": ["short expertise topic 1", "... 5 max"],
+  "pre_purchase_questions": ["simple customer question 1", "... 5 max"],
+  "objections": ["common hesitation 1", "... 5 max"],
+  "avoid_topics": ["topic to avoid 1", "... 5 max"],
   "scope": "Local | Regional | National | Continental | Worldwide"
 }`,
       add_context_from_internet: true,

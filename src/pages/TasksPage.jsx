@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { Search, Zap, Play, Check, Ban, Trash2, ChevronDown } from 'lucide-react';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
 const BORDER = 'rgba(21,19,15,0.10)';
@@ -156,7 +156,7 @@ export default function TasksPage() {
               <span key={i} style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.05em', textAlign: i === 0 ? 'left' : 'center' }}>{h}</span>
             ))}
           </div>
-          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '28px 0' }}>Chargement…</p>}
+          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '28px 0' }}>Loading…</p>}
           {!loading && filtered.length === 0 && (
             <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>No tasks yet. Add recommendations from Brand image or Recommendations.</p>
           )}

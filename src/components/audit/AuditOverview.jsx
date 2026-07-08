@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X, ChevronRight } from 'lucide-react';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const CREAM = '#FBF8F2';
 const CREAM_2 = '#F3EEE3';
 const INK = '#15130F';
@@ -16,7 +16,7 @@ const LINE = 'rgba(21,19,15,0.09)';
 const LINE_STRONG = 'rgba(21,19,15,0.14)';
 const WHITE = '#FFFFFF';
 
-const SEV_LABELS = { error: 'Erreurs', warning: 'Avertissements', notice: 'Notices' };
+const SEV_LABELS = { error: 'Errors', warning: 'Warnings', notice: 'Notices' };
 
 function ringOffset(pct, r = 30) {
   const circ = 2 * Math.PI * r;
@@ -50,7 +50,7 @@ function FixDrawer({ issue, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ width: 380, background: WHITE, borderLeft: `1px solid ${LINE_STRONG}`, height: '100%', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)', fontFamily: F }}>
         <div style={{ padding: '20px 24px', borderBottom: `1px solid ${LINE}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
-            <p style={{ fontSize: 10, fontWeight: 600, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>Comment corriger</p>
+            <p style={{ fontSize: 10, fontWeight: 600, color: INK_FAINT, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>How to fix</p>
             <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0, lineHeight: 1.4 }}>{issue.title}</p>
           </div>
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 7, border: `1px solid ${LINE_STRONG}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -66,7 +66,7 @@ function FixDrawer({ issue, onClose }) {
                 <p style={{ fontSize: 13, color: INK_SOFT, margin: 0, lineHeight: 1.55 }}>{step}</p>
               </li>
             ))}
-            {steps.length === 0 && <p style={{ fontSize: 13, color: INK_FAINT, margin: 0 }}>Aucune étape de correction disponible pour ce problème.</p>}
+            {steps.length === 0 && <p style={{ fontSize: 13, color: INK_FAINT, margin: 0 }}>No fix steps available for this issue.</p>}
           </ol>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function AuditOverview({ data = {}, onNavigate }) {
 
           {/* Site health */}
           <div style={{ background: WHITE, border: `1px solid ${LINE}`, borderRadius: 16, padding: 24 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: INK_FAINT, marginBottom: 14 }}>Santé du site</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: INK_FAINT, marginBottom: 14 }}>Site health</div>
             <div style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.02em', display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 14 }}>
               {data.site_health_score ?? '—'}<span className="unit" style={{ fontSize: 16, fontWeight: 600, color: INK_FAINT }}>%</span>
             </div>

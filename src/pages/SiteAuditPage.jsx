@@ -5,7 +5,7 @@ import { getActiveDomain } from '@/lib/active-domain';
 import { RefreshCw, Zap, Loader } from 'lucide-react';
 import { StatusBadge, AgentDots } from '@/components/siteaudit/AuditBits';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
 const BORDER = 'rgba(21,19,15,0.10)';

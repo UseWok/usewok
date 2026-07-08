@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search, X } from 'lucide-react';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#111111'; const INK2 = '#555555'; const INK3 = '#999999';
 const BORDER = '#E8E7E4'; const SURFACE = '#F7F6F3'; const WHITE = '#FFFFFF';
 

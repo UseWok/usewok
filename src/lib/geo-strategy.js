@@ -27,18 +27,18 @@ export function emptyGeoStrategy() {
 }
 
 export const POSITIONING_TARGETS = [
-  { value: 'Leader', label: 'Leader — recommandation n°1' },
-  { value: 'Challenger', label: 'Challenger — alternative crédible' },
-  { value: 'Niche', label: 'Niche — spécialiste d\'un segment' },
-  { value: 'Alternative', label: 'Alternative — challenger d\'un leader précis' },
+  { value: 'Leader', label: 'Leader — #1 recommendation' },
+  { value: 'Challenger', label: 'Challenger — credible alternative' },
+  { value: 'Niche', label: 'Niche — segment specialist' },
+  { value: 'Alternative', label: 'Alternative — challenger to a specific leader' },
 ];
 
 export const QUERY_INTENTS = [
-  { code: 'informational', label: 'Informationnelle' },
-  { code: 'commercial', label: 'Commerciale' },
-  { code: 'comparison', label: 'Comparaison' },
-  { code: 'transactional', label: 'Transactionnelle' },
-  { code: 'local', label: 'Locale' },
+  { code: 'informational', label: 'Informational' },
+  { code: 'commercial', label: 'Commercial' },
+  { code: 'comparison', label: 'Comparison' },
+  { code: 'transactional', label: 'Transactional' },
+  { code: 'local', label: 'Local' },
 ];
 
 export const KNOWN_SOURCES = [

@@ -14,14 +14,14 @@ import UpgradeModal from '@/components/upsell/UpgradeModal';
 
 
 const TABS = [
-  { id: 'overview',      label: 'Aperçu' },
-  { id: 'crawlability',  label: 'Crawlabilité' },
-  { id: 'issues',        label: 'Problèmes' },
-  { id: 'pages',         label: 'Pages analysées' },
+  { id: 'overview',      label: 'Overview' },
+  { id: 'crawlability',  label: 'Crawlability' },
+  { id: 'issues',        label: 'Issues' },
+  { id: 'pages',         label: 'Pages analyzed' },
   { id: 'performance',   label: 'Performance' },
 ];
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#0A0A0B';
 const INK3 = '#9B9BA8';
 const BORDER = '#E8E8E6';
@@ -84,9 +84,9 @@ function AuditLockedPreview({ onUpgrade }) {
       <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.55 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
-            { label: 'Score crawl', val: '74/100', color: '#F59E0B' },
-            { label: 'Problèmes', val: '12', color: '#EF4444' },
-            { label: 'Pages indexées', val: '47', color: '#10B981' },
+            { label: 'Crawl score', val: '74/100', color: '#F59E0B' },
+            { label: 'Issues', val: '12', color: '#EF4444' },
+            { label: 'Indexed pages', val: '47', color: '#10B981' },
             { label: 'Performance', val: '61/100', color: '#3B8BEB' },
           ].map((c, i) => (
             <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '18px 16px' }}>

@@ -1,6 +1,6 @@
 // ── Shared constants & helpers for AIVisibilityReport ──
 
-export const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
+export const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 export const INK = '#1A1814';
 export const INK2 = '#857E6E';
 export const INK3 = '#A8A49F';

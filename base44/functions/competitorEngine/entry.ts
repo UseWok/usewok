@@ -71,11 +71,11 @@ Include ONLY the pairs actually cited. All others are considered not cited.`,
 async function analyzeCompetitorWeb(svc, { name, domain, industry }) {
   const siteText = await fetchSiteText(domain);
   const result = await svc.integrations.Core.InvokeLLM({
-    prompt: `Analyse la marque "${name}" (${domain})${industry ? `, secteur : ${industry}` : ''} via le contexte internet.
+    prompt: `Analyze the brand "${name}" (${domain})${industry ? `, industry: ${industry}` : ''} using internet context.
 
-À RETOURNER (JSON strict, en français) :
-- positioning: comment "${name}" se présente — différenciateurs observés, cibles éditoriales inférées. ${siteText ? `Voici le vrai texte de leur page d'accueil :\n"${siteText.slice(0, 2000)}"` : 'Le site n\'a pas pu être analysé — renvoie une chaîne vide pour positioning.'}
-- news: 0 à 3 actualités RÉELLES et récentes sur "${name}" (lancements produit, annonces) avec title, summary, date (JJ/MM/AAAA), source_url réel, tag ("News"|"Product"|"Announcement"). Tableau vide si rien de vérifiable.`,
+RETURN (strict JSON, in friendly English):
+- positioning: how "${name}" presents itself — observed differentiators, inferred editorial targets. ${siteText ? `Here is the real text of their homepage:\n"${siteText.slice(0, 2000)}"` : 'The site could not be analyzed — return an empty string for positioning.'}
+- news: 0 to 3 REAL and recent news items about "${name}" (product launches, announcements) with title, summary, date (MM/DD/YYYY), real source_url, tag ("News"|"Product"|"Announcement"). Empty array if nothing verifiable.`,
     add_context_from_internet: true,
     model: 'gemini_3_flash',
     response_json_schema: {
@@ -135,10 +135,10 @@ Deno.serve(async (req) => {
 
       const existing = await svc.entities.Competitor.filter({ user_id: user.id, site_url: siteUrl });
       if (existing.some(c => !c.is_you && c.domain === domain)) {
-        return Response.json({ error: 'Ce concurrent est déjà suivi.' }, { status: 409 });
+        return Response.json({ error: 'This competitor is already tracked.' }, { status: 409 });
       }
       if (existing.filter(c => !c.is_you).length >= 3) {
-        return Response.json({ error: 'Maximum 3 concurrents suivis. Retirez-en un pour en ajouter.' }, { status: 409 });
+        return Response.json({ error: 'Maximum 3 competitors tracked. Remove one to add another.' }, { status: 409 });
       }
 
       const competitor = await svc.entities.Competitor.create({
@@ -161,15 +161,15 @@ Deno.serve(async (req) => {
 
       // 1. Generate 6 referral + 6 authority prompts (text-only writing → gpt_5_mini)
       const gen = await svc.integrations.Core.InvokeLLM({
-        prompt: `Tu es analyste GEO. Marque : "${brandName}" (${youDomain})${industry ? `, secteur : ${industry}` : ''}.
+        prompt: `You are a GEO analyst. Brand: "${brandName}" (${youDomain})${industry ? `, industry: ${industry}` : ''}.
 
-Génère 12 prompts RÉALISTES en français, tels que de vrais prospects les poseraient à ChatGPT/Gemini :
-- 6 de type "referral" : demandes de recommandation d'outils/services de la catégorie de la marque (sans nommer la marque).
-- 6 de type "authority" : questions éducatives où une marque experte serait citée comme source.
+Generate 12 REALISTIC prompts in friendly English, as real prospects would ask them to ChatGPT/Gemini:
+- 6 of type "referral": requests for tool/service recommendations in the brand's category (without naming the brand).
+- 6 of type "authority": educational questions where an expert brand would be cited as a source.
 
-Chaque prompt a des tags courts, ex : ["L5","FR"] (L = niveau/longueur, FR = langue).
+Each prompt has short tags, e.g.: ["L5","EN"] (L = level/length, EN = language).
 
-JSON strict uniquement.`,
+Strict JSON only.`,
         model: 'gpt_5_mini',
         response_json_schema: {
           type: 'object',
@@ -195,7 +195,7 @@ JSON strict uniquement.`,
         ...refP.map(p => ({ text: p.text, type: 'referral', tags: p.tags || [] })),
         ...authP.map(p => ({ text: p.text, type: 'authority', tags: p.tags || [] })),
       ];
-      if (prompts.length === 0) return Response.json({ error: 'Impossible de générer les prompts' }, { status: 500 });
+      if (prompts.length === 0) return Response.json({ error: 'Failed to generate prompts' }, { status: 500 });
 
       // 2. Real per-prompt evaluation on GPT-5 mini for YOU + all competitors at once
       const brands = [
@@ -236,7 +236,7 @@ JSON strict uniquement.`,
         const web = await analyzeCompetitorWeb(svc, { name: c.name, domain: c.domain, industry });
         await svc.entities.Competitor.update(c.id, {
           ...stats,
-          synthesis: `${c.name} est recommandé sur ${stats.referral_cited}/${stats.referral_total} prompts referral et présent sur ${stats.authority_cited}/${stats.authority_total} requêtes autorité.`,
+          synthesis: `${c.name} is recommended on ${stats.referral_cited}/${stats.referral_total} referral prompts and present on ${stats.authority_cited}/${stats.authority_total} authority queries.`,
           positioning: web.positioning,
           positioning_available: web.positioning_available,
           news_json: JSON.stringify(web.news),
@@ -249,11 +249,11 @@ JSON strict uniquement.`,
       try {
         const trackedDomains = competitors.map(c => c.domain).concat(youDomain);
         const sugg = await svc.integrations.Core.InvokeLLM({
-          prompt: `Marque : "${brandName}" (${youDomain})${industry ? `, secteur : ${industry}` : ''}.
+          prompt: `Brand: "${brandName}" (${youDomain})${industry ? `, industry: ${industry}` : ''}.
 
-Via le contexte internet, identifie 1 à 2 concurrents RÉELS de cette marque qui sont fréquemment cités/recommandés par les IA (ChatGPT, Gemini) dans cette catégorie, MAIS qui ne font PAS partie de cette liste déjà suivie : ${trackedDomains.join(', ')}.
+Using internet context, identify 1 to 2 REAL competitors of this brand that are frequently cited/recommended by AI (ChatGPT, Gemini) in this category, BUT are NOT part of this already-tracked list: ${trackedDomains.join(', ')}.
 
-JSON strict : { "suggestions": [ { "name": "...", "domain": "domaine.com", "reason": "cité dans X prompts" } ] }. Max 2. Tableau vide si rien de fiable.`,
+Strict JSON: { "suggestions": [ { "name": "...", "domain": "domain.com", "reason": "cited in X prompts" } ] }. Max 2. Empty array if nothing reliable.`,
           add_context_from_internet: true,
           model: 'gemini_3_flash',
           response_json_schema: {

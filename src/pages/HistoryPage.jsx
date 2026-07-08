@@ -10,7 +10,7 @@ import ScanList from '@/components/history/ScanList';
 import { computeAchievements } from '@/lib/achievements';
 import { getHistoryWindow } from '@/lib/quota-enforcement';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#15130F';
 const BORDER = 'rgba(21,19,15,0.10)';
 const CORAL = '#FF5A1F';

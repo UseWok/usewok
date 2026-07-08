@@ -17,7 +17,7 @@ import { FeatureGate } from '@/lib/usePlanFeatures.jsx';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#1A1A1A';
 const INK2 = '#4B4B52';
 const INK3 = '#9B9BA8';

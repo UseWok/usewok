@@ -7,15 +7,15 @@ const AUTHORITY_TASKS = [
     platform_label: 'Trustpilot',
     platform_url: 'trustpilot.com',
     signup_url: 'https://business.trustpilot.com/signup',
-    action_title: 'Créer votre profil Trustpilot',
+    action_title: 'Create your Trustpilot profile',
     points_base: 15,
-    description: "Trustpilot est la plateforme d'avis la plus citée par les moteurs IA. Un profil actif avec des avis clients renforce massivement votre autorité et vos chances d'être recommandé par ChatGPT et Gemini.",
+    description: "Trustpilot is the most cited review platform by AI engines. An active profile with customer reviews massively boosts your authority and your chances of being recommended by ChatGPT and Gemini.",
     steps: [
-      "Rendez-vous sur business.trustpilot.com et créez un compte professionnel avec votre adresse email d'entreprise.",
-      'Recherchez le nom de votre entreprise pour réclamer une page existante, ou créez une nouvelle fiche.',
-      'Renseignez votre nom commercial, votre site web et votre catégorie d\'activité principale.',
-      "Ajoutez votre logo et une description claire intégrant les mots-clés de votre secteur.",
-      'Invitez vos premiers clients à laisser un avis — chaque avis renforce la confiance que les IA vous accordent.',
+      'Go to business.trustpilot.com and create a professional account with your business email address.',
+      'Search for your company name to claim an existing page, or create a new listing.',
+      'Fill in your business name, website, and main activity category.',
+      'Add your logo and a clear description incorporating keywords from your industry.',
+      'Invite your first customers to leave a review — each review strengthens the trust AI places in you.',
     ],
   },
   {
@@ -23,15 +23,15 @@ const AUTHORITY_TASKS = [
     platform_label: 'F6S',
     platform_url: 'f6s.com',
     signup_url: 'https://www.f6s.com/',
-    action_title: 'Inscrire votre entreprise sur F6S',
+    action_title: 'List your business on F6S',
     points_base: 10,
-    description: "F6S est l'annuaire mondial de référence des entreprises et startups. Être listé renforce votre empreinte numérique et aide les IA à vous identifier comme une entité légitime.",
+    description: "F6S is the world's leading business and startup directory. Being listed strengthens your digital footprint and helps AI identify you as a legitimate entity.",
     steps: [
-      'Rendez-vous sur f6s.com et créez un compte gratuit.',
-      'Cliquez sur "Add your company" pour créer la fiche de votre entreprise.',
-      'Renseignez le nom, le site web, une description courte et votre catégorie d\'activité.',
-      'Ajoutez votre logo, vos cofondateurs et vos produits ou services.',
-      'Publiez la fiche — F6S est indexé par les moteurs IA comme annuaire de référence.',
+      'Go to f6s.com and create a free account.',
+      'Click "Add your company" to create your business listing.',
+      'Fill in the name, website, a short description, and your activity category.',
+      'Add your logo, co-founders, and your products or services.',
+      'Publish the listing — F6S is indexed by AI engines as a reference directory.',
     ],
   },
   {
@@ -39,15 +39,15 @@ const AUTHORITY_TASKS = [
     platform_label: 'G2',
     platform_url: 'g2.com',
     signup_url: 'https://www.g2.com/claim_your_listing',
-    action_title: 'Réclamer votre profil G2',
+    action_title: 'Claim your G2 profile',
     points_base: 14,
-    description: "G2 est la plateforme d'avis de référence pour les logiciels et services B2B. Un profil actif augmente massivement votre visibilité dans les recommandations IA de votre catégorie.",
+    description: "G2 is the leading review platform for B2B software and services. An active profile massively increases your visibility in AI recommendations within your category.",
     steps: [
-      'Rendez-vous sur g2.com/claim_your_listing pour réclamer votre profil entreprise.',
-      'Recherchez votre entreprise par nom ou par site web.',
-      "Vérifiez votre affiliation avec l'entreprise (email professionnel requis).",
-      'Complétez le profil : logo, description, catégorie et liste de vos produits.',
-      'Encouragez vos clients à publier des avis — G2 est une source premium pour les recommandations IA.',
+      'Go to g2.com/claim_your_listing to claim your business profile.',
+      'Search for your company by name or website.',
+      'Verify your affiliation with the company (business email required).',
+      'Complete the profile: logo, description, category, and list of your products.',
+      'Encourage your customers to post reviews — G2 is a premium source for AI recommendations.',
     ],
   },
 ];
@@ -143,22 +143,22 @@ Deno.serve(async (req) => {
 
       // Gemini 3 Flash with web context — real check if the brand has an active profile
       const result = await svc.integrations.Core.InvokeLLM({
-        prompt: `Tu vérifies si l'entreprise "${brandLabel}" (${domain})${industry ? `, secteur : ${industry}` : ''} possède un profil actif sur ${taskDef.platform_label} (${taskDef.platform_url}).
+        prompt: `You are checking whether the company "${brandLabel}" (${domain})${industry ? `, industry: ${industry}` : ''} has an active profile on ${taskDef.platform_label} (${taskDef.platform_url}).
 
-Via le contexte internet, recherche si CETTE entreprise précise a une page/profil réel sur ${taskDef.platform_label}.
+Using internet context, search whether THIS specific company has a real page/profile on ${taskDef.platform_label}.
 
-Critères de validation RIGOUREUX :
-- Il doit s'agir de CETTE entreprise précise (pas d'une homonyme)
-- Le profil doit exister et être actif (pas juste une page vide auto-générée)
-- Le site web mentionné sur le profil doit correspondre à ${domain}
+STRICT validation criteria:
+- It must be THIS specific company (not a namesake)
+- The profile must exist and be active (not just an auto-generated empty page)
+- The website mentioned on the profile must match ${domain}
 
-JSON strict :
+Strict JSON:
 {
   "verified": true/false,
   "confidence": 0-100,
-  "profile_url": "URL du profil trouvé sur ${taskDef.platform_url}, ou chaîne vide",
-  "what_was_found": "Ce que tu as réellement trouvé (sois précis : nom de l'entreprise sur le profil, nombre d'avis si visible, etc.)",
-  "feedback": "Message direct et amical à l'utilisateur. Si validé : félicitations + impact business concret sur sa visibilité IA. Si non validé : encouragement précis sur ce qu'il reste à faire."
+  "profile_url": "URL of the profile found on ${taskDef.platform_url}, or empty string",
+  "what_was_found": "What you actually found (be specific: company name on the profile, number of reviews if visible, etc.)",
+  "feedback": "Direct and friendly message to the user. If verified: congratulations + concrete business impact on AI visibility. If not verified: specific encouragement on what remains to be done."
 }`,
         add_context_from_internet: true,
         model: 'gemini_3_flash',
