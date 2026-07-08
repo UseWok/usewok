@@ -4,7 +4,7 @@ import { Map, Bell, Users, Save, Bot, Search, Check, Pencil, Trash2, CreditCard,
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentsConfig, saveAgentsConfig, initAgentsFromDB, AGENT_TONE_OPTIONS, AGENT_LENGTH_OPTIONS, AGENT_LANGUAGE_OPTIONS, AGENT_EMOJI_OPTIONS } from '@/lib/agents-config';
-import { getPlansConfig, savePlansConfig, DEFAULT_PLANS, loadPlansFromDB } from '@/lib/plans-config';
+import { savePlansConfig, DEFAULT_PLANS, loadPlansFromDB } from '@/lib/plans-config';
 import { getPageModes, savePageModes } from '@/lib/page-modes';
 import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,7 +26,10 @@ function Toggle({ value, onChange }) {
 
 export default function AdminProducts() {
   const [tab, setTab] = useState('plans');
-  const [plansConfig, setPlansConfig] = useState(getPlansConfig);
+  const [plansConfig, setPlansConfig] = useState([]);
+  // Guard: only allow saving once the persisted DB value has loaded, so a fast
+  // save never overwrites admin edits with default plans.
+  const [plansLoaded, setPlansLoaded] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
   const [notifForm, setNotifForm] = useState({ title: '', message: '', link: '', link_label: '' });
   const [notifSent, setNotifSent] = useState(false);
@@ -52,7 +55,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     initAgentsFromDB().then(configs => setAgentsConfig(configs)).catch(() => {});
-    loadPlansFromDB().then(plans => { if (plans) setPlansConfig(plans); }).catch(() => {});
+    loadPlansFromDB().then(plans => { if (plans) setPlansConfig(plans); }).catch(() => {}).finally(() => setPlansLoaded(true));
     base44.entities.AppSettings.filter({ key: 'highlighted_plan' }).then(r => { if (r.length > 0) setHighlightedPlan(r[0].value); }).catch(() => {});
     base44.entities.ActivationCode.list('-created_date', 8000).then(codes => {
       const grouped = {};
@@ -85,7 +88,10 @@ export default function AdminProducts() {
   };
 
   const showSaved = () => { setSavedMsg(true); setTimeout(() => setSavedMsg(false), 2000); };
-  const savePlans = () => { savePlansConfig(plansConfig); showSaved(); };
+  const savePlans = () => {
+    if (!plansLoaded) { toast.error('Plans still loading — please wait before saving.'); return; }
+    savePlansConfig(plansConfig); showSaved();
+  };
   const saveAgents = () => { saveAgentsConfig(agentsConfig); showSaved(); };
 
   const saveAppSetting = async (key, value) => {
@@ -269,8 +275,8 @@ export default function AdminProducts() {
                   className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold bg-yuzu text-fg rounded-sm hover:opacity-90">
                   <Plus className="w-4 h-4" /> Add plan
                 </button>
-                <button onClick={savePlans} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-fg text-white rounded-sm hover:opacity-90">
-                  <Save className="w-4 h-4" /> Save all
+                <button onClick={savePlans} disabled={!plansLoaded} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-fg text-white rounded-sm hover:opacity-90 disabled:opacity-40">
+                  <Save className="w-4 h-4" /> {plansLoaded ? 'Save all' : 'Loading…'}
                 </button>
               </div>
             </div>

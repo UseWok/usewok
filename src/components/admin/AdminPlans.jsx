@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, RefreshCw, Plus, Trash2, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { getPlansConfig, savePlansConfig } from '@/lib/plans-config';
+import { loadPlansFromDB, savePlansConfig } from '@/lib/plans-config';
 import { toast } from 'sonner';
 
 const FADE = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } };
@@ -194,8 +194,16 @@ function PlanCard({ plan, index, onChange, onDelete }) {
 export default function AdminPlans() {
   const [plans, setPlans] = useState([]);
   const [saving, setSaving] = useState(false);
+  // Only becomes true once the persisted DB value is loaded — prevents saving
+  // default plans over admin edits (which caused the "features reset" bug).
+  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => { setPlans(getPlansConfig()); }, []);
+  useEffect(() => {
+    loadPlansFromDB()
+      .then(dbPlans => { if (dbPlans) setPlans(dbPlans); })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
 
   const updatePlan = (idx, updated) => {
     setPlans(prev => prev.map((p, i) => i === idx ? updated : p));
@@ -220,6 +228,7 @@ export default function AdminPlans() {
   };
 
   const handleSave = async () => {
+    if (!loaded) { toast.error('Plans still loading — please wait.'); return; }
     setSaving(true);
     savePlansConfig(plans);
     await new Promise(r => setTimeout(r, 600));
@@ -244,7 +253,7 @@ export default function AdminPlans() {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !loaded}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-black text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
