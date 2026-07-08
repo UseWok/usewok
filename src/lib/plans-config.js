@@ -207,12 +207,13 @@ export function savePlansConfig(plans) {
 export async function loadPlansFromDB() {
   try {
     const { base44 } = await import('@/api/base44Client');
-    const results = await base44.entities.AppSettings.filter({ key: DB_PLANS_KEY });
-    if (results.length > 0) {
-      const plans = JSON.parse(results[0].value);
+    // Public backend function — AppSettings is admin-only via RLS, so visitors
+    // would otherwise silently fall back to default plans on the pricing page.
+    const res = await base44.functions.invoke('getPublicPlans', {});
+    if (res?.data?.plans) {
       // Sync local cache with DB truth
-      localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans));
-      return plans;
+      localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(res.data.plans));
+      return res.data.plans;
     }
   } catch {}
   // Fallback: local cache

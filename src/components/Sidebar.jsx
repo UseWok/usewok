@@ -514,15 +514,15 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
-          background: '#FFFFFF',
-          borderRight: '1px solid #FFFFFF',
+          background: '#F5F2EC',
+          borderRight: '1px solid #F5F2EC',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
       >
         {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 9, padding: expanded ? '16px 12px 14px' : '16px 0 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 6, padding: expanded ? '10px 12px 8px' : '10px 0 8px' }}>
             <div style={{ width: 40, height: 40, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
               <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/02ac593f2_pcloud_552088188_3_202607_1_common-20260707001315-30789-22a14-cf87f.jpg" alt="UseWok" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>

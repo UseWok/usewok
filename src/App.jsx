@@ -18,6 +18,7 @@ import SEOHead from './components/SEOHead';
 import GlobalNotifications from './components/GlobalNotifications';
 import BuildToast from './components/chat/BuildToast';
 import AppSkeleton from './components/ui/AppSkeleton';
+import { prefetchAllPages } from '@/lib/prefetch';
 
 // ── Lazy-loaded pages (code-split for faster initial load) ──
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -75,6 +76,11 @@ const isPublicPath = (pathname) =>
 const AuthenticatedApp = () => {
   const { pathname } = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
+
+  // Speed system: preload all page chunks in the background after first paint
+  useEffect(() => {
+    if (!isLoadingAuth) prefetchAllPages(isAuthenticated);
+  }, [isLoadingAuth, isAuthenticated]);
 
   // Performance: visitors without a token on public routes get instant rendering
   // — no need to wait for the auth/settings API call that 99% of visitors don't need.

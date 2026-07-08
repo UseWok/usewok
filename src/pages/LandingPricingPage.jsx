@@ -145,12 +145,12 @@ export default function LandingPricingPage() {
             <div className="pricing-grid">
               {loading && [0, 1, 2].map(i => (
                 <div key={i} style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 18, padding: 26 }}>
-                  <div style={{ width: '40%', height: 13, borderRadius: 7, marginBottom: 16, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
-                  <div style={{ width: '55%', height: 34, borderRadius: 8, marginBottom: 22, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                  <div style={{ width: '40%', height: 13, borderRadius: 7, marginBottom: 16, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 2.6s ease-in-out infinite' }} />
+                  <div style={{ width: '55%', height: 34, borderRadius: 8, marginBottom: 22, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 2.6s ease-in-out infinite' }} />
                   {[90, 75, 85, 65, 80].map((w, j) => (
-                    <div key={j} style={{ width: `${w}%`, height: 12, borderRadius: 6, marginBottom: 10, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                    <div key={j} style={{ width: `${w}%`, height: 12, borderRadius: 6, marginBottom: 10, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 2.6s ease-in-out infinite' }} />
                   ))}
-                  <div style={{ height: 46, borderRadius: 100, marginTop: 18, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                  <div style={{ height: 46, borderRadius: 100, marginTop: 18, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 2.6s ease-in-out infinite' }} />
                   <style>{`@keyframes skel-sh{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
                 </div>
               ))}

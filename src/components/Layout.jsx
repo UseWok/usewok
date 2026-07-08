@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import RouteSkeleton from '@/components/ui/RouteSkeleton';
 import BottomTabs from './BottomTabs';
 import { getActiveDomain, onActiveDomainChange, setActiveDomain } from '@/lib/active-domain';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -100,7 +101,7 @@ export default function Layout() {
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
   // Frame bg — EXACTLY matches index.css body background so there's no seam
   // #F8F7F4 = exact sidebar bg (--sidebar-background) — all borders same color
-  const FRAME_BG = '#FFFFFF';
+  const FRAME_BG = '#F5F2EC';
   const BORDER_TOP = 11;
   const BORDER_SIDE = 11;
   const BORDER_BOTTOM = 14;
@@ -227,7 +228,7 @@ export default function Layout() {
             borderRadius: CORNER_R,
             overflow: 'hidden',
             boxSizing: 'border-box',
-            background: '#F7F5F0',
+            background: '#F5F2EC',
             boxShadow: 'none',
           }),
         }}
@@ -246,7 +247,9 @@ export default function Layout() {
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100%' }}
             >
-              <Outlet />
+              <Suspense fallback={<RouteSkeleton />}>
+                <Outlet />
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </div>

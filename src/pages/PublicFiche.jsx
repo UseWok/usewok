@@ -796,7 +796,7 @@ export default function PublicFiche() {
             { w: '92%', h: 14, mb: 10 },
             { w: '70%', h: 14, mb: 10 },
           ].map((b, i) => (
-            <div key={i} style={{ width: b.w, height: b.h, borderRadius: 8, marginBottom: b.mb, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+            <div key={i} style={{ width: b.w, height: b.h, borderRadius: 8, marginBottom: b.mb, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 2.6s ease-in-out infinite' }} />
           ))}
         </div>
         <style>{`@keyframes skel-sh{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>

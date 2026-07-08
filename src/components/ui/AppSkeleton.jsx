@@ -3,16 +3,16 @@
 // feels "already there" while data / code loads.
 
 const shimmer = {
-  background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)',
-  backgroundSize: '600px 100%',
-  animation: 'skel-shimmer 1.4s ease-in-out infinite',
+  background: 'linear-gradient(90deg, rgba(21,19,15,0.04) 30%, rgba(21,19,15,0.07) 50%, rgba(21,19,15,0.04) 70%)',
+  backgroundSize: '900px 100%',
+  animation: 'skel-shimmer 2.6s ease-in-out infinite',
 };
 
 export function SkelBlock({ w = '100%', h = 14, r = 8, style = {} }) {
   return <div style={{ width: w, height: h, borderRadius: r, ...shimmer, ...style }} />;
 }
 
-export default function AppSkeleton({ bg = '#F8F7F4' }) {
+export default function AppSkeleton({ bg = '#F5F2EC' }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: bg, overflow: 'hidden', zIndex: 50 }}>
       {/* Navbar */}
@@ -48,7 +48,7 @@ export default function AppSkeleton({ bg = '#F8F7F4' }) {
         ))}
       </div>
 
-      <style>{`@keyframes skel-shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
+      <style>{`@keyframes skel-shimmer{0%{background-position:-900px 0}100%{background-position:900px 0}}`}</style>
     </div>
   );
 }
