@@ -5,7 +5,7 @@ import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 
 const TABS = [
   { label: 'Home',        icon: Home,       path: '/app' },
-  { label: 'Tableau',     icon: BarChart2,   path: '/ai-report' },
+  { label: 'Report',      icon: BarChart2,   path: '/ai-report' },
   { label: 'Performance', icon: TrendingUp,  path: '/performance' },
   { label: 'Settings',    icon: Settings,    path: '/settings' },
 ];
