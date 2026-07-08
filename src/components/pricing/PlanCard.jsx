@@ -1,6 +1,6 @@
 import React from 'react';
 
-const F = "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const INK = '#15130F';
 const WHITE = '#FFFFFF';
 const ORANGE = '#F47321';

@@ -19,7 +19,7 @@ const inputStyle = {
   fontSize: 13,
   color: '#111',
   outline: 'none',
-  fontFamily: 'Inter, sans-serif',
+  fontFamily: '"Wix Madefor Text", Inter, sans-serif',
   boxSizing: 'border-box',
 };
 
@@ -430,7 +430,7 @@ export default function SettingsPage() {
   const sectionTitles = { profile: 'Profile', usage: 'Usage', plan: 'Billing', integrations: 'Integrations' };
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#F8F7F5', fontFamily: 'Inter, system-ui, sans-serif', scrollbarWidth: 'none' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#F8F7F5', fontFamily: '"Wix Madefor Text", Inter, system-ui, sans-serif', scrollbarWidth: 'none' }}>
       <div style={{ maxWidth: 620 }}>
 
         <h1 style={{ fontSize: 22, fontWeight: 600, color: '#111', margin: '0 0 28px', letterSpacing: '-0.02em' }}>

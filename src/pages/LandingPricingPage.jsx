@@ -6,7 +6,7 @@ import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
 import SecurityBadges from '@/components/pricing/SecurityBadges';
 
-const WIX = "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const WIX = "'Wix Madefor Text', 'Wix Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 export default function LandingPricingPage() {
   const navigate = useNavigate();

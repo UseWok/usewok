@@ -41,7 +41,7 @@ body {
 @layer base {
   :root {
     /* ── Fonts ── */
-    --font-inter: 'Inter var', 'Inter', system-ui, sans-serif;
+    --font-inter: 'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif;
 
     /* ════════════════════════════════════════
        WOK DESIGN SYSTEM — Crème / Noir / Corail

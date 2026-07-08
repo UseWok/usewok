@@ -5,9 +5,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        inter: ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
-        be:    ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
-        open:  ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
+        inter: ['Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', 'system-ui', 'sans-serif'],
+        be:    ['Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', 'system-ui', 'sans-serif'],
+        open:  ['Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', 'system-ui', 'sans-serif'],
       },
 
       /* ── Border radius ── */
