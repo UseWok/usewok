@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Flame } from 'lucide-react';
 import BottomTabs from './BottomTabs';
-import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
+import { getActiveDomain, onActiveDomainChange, setActiveDomain } from '@/lib/active-domain';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { base44 } from '@/api/base44Client';
@@ -13,6 +12,7 @@ import { captureReferralFromUrl } from '@/lib/referral';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { initTheme } from '@/lib/theme';
 import { useAuth } from '@/lib/AuthContext';
+import { getCachedProfiles } from '@/lib/data-cache';
 
 const SESSION_KEY = 'stensor_total_minutes';
 
@@ -103,7 +103,7 @@ export default function Layout() {
   const FRAME_BG = '#FFFFFF';
   const BORDER_TOP = 11;
   const BORDER_SIDE = 11;
-  const BORDER_BOTTOM = 48;
+  const BORDER_BOTTOM = 14;
   const CORNER_R = 14;
 
   const [activeDomain, setActiveDomainState] = useState(() => getActiveDomain());
@@ -113,39 +113,28 @@ export default function Layout() {
   }, []);
 
   const navigate = useNavigate();
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackRating, setFeedbackRating] = useState(null);
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackSent, setFeedbackSent] = useState(false);
-  const [feedbackSending, setFeedbackSending] = useState(false);
 
-  const RATINGS = [
-    { key: 'bad',   emoji: '👎', label: 'Bad',   color: '#EF4444' },
-    { key: 'okay',  emoji: '😐', label: 'Okay',  color: '#F59E0B' },
-    { key: 'good',  emoji: '😊', label: 'Good',  color: '#10B981' },
-    { key: 'great', emoji: '🤩', label: 'Great', color: '#10B981' },
-  ];
+  // ── Playful, low-effort domain switcher ──
+  const [domainMenuOpen, setDomainMenuOpen] = useState(false);
+  const [domainList, setDomainList] = useState([]);
+  const domainMenuRef = useRef(null);
 
-  const handleRatingClick = (key) => {
-    if (feedbackSending) return;
-    setFeedbackRating(key);
-  };
+  useEffect(() => {
+    if (domainMenuOpen && user?.id) {
+      getCachedProfiles(user.id).then(setDomainList).catch(() => {});
+    }
+  }, [domainMenuOpen, user?.id]);
 
-  const handleFeedbackSend = async () => {
-    if (!feedbackRating) return;
-    setFeedbackSending(true);
-    try {
-      await base44.entities.Feedback.create({
-        rating: feedbackRating,
-        message: feedbackText || '',
-        user_email: user?.email || '',
-        user_name: user?.full_name || '',
-        user_id: user?.id || '',
-      });
-    } catch {}
-    setFeedbackSending(false);
-    setFeedbackSent(true);
-    setTimeout(() => { setShowFeedback(false); setFeedbackSent(false); setFeedbackRating(null); setFeedbackText(''); }, 2000);
+  useEffect(() => {
+    if (!domainMenuOpen) return;
+    const h = e => { if (domainMenuRef.current && !domainMenuRef.current.contains(e.target)) setDomainMenuOpen(false); };
+    document.addEventListener('pointerdown', h);
+    return () => document.removeEventListener('pointerdown', h);
+  }, [domainMenuOpen]);
+
+  const switchDomain = (p) => {
+    setActiveDomain({ url: p.site_url, name: p.identity_name || '' });
+    setDomainMenuOpen(false);
   };
 
   return (
@@ -170,101 +159,54 @@ export default function Layout() {
         </button>
       )}
 
-      {/* Bottom bar: fire + active domain */}
+      {/* Bottom bar: playful domain switcher — only element shown */}
       {!isMobile && (
-        <div style={{ position: 'fixed', bottom: 12, right: 16, zIndex: 80, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div ref={domainMenuRef} style={{ position: 'fixed', bottom: 12, right: 16, zIndex: 80 }}>
           {activeDomain && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, height: 30, padding: '0 11px', borderRadius: 9, background: 'rgba(0,0,0,0.045)', border: '1px solid rgba(0,0,0,0.06)', maxWidth: 180 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <button
+              onClick={() => setDomainMenuOpen(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7, height: 32, padding: '0 12px',
+                borderRadius: 9, background: '#fff', border: '1px solid rgba(0,0,0,0.08)',
+                cursor: 'pointer', maxWidth: 200, fontFamily: 'inherit', transition: 'background 120ms',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+            >
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#B8B5AC', flexShrink: 0 }} />
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {activeDomain.url.replace(/https?:\/\//, '').split('/')[0]}
               </span>
-            </div>
+            </button>
           )}
-          <button
-            onClick={() => setShowFeedback(true)}
-            title="Give feedback"
-            style={{
-              width: 30, height: 30, borderRadius: 9,
-              background: 'rgba(0,0,0,0.045)', border: '1px solid rgba(0,0,0,0.06)',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, transition: 'background 120ms',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.10)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.045)'}
-          >
-            <Flame size={14} color="#F95738" strokeWidth={2} />
-          </button>
+          <AnimatePresence>
+            {domainMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                transition={{ duration: 0.12 }}
+                style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, boxShadow: '0 8px 28px rgba(0,0,0,0.12)', minWidth: 200, overflow: 'hidden', padding: 4 }}
+              >
+                {domainList.length === 0 && <p style={{ fontSize: 12, color: '#999', padding: '10px 12px', margin: 0 }}>No sites yet</p>}
+                {domainList.map(p => {
+                  const isAct = p.site_url === activeDomain?.url;
+                  return (
+                    <button key={p.id} onClick={() => switchDomain(p)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', border: 'none', borderRadius: 7, background: isAct ? 'rgba(0,0,0,0.05)' : 'transparent', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
+                      onMouseEnter={e => { if (!isAct) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = isAct ? 'rgba(0,0,0,0.05)' : 'transparent'; }}
+                    >
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: isAct ? '#FF5A1F' : '#D9D6CE', flexShrink: 0 }} />
+                      <span style={{ fontSize: 12.5, fontWeight: isAct ? 600 : 400, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.site_url.replace(/https?:\/\//, '').split('/')[0]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
-
-      {/* Feedback Modal — centered */}
-      <AnimatePresence>
-        {showFeedback && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(10,10,11,0.45)', backdropFilter: 'blur(6px)' }}
-              onClick={() => { setShowFeedback(false); setFeedbackRating(null); setFeedbackText(''); }} />
-            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-              <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.22, ease: [0.22,1,0.36,1] }}
-                onClick={e => e.stopPropagation()}
-                style={{ background: '#fff', borderRadius: 16, padding: '24px 22px 20px', width: '100%', maxWidth: 360, boxShadow: '0 24px 80px rgba(0,0,0,0.16)', position: 'relative' }}
-              >
-                <button onClick={() => { setShowFeedback(false); setFeedbackRating(null); setFeedbackText(''); }}
-                  style={{ position: 'absolute', top: 12, right: 12, width: 26, height: 26, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                </button>
-
-                {feedbackSent ? (
-                  <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16,185,129,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                    </div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 4px' }}>Thank you!</p>
-                    <p style={{ fontSize: 12, color: '#888', margin: 0, lineHeight: 1.5 }}>Your feedback helps us improve.</p>
-                  </div>
-                ) : (
-                  <>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '0 0 3px', letterSpacing: '-0.01em' }}>How is your experience?</p>
-                    <p style={{ fontSize: 12, color: '#999', margin: '0 0 16px', lineHeight: 1.5 }}>Your feedback shapes what we build next.</p>
-
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-                      {RATINGS.map(r => {
-                        const selected = feedbackRating === r.key;
-                        return (
-                          <button key={r.key} onClick={() => handleRatingClick(r.key)}
-                            disabled={feedbackSending}
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '11px 2px 9px', borderRadius: 10, border: selected ? `1.5px solid ${r.color}` : '1.5px solid #EEE', background: selected ? `${r.color}10` : '#FAFAF9', cursor: 'pointer', transition: 'all 130ms' }}>
-                            <span style={{ fontSize: 20, lineHeight: 1 }}>{r.emoji}</span>
-                            <span style={{ fontSize: 9.5, fontWeight: 600, color: selected ? r.color : '#AAA', whiteSpace: 'nowrap' }}>{r.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <textarea
-                      value={feedbackText}
-                      onChange={e => setFeedbackText(e.target.value)}
-                      placeholder="Tell us more (optional)..."
-                      rows={2}
-                      style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: '1.5px solid #EEE', borderRadius: 10, outline: 'none', resize: 'none', fontFamily: 'Inter, sans-serif', color: '#111', background: '#fff', boxSizing: 'border-box', marginBottom: 12, transition: 'border-color 150ms' }}
-                      onFocus={e => e.target.style.borderColor = '#FF5A1F'}
-                      onBlur={e => e.target.style.borderColor = '#EEE'}
-                    />
-
-                    <button onClick={handleFeedbackSend} disabled={feedbackSending || !feedbackRating}
-                      style={{ width: '100%', padding: '11px 0', background: feedbackRating ? '#0A0A0B' : '#F0EFED', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, color: feedbackRating ? '#fff' : '#aaa', cursor: feedbackRating ? 'pointer' : 'default', fontFamily: 'Inter, sans-serif', opacity: feedbackSending ? 0.6 : 1, transition: 'all 180ms' }}>
-                      {feedbackSending ? 'Sending…' : 'Send feedback'}
-                    </button>
-                  </>
-                )}
-              </motion.div>
-            </div>
-          </>
-        )}
-      </AnimatePresence>
 
       <motion.main
         animate={{ marginLeft: sidebarOffset }}

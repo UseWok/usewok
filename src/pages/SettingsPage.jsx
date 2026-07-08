@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { X, Download, Check, Clock, Calendar, MessageCircle, Scan, Settings } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
+import { AVATAR_COLORS } from '@/lib/user-color';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { getWokFeatures } from '@/lib/wok-plans';
@@ -292,6 +293,27 @@ function CreditsGauge({ used, limit }) {
   );
 }
 
+function AvatarColorPicker({ user, onUpdate }) {
+  const [color, setColor] = useState(user?.avatar_color || 'red');
+  const select = async (id) => {
+    setColor(id);
+    try { await base44.auth.updateMe({ avatar_color: id }); } catch {}
+    if (onUpdate) onUpdate(id);
+  };
+  return (
+    <div style={{ display: 'flex', gap: 8 }}>
+      {AVATAR_COLORS.map(c => (
+        <button key={c.id} onClick={() => select(c.id)} title={c.id}
+          style={{
+            width: 26, height: 26, borderRadius: 8, background: c.value, padding: 0, cursor: 'pointer',
+            border: color === c.id ? '2px solid #111' : '2px solid transparent',
+            boxShadow: color === c.id ? '0 0 0 2px #fff inset' : 'none',
+          }} />
+      ))}
+    </div>
+  );
+}
+
 function StatCard({ label, value, sub, accent = false }) {
   return (
     <div style={{
@@ -454,7 +476,7 @@ export default function SettingsPage() {
               <SettingRow label="Email" description="Your login email address — can't be changed.">
                 <input value={user?.email || ''} disabled style={{ ...inputStyle, width: 220, opacity: 0.5, cursor: 'not-allowed', background: '#F0F0EE' }} />
               </SettingRow>
-              <SettingRow label="Full name" description="Your display name in the app." noBorder>
+              <SettingRow label="Full name" description="Your display name in the app.">
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input value={fullName} onChange={e => setFullName(e.target.value)}
@@ -466,6 +488,9 @@ export default function SettingsPage() {
                   </div>
                   {profileError && <p style={{ fontSize: 11, color: '#ef4444', margin: 0 }}>{profileError}</p>}
                 </div>
+              </SettingRow>
+              <SettingRow label="Avatar color" description="Choose your profile icon color." noBorder>
+                <AvatarColorPicker user={user} onUpdate={(id) => setUser(u => ({ ...u, avatar_color: id }))} />
               </SettingRow>
             </div>
 

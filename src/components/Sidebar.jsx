@@ -6,6 +6,7 @@ import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditC
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
+import { getUserColor } from '@/lib/user-color';
 import { toast } from 'sonner';
 import { useCredits } from '@/hooks/useCredits';
 
@@ -14,19 +15,6 @@ export const EXPANDED_W = 232;
 export const SIDEBAR_MARGIN = 0;
 
 const T = { duration: 0.22, ease: [0.4, 0, 0.2, 1] };
-
-// ─── Avatar ───────────────────────────────────────────────────────
-function Avatar({ user, size = 24 }) {
-  const ch = user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: 6,
-      background: '#F95738', color: '#fff',
-      fontSize: Math.round(size * 0.44), fontWeight: 600,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-    }}>{ch}</div>
-  );
-}
 
 // ─── Referral Banner ──────────────────────────────────────────────
 function ReferralBanner({ expanded, onClick }) {
@@ -53,19 +41,10 @@ function ReferralBanner({ expanded, onClick }) {
   );
 }
 
-// ─── User Popover (floating panel, not touching edges) ───────────
-function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
+// ─── Account menu (bottom trigger: avatar + name + plan) ───────────
+function AccountMenu({ user, userPlan, navigate, expanded }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const { used, limit, pct, barColor, isOverLimit } = useCredits(user);
-  const formatK = n => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
-
-  // Renewal date
-  const renewalDate = (() => {
-    const base = user?.credits_reset_at || user?.subscription_date || user?.created_date;
-    if (!base) return null;
-    return new Date(base).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  })();
 
   useEffect(() => {
     if (!open) return;
@@ -76,101 +55,74 @@ function UserPopover({ user, expanded, navigate, userPlan, onSettingsClick }) {
     return () => { document.removeEventListener('pointerdown', h); document.removeEventListener('keydown', esc); };
   }, [open]);
 
-  const initials = (user?.full_name || user?.email || '?').slice(0, 2).toUpperCase();
+  const initials = (user?.full_name || user?.email || '?').charAt(0).toUpperCase();
+  const color = getUserColor(user);
+
+  const items = [
+    { label: 'Settings', action: () => navigate('/settings') },
+    { label: 'Get help', action: () => navigate('/support') },
+    { label: 'Upgrade', action: () => navigate('/pricing') },
+    { label: 'Log out', action: async () => { await base44.auth.logout(); window.location.reload(); }, danger: true },
+  ];
 
   return (
-    <div ref={ref} style={{ position: 'relative', padding: '6px 8px 0', flexShrink: 0 }}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          width: '100%', padding: '6px 8px', borderRadius: 8,
-          border: 'none', background: open ? 'rgba(21,19,15,0.06)' : 'transparent',
-          cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'background 120ms',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.06)'}
-        onMouseLeave={e => e.currentTarget.style.background = open ? 'rgba(21,19,15,0.06)' : 'transparent'}
-      >
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: '#15130F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#F7F2E9', flexShrink: 0, letterSpacing: '-0.02em' }}>
-          {initials}
-        </div>
-        {expanded && (
-          <>
-            <span style={{ fontSize: 12.5, fontWeight: 500, color: '#111', flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user?.full_name || user?.email?.split('@')[0] || 'Account'}
-            </span>
-            <ChevronDown style={{ width: 12, height: 12, color: '#888', flexShrink: 0 }} />
-          </>
-        )}
-      </button>
-
+    <div ref={ref} style={{ position: 'relative', padding: expanded ? '4px 8px 8px' : '4px 0 8px', flexShrink: 0 }}>
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.08 }}
-            onClick={e => e.stopPropagation()}
+            initial={{ opacity: 0, y: 4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            transition={{ duration: 0.1 }}
             style={{
-              position: 'absolute', top: 'calc(100% + 6px)', left: 6,
-              background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 14,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.14)', zIndex: 9999,
-              width: 232, overflow: 'hidden',
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: expanded ? 8 : '50%',
+              transform: expanded ? 'none' : 'translateX(-50%)',
+              background: '#fff', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 12,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.14)', zIndex: 9999, width: 200, overflow: 'hidden', padding: 6,
             }}
           >
-            {/* Paramètres — large primary button */}
-            <div style={{ padding: '12px 12px 8px' }}>
-              <button
-                onClick={() => { setOpen(false); onSettingsClick(); }}
-                style={{
-                  width: '100%', padding: '10px 14px', border: 'none',
-                  background: '#F5F5F3', borderRadius: 9,
-                  cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#111',
-                  textAlign: 'left', fontFamily: 'inherit', transition: 'background 120ms',
-                  letterSpacing: '-0.01em',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#ECECEA'}
-                onMouseLeave={e => e.currentTarget.style.background = '#F5F5F3'}
-              >
-                Settings
-              </button>
-            </div>
-
-            {/* Upgrade CTA */}
-            <div style={{ padding: '8px 12px 10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              <button
-                onClick={() => { navigate('/pricing'); setOpen(false); }}
-                style={{ width: '100%', padding: '9px 12px', border: '1px solid rgba(0,0,0,0.10)', background: '#fff', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#111', textAlign: 'left', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 7, transition: 'background 120ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
-                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-              >
-                <Zap size={14} color="#111" strokeWidth={2} style={{ flexShrink: 0 }} />
-                <span style={{ flex: 1 }}>Upgrade</span>
-                <ChevronRight size={12} color="#999" style={{ flexShrink: 0 }} />
-              </button>
-            </div>
-
-            {/* Get help + Logout */}
-            <div style={{ padding: '6px 12px 12px', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <button
-                onClick={() => { navigate('/support'); setOpen(false); }}
-                style={{ width: '100%', padding: '8px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, color: '#444', textAlign: 'left', fontFamily: 'inherit', transition: 'background 100ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+            {items.map((it, i) => (
+              <button key={i}
+                onClick={() => { setOpen(false); it.action(); }}
+                style={{ width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: it.danger ? '#E8184A' : '#222', fontFamily: 'inherit', transition: 'background 100ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                Help
+                {it.label}
               </button>
-              <button
-                onClick={async () => { setOpen(false); await base44.auth.logout(); window.location.reload(); }}
-                style={{ width: '100%', padding: '8px 10px', border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', fontSize: 13, color: '#E8184A', textAlign: 'left', fontFamily: 'inherit', transition: 'background 100ms' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,24,74,0.06)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                Log out
-              </button>
-            </div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
+
+      <button
+        onClick={() => setOpen(v => !v)}
+        title={!expanded ? 'Account' : undefined}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 9,
+          width: expanded ? '100%' : 32, height: expanded ? 'auto' : 32,
+          padding: expanded ? '7px 8px' : 0,
+          borderRadius: expanded ? 10 : 8,
+          border: '1px solid rgba(0,0,0,0.08)',
+          background: open ? 'rgba(0,0,0,0.04)' : '#fff',
+          cursor: 'pointer', fontFamily: 'inherit',
+          justifyContent: expanded ? 'flex-start' : 'center',
+          margin: expanded ? 0 : '0 auto',
+          transition: 'background 100ms',
+        }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#fff'; }}
+      >
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: color, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {initials}
+        </div>
+        {expanded && (
+          <div style={{ minWidth: 0, textAlign: 'left' }}>
+            <p style={{ fontSize: 12.5, fontWeight: 600, color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.full_name || user?.email?.split('@')[0] || 'Account'}
+            </p>
+            <p style={{ fontSize: 11, color: '#999', margin: 0 }}>{userPlan?.name ? `${userPlan.name} plan` : 'Free plan'}</p>
+          </div>
+        )}
+      </button>
     </div>
   );
 }
@@ -317,32 +269,6 @@ function NavItem({ icon: Icon, label, onClick, active, expanded, shortcut, inden
   );
 }
 
-// ─── Sidebar Credits Bar ──────────────────────────────────────────
-function SidebarCreditsBar({ user, onUpgrade }) {
-  const { used, limit, pct, barColor, isLow, isOverLimit } = useCredits(user);
-  const formatK = n => n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
-  return (
-    <div style={{ margin: '4px 8px 6px', padding: '10px 10px 8px', background: 'rgba(0,0,0,0.04)', borderRadius: 8, border: 'none' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#444', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Credits</span>
-        {(isLow || isOverLimit) && (
-          <button onClick={onUpgrade} style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>Go Pro</button>
-        )}
-      </div>
-      <div style={{ height: 5, background: 'rgba(21,19,15,0.10)', borderRadius: 999, marginBottom: 5 }}>
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-          style={{ height: '100%', background: barColor, borderRadius: 999 }} />
-      </div>
-      <span style={{ fontSize: 10, color: isOverLimit ? '#ef4444' : '#555', fontVariantNumeric: 'tabular-nums', fontWeight: isOverLimit ? 600 : 400 }}>
-        {formatK(used)} / {formatK(limit)}{isOverLimit ? ' ⚠' : ''}
-      </span>
-    </div>
-  );
-}
-
 // ─── Section Label ────────────────────────────────────────────────
 function SectionLabel({ label, expanded }) {
   if (!expanded) return <div style={{ height: 16 }} />;
@@ -351,11 +277,6 @@ function SectionLabel({ label, expanded }) {
       {label}
     </p>
   );
-}
-
-// ─── Divider ──────────────────────────────────────────────────────
-function Divider() {
-  return <div style={{ height: 1, background: 'transparent', margin: '3px 0' }} />;
 }
 
 // ─── WOK AI History Sidebar ───────────────────────────────────────
@@ -570,24 +491,19 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
       >
-        {/* ── Top: User dropdown + toggle ── */}
+        {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '4px 8px 4px 0' : '6px 0' }}>
-            {expanded
-              ? <UserPopover user={user} expanded={expanded} navigate={nav} userPlan={userPlan} onSettingsClick={() => { setSettingsMode(true); nav('/settings'); }} />
-              : (
-                <button
-                  onClick={() => setExpanded(true)} title="Expand"
-                  style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(21,19,15,0.07)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
-                  </svg>
-                </button>
-              )
-            }
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '10px 8px 6px 12px' : '10px 0 6px' }}>
+            <button
+              onClick={() => setExpanded(!expanded)}
+              title={!expanded ? 'Expand' : undefined}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+            >
+              <div style={{ width: 24, height: 24, borderRadius: 7, background: '#FF5A1F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#fff"/></svg>
+              </div>
+              {expanded && <span style={{ fontSize: 14, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>UseWok</span>}
+            </button>
             {expanded && (
               <button onClick={() => setExpanded(false)} title="Collapse"
                 style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', flexShrink: 0, marginRight: 2 }}
@@ -689,29 +605,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <NavItem icon={Sparkles} label="Ask AI" onClick={() => { setExpanded(true); setWokAIMode(true); nav('/wok-ai'); }} active={isActive('/wok-ai')} expanded={expanded} />
           )}
 
-          {/* ── Support ── */}
-          <div style={{ padding: '4px 8px 8px' }}>
-            <button
-              onClick={() => navigate('/support')}
-              title="Support"
-              style={{
-                width: expanded ? '100%' : 28,
-                height: 28,
-                borderRadius: 5,
-                border: '1px solid rgba(0,0,0,0.10)',
-                background: 'transparent',
-                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                justifyContent: expanded ? 'flex-start' : 'center', gap: 7,
-                padding: expanded ? '0 10px' : 0, fontFamily: 'inherit', flexShrink: 0,
-                margin: expanded ? '0 auto 0 0' : '0 auto',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.04)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#666', lineHeight: 1 }}>?</span>
-              {expanded && <span style={{ fontSize: 12, fontWeight: 500, color: '#666', whiteSpace: 'nowrap' }}>Support</span>}
-            </button>
-          </div>
+          {/* ── Account menu (settings / help / upgrade / logout) ── */}
+          <AccountMenu user={user} userPlan={userPlan} navigate={navigate} expanded={expanded} />
         </div>
       </motion.aside>
 
