@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Star, Trash2, Plus, Eye, EyeOff, Check, Pencil, X, RefreshCw } from 'lucide-react';
+import { Star, Trash2, Plus, Eye, EyeOff, Check, Pencil, X, RefreshCw, Linkedin } from 'lucide-react';
 import { AVATAR_GRADIENTS } from '@/lib/user-color';
+import { TrustpilotIcon } from '@/components/landing/LandingTestimonials';
 
 const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
 const INK = '#1A1A1A';
 const INK2 = '#6B6660';
 const BORDER = 'rgba(21,19,15,0.10)';
 const CORAL = '#FF5A1F';
-const BLUE = '#3B8BEB';
 
-const EMPTY = { author_name: '', author_role: '', rating: 5, text: '', avatar_url: '', avatar_color: 'sunset', verified: false, visible: true, order: 0 };
+const EMPTY = { author_name: '', author_role: '', rating: 5, text: '', avatar_url: '', avatar_color: 'sunset', linkedin_url: '', trustpilot_url: '', visible: true, order: 0 };
 
 const DEFAULT_TESTIMONIALS = [
-  { author_name: 'Sofiane B.', author_role: 'Post at Stensor', rating: 5, text: "franchement j'étais sceptique au début, mais j'ai suivi le plan sans rien comprendre à l'IA, et en genre 10 jours mon score avait déjà bougé, ChatGPT me cite maintenant sur des recherches locales", avatar_color: 'mint', verified: true, visible: true, order: 0 },
-  { author_name: 'Amel K.', author_role: 'Founder of Dh-hd', rating: 5, text: "super simple à utiliser, j'ai pas d'équipe marketing donc ça tombait bien, résultat visible en à peine 2 semaines sans prise de tête", avatar_color: 'violet', verified: true, visible: true, order: 1 },
-  { author_name: 'Moussa D.', author_role: 'Founder of Varileo', rating: 5, text: "je m'attendais à un truc compliqué mais non, j'ai juste coché les étapes une par une, ma visibilité sur les IA a clairement augmenté en quelques semaines", avatar_color: 'ink', verified: true, visible: true, order: 2 },
+  { author_name: 'Sofiane B.', author_role: 'Post at Stensor', rating: 5, text: "franchement j'étais sceptique au début, mais j'ai suivi le plan sans rien comprendre à l'IA, et en genre 10 jours mon score avait déjà bougé, ChatGPT me cite maintenant sur des recherches locales", avatar_color: 'mint', linkedin_url: '', trustpilot_url: '', visible: true, order: 0 },
+  { author_name: 'Amel K.', author_role: 'Founder of Dh-hd', rating: 5, text: "super simple à utiliser, j'ai pas d'équipe marketing donc ça tombait bien, résultat visible en à peine 2 semaines sans prise de tête", avatar_color: 'violet', linkedin_url: '', trustpilot_url: '', visible: true, order: 1 },
+  { author_name: 'Moussa D.', author_role: 'Founder of Varileo', rating: 5, text: "je m'attendais à un truc compliqué mais non, j'ai juste coché les étapes une par une, ma visibilité sur les IA a clairement augmenté en quelques semaines", avatar_color: 'ink', linkedin_url: '', trustpilot_url: '', visible: true, order: 2 },
 ];
 
 function initials(name) {
@@ -39,15 +39,6 @@ function AvatarPicker({ value, onChange }) {
         </button>
       ))}
     </div>
-  );
-}
-
-function VerifiedBadge() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, verticalAlign: 'middle' }}>
-      <circle cx="12" cy="12" r="10" fill={BLUE} />
-      <path d="M8 12l3 3 5-5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }
 
@@ -93,7 +84,8 @@ export default function AdminTestimonialsPage() {
         text: editForm.text,
         avatar_color: editForm.avatar_color,
         avatar_url: editForm.avatar_url,
-        verified: editForm.verified,
+        linkedin_url: editForm.linkedin_url,
+        trustpilot_url: editForm.trustpilot_url,
         visible: editForm.visible,
         rating: Number(editForm.rating),
         order: Number(editForm.order),
@@ -106,11 +98,6 @@ export default function AdminTestimonialsPage() {
 
   const toggleVisible = async (t) => {
     await base44.entities.Testimonial.update(t.id, { visible: !t.visible });
-    load();
-  };
-
-  const toggleVerified = async (t) => {
-    await base44.entities.Testimonial.update(t.id, { verified: !t.verified });
     load();
   };
 
@@ -139,7 +126,7 @@ export default function AdminTestimonialsPage() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 4px' }}>Avis clients</h1>
-          <p style={{ fontSize: 13, color: INK2, margin: 0 }}>Gérez les avis affichés sur la landing page. Couleur d'avatar, badge certifié, ordre et visibilité.</p>
+          <p style={{ fontSize: 13, color: INK2, margin: 0 }}>Gérez les avis affichés sur la landing page. Liens LinkedIn/Trustpilot, ordre et visibilité.</p>
         </div>
         <button onClick={resetToDefaults} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#fff', color: INK, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: F, whiteSpace: 'nowrap', opacity: saving ? 0.5 : 1 }}>
           <RefreshCw size={13} /> Réinitialiser
@@ -156,11 +143,15 @@ export default function AdminTestimonialsPage() {
           <input placeholder="Photo (URL, optionnel)" value={form.avatar_url} onChange={set('avatar_url')} style={inp} />
           <textarea required placeholder="Texte de l'avis" value={form.text} onChange={set('text')} rows={2} style={{ ...inp, gridColumn: '1 / -1', resize: 'none' }} />
           <input type="number" placeholder="Ordre d'affichage" value={form.order} onChange={set('order')} style={inp} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button type="button" onClick={() => setForm(f => ({ ...f, verified: !f.verified }))}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: `1px solid ${form.verified ? BLUE : BORDER}`, borderRadius: 8, background: form.verified ? `${BLUE}15` : '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: form.verified ? BLUE : INK2, fontFamily: F }}>
-              {form.verified && <VerifiedBadge />} Certifié
-            </button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Linkedin size={15} color="#0A66C2" style={{ flexShrink: 0 }} />
+            <input placeholder="Lien LinkedIn" value={form.linkedin_url} onChange={set('linkedin_url')} style={inp} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <TrustpilotIcon size={15} />
+            <input placeholder="Lien Trustpilot" value={form.trustpilot_url} onChange={set('trustpilot_url')} style={inp} />
           </div>
         </div>
         <div style={{ marginTop: 12 }}>
@@ -193,17 +184,23 @@ export default function AdminTestimonialsPage() {
                       <input type="number" placeholder="Ordre" value={editForm.order ?? 0} onChange={setEdit('order')} style={inp} />
                     </div>
                     <textarea placeholder="Texte" value={editForm.text || ''} onChange={setEdit('text')} rows={2} style={{ ...inp, resize: 'none' }} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Linkedin size={15} color="#0A66C2" style={{ flexShrink: 0 }} />
+                        <input placeholder="Lien LinkedIn" value={editForm.linkedin_url || ''} onChange={setEdit('linkedin_url')} style={inp} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <TrustpilotIcon size={15} />
+                        <input placeholder="Lien Trustpilot" value={editForm.trustpilot_url || ''} onChange={setEdit('trustpilot_url')} style={inp} />
+                      </div>
+                    </div>
                     <div>
                       <p style={{ fontSize: 11, fontWeight: 600, color: INK2, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Couleur avatar</p>
                       <AvatarPicker value={editForm.avatar_color || 'sunset'} onChange={(v) => setEditForm(f => ({ ...f, avatar_color: v }))} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <button type="button" onClick={() => setEditForm(f => ({ ...f, verified: !f.verified }))}
-                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: `1px solid ${editForm.verified ? BLUE : BORDER}`, borderRadius: 8, background: editForm.verified ? `${BLUE}15` : '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: editForm.verified ? BLUE : INK2, fontFamily: F }}>
-                        {editForm.verified && <VerifiedBadge />} Certifié
-                      </button>
                       <button type="button" onClick={() => setEditForm(f => ({ ...f, visible: !f.visible }))}
-                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: `1px solid ${editForm.visible ? BORDER : BORDER}`, borderRadius: 8, background: editForm.visible ? '#fff' : '#F5F5F3', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: editForm.visible ? INK : INK2, fontFamily: F }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: `1px solid ${BORDER}`, borderRadius: 8, background: editForm.visible ? '#fff' : '#F5F5F3', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: editForm.visible ? INK : INK2, fontFamily: F }}>
                         {editForm.visible ? <Eye size={12} /> : <EyeOff size={12} />} {editForm.visible ? 'Visible' : 'Masqué'}
                       </button>
                     </div>
@@ -229,18 +226,24 @@ export default function AdminTestimonialsPage() {
                       ))}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: 0 }}>
                         {t.author_name}
-                        {t.verified && <VerifiedBadge />}
                         <span style={{ fontWeight: 400, color: INK2 }}> — {t.author_role || '—'}</span>
                       </p>
                       <p style={{ fontSize: 12, color: INK2, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.text}</p>
                     </div>
+                    {t.linkedin_url && (
+                      <a href={t.linkedin_url} target="_blank" rel="noopener noreferrer" title="LinkedIn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(10,102,194,0.08)', color: '#0A66C2', flexShrink: 0 }}>
+                        <Linkedin size={14} />
+                      </a>
+                    )}
+                    {t.trustpilot_url && (
+                      <a href={t.trustpilot_url} target="_blank" rel="noopener noreferrer" title="Trustpilot" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(0,182,122,0.08)', flexShrink: 0 }}>
+                        <TrustpilotIcon size={14} />
+                      </a>
+                    )}
                     <button onClick={() => startEdit(t)} title="Modifier" style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK2 }}>
                       <Pencil size={14} />
-                    </button>
-                    <button onClick={() => toggleVerified(t)} title={t.verified ? 'Retirer certification' : 'Certifier'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.verified ? BLUE : INK2, opacity: t.verified ? 1 : 0.4 }}>
-                      <VerifiedBadge />
                     </button>
                     <button onClick={() => toggleVisible(t)} title={t.visible ? 'Masquer' : 'Afficher'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK2 }}>
                       {t.visible ? <Eye size={15} /> : <EyeOff size={15} />}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 const AnalyzeLeadModal = lazy(() => import('@/components/landing/AnalyzeLeadModal'));
+import LandingTestimonials from '@/components/landing/LandingTestimonials';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -474,23 +475,7 @@ export default function LandingPage() {
       {/* TESTIMONIALS + STATS */}
       <section>
         <div className="wrap">
-          <div className="test-grid">
-            <div className="test-card">
-              <div className="stars">★★★★★</div>
-              <p>A clear tool to understand where we're cited by AI, and where we're not yet.</p>
-              <div className="test-who"><div className="av"></div><div><b>Camille Aubert</b><span>Marketing Lead</span></div></div>
-            </div>
-            <div className="test-card">
-              <div className="stars">★★★★★</div>
-              <p>The perfect starting point to prioritize our AI visibility actions without spending weeks on it.</p>
-              <div className="test-who"><div className="av"></div><div><b>Julien Roze</b><span>Growth Lead</span></div></div>
-            </div>
-            <div className="test-card">
-              <div className="stars">★★★★★</div>
-              <p>We finally have a view of our share of voice against competitors on ChatGPT and Claude.</p>
-              <div className="test-who"><div className="av"></div><div><b>Sarah Nizan</b><span>Strategy & Ops</span></div></div>
-            </div>
-          </div>
+          <LandingTestimonials />
           <div className="stat-grid">
             <div className="stat-card stat-1"><span className="big">+38%</span><span className="lbl">traffic from AI search</span></div>
             <div className="stat-card stat-2"><span className="big">30 sec</span><span className="lbl">to your first score</span></div>

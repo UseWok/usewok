@@ -35,6 +35,14 @@
       "title": "Certifi\u00e9",
       "default": false
     },
+    "linkedin_url": {
+      "type": "string",
+      "title": "Lien LinkedIn"
+    },
+    "trustpilot_url": {
+      "type": "string",
+      "title": "Lien Trustpilot"
+    },
     "visible": {
       "type": "boolean",
       "title": "Visible sur le site",
