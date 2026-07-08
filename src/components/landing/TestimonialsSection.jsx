@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import FadeIn from '@/components/landing/FadeIn';
-import { Linkedin } from 'lucide-react';
 import { AVATAR_GRADIENTS } from '@/lib/user-color';
-import { TrustpilotIcon } from '@/components/landing/LandingTestimonials';
+import { LinkedinIcon, TrustpilotIcon } from '@/components/landing/LandingTestimonials';
 
 const F = "'Inter', -apple-system, system-ui, sans-serif";
 const BG2 = '#111113';
@@ -65,14 +64,18 @@ export default function TestimonialsSection() {
                     </div>
                     {q.linkedin_url && (
                       <a href={q.linkedin_url} target="_blank" rel="noopener noreferrer" title="LinkedIn"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.06)', color: '#0A66C2', flexShrink: 0 }}>
-                        <Linkedin size={14} />
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, color: 'rgba(255,255,255,0.3)', transition: 'color 150ms', flexShrink: 0 }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#0A66C2'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                        <LinkedinIcon size={15} />
                       </a>
                     )}
                     {q.trustpilot_url && (
                       <a href={q.trustpilot_url} target="_blank" rel="noopener noreferrer" title="Trustpilot"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }}>
-                        <TrustpilotIcon size={14} />
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, color: 'rgba(255,255,255,0.3)', transition: 'color 150ms', flexShrink: 0 }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#00B67A'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                        <TrustpilotIcon size={15} />
                       </a>
                     )}
                   </div>

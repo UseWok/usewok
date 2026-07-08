@@ -208,9 +208,9 @@ export default function LandingPage() {
         .uw-landing .stars{ color:var(--orange); font-size:13px; letter-spacing:2px; margin-bottom:12px; }
         .uw-landing .test-card p{ font-size:13.5px; line-height:1.55; margin-bottom:16px; color:var(--ink-soft); }
         .uw-landing .test-who{ display:flex; align-items:center; gap:10px; }
-        .uw-landing .test-who .av{ width:30px; height:30px; border-radius:50%; background:var(--cream-2); flex-shrink:0; }
+        .uw-landing .test-who .av{ width:32px; height:32px; border-radius:50%; flex-shrink:0; }
         .uw-landing .test-who b{ display:block; font-size:12.5px; }
-        .uw-landing .test-who span{ font-size:11.5px; color:var(--ink-faint); }
+        .uw-landing .test-who span{ display:block; font-size:11.5px; color:var(--ink-faint); }
         .uw-landing .stat-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
         .uw-landing .stat-card{ border-radius:16px; padding:26px; display:flex; flex-direction:column; justify-content:flex-end; min-height:150px; }
         .uw-landing .stat-card .big{ font-size:38px; font-weight:800; letter-spacing:-0.02em; }

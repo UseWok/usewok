@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Star, Trash2, Plus, Eye, EyeOff, Check, Pencil, X, RefreshCw, Linkedin } from 'lucide-react';
+import { Star, Trash2, Plus, Eye, EyeOff, Check, Pencil, X, RefreshCw } from 'lucide-react';
 import { AVATAR_GRADIENTS } from '@/lib/user-color';
-import { TrustpilotIcon } from '@/components/landing/LandingTestimonials';
+import { LinkedinIcon, TrustpilotIcon } from '@/components/landing/LandingTestimonials';
 
 const F = '"Anthropic Sans", "Anthropic Sans Variable", Inter, system-ui, sans-serif';
 const INK = '#1A1A1A';
@@ -146,7 +146,7 @@ export default function AdminTestimonialsPage() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Linkedin size={15} color="#0A66C2" style={{ flexShrink: 0 }} />
+            <LinkedinIcon size={15} />
             <input placeholder="Lien LinkedIn" value={form.linkedin_url} onChange={set('linkedin_url')} style={inp} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -186,7 +186,7 @@ export default function AdminTestimonialsPage() {
                     <textarea placeholder="Texte" value={editForm.text || ''} onChange={setEdit('text')} rows={2} style={{ ...inp, resize: 'none' }} />
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Linkedin size={15} color="#0A66C2" style={{ flexShrink: 0 }} />
+                        <LinkedinIcon size={15} />
                         <input placeholder="Lien LinkedIn" value={editForm.linkedin_url || ''} onChange={setEdit('linkedin_url')} style={inp} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -233,13 +233,13 @@ export default function AdminTestimonialsPage() {
                       <p style={{ fontSize: 12, color: INK2, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.text}</p>
                     </div>
                     {t.linkedin_url && (
-                      <a href={t.linkedin_url} target="_blank" rel="noopener noreferrer" title="LinkedIn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(10,102,194,0.08)', color: '#0A66C2', flexShrink: 0 }}>
-                        <Linkedin size={14} />
+                      <a href={t.linkedin_url} target="_blank" rel="noopener noreferrer" title="LinkedIn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, color: 'rgba(21,19,15,0.35)', flexShrink: 0 }}>
+                        <LinkedinIcon size={15} />
                       </a>
                     )}
                     {t.trustpilot_url && (
-                      <a href={t.trustpilot_url} target="_blank" rel="noopener noreferrer" title="Trustpilot" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(0,182,122,0.08)', flexShrink: 0 }}>
-                        <TrustpilotIcon size={14} />
+                      <a href={t.trustpilot_url} target="_blank" rel="noopener noreferrer" title="Trustpilot" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, color: 'rgba(21,19,15,0.35)', flexShrink: 0 }}>
+                        <TrustpilotIcon size={15} />
                       </a>
                     )}
                     <button onClick={() => startEdit(t)} title="Modifier" style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK2 }}>
