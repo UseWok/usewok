@@ -41,7 +41,7 @@ export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) 
   const rows = (competitors || []).slice().sort((a, b) => (b.visibility_pct || 0) - (a.visibility_pct || 0));
 
   return (
-    <DashCard title="Tes concurrents" dot={ORANGE} action="Tout voir →" onAction={onSeeAll}>
+    <DashCard title="Your competitors" dot={ORANGE} action="See all →" onAction={onSeeAll}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {rows.map((c, i) => {
           const you = c.is_you;
@@ -57,7 +57,7 @@ export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) 
               <CompetitorLogo c={c} you={you} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <b style={{ display: 'block', fontSize: 13, fontWeight: 700, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
-                {you && <span style={{ fontSize: 11, color: INK3 }}>ta marque</span>}
+                {you && <span style={{ fontSize: 11, color: INK3 }}>your brand</span>}
               </div>
               <span style={{ fontSize: 13, fontWeight: 700, color: INK, flexShrink: 0 }}>{Math.round(c.visibility_pct || 0)}%</span>
             </div>
@@ -67,7 +67,7 @@ export default function CompetitorsCard({ competitors, onSeeAll, onWantRank2 }) 
 
       <button onClick={onWantRank2}
         style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: CREAM2, borderRadius: 10, padding: '11px 14px', border: 'none', cursor: 'pointer', fontFamily: F }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>Je veux passer devant eux</span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: INK }}>I want to outrank them</span>
         <span style={{ width: 26, height: 26, borderRadius: '50%', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ArrowUpRight size={12} color="#fff" strokeWidth={2.6} />
         </span>

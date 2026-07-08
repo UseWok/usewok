@@ -8,19 +8,19 @@ const ORANGE_PALE = '#FFE7D6';
 const F = 'Inter, system-ui, sans-serif';
 
 const PRIORITY = {
-  urgent: { label: 'À faire en premier', color: '#fff', bg: '#FF5A1F' },
+  urgent: { label: 'Do first', color: '#fff', bg: '#FF5A1F' },
   high: { label: 'Important', color: ORANGE_DEEP, bg: ORANGE_PALE },
-  medium: { label: 'Utile', color: ORANGE_DEEP, bg: ORANGE_PALE },
-  low: { label: 'Quand tu peux', color: INK3, bg: '#F3EEE3' },
+  medium: { label: 'Useful', color: ORANGE_DEEP, bg: ORANGE_PALE },
+  low: { label: 'When you can', color: INK3, bg: '#F3EEE3' },
 };
 
 export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
   const list = tasks || [];
   return (
-    <DashCard title="Ce que tu dois faire" dot={ORANGE_DEEP} action="Tout voir →" onAction={onSeeAll}>
+    <DashCard title="What you need to do" dot={ORANGE_DEEP} action="See all →" onAction={onSeeAll}>
       {list.length === 0 ? (
         <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-          Rien à faire pour l'instant. Lance une analyse pour recevoir tes conseils.
+          Nothing to do yet. Run an analysis to get your recommendations.
         </p>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', paddingRight: 2 }}>
@@ -31,7 +31,7 @@ export default function TasksCard({ tasks, onSeeAll, onLaunch }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: p.color, background: p.bg, padding: '3px 9px', borderRadius: 100, flexShrink: 0 }}>{p.label}</span>
                   <button onClick={() => onLaunch?.(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: INK, fontFamily: F, padding: 0, flexShrink: 0 }}>
-                    Lancer <ArrowRight size={12} />
+                    Launch <ArrowRight size={12} />
                   </button>
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.35 }}>{t.title}</div>

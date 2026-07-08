@@ -9,20 +9,20 @@ const BORDER = 'rgba(255,255,255,0.07)';
 
 const STEPS = [
   {
-    title: 'UseWok trouve pourquoi vous êtes invisible.',
-    desc: "Les IA génératives se basent sur des données structurées, cohérentes et publiques. Quand elles manquent ou se contredisent, l'IA recommande votre concurrent à votre place. UseWok identifie précisément ce qui vous manque.",
+    title: 'UseWok finds why you\'re invisible.',
+    desc: "Generative AI engines rely on structured, consistent and public data. When it's missing or contradictory, AI recommends your competitor instead. UseWok pinpoints exactly what you're missing.",
   },
   {
-    title: 'Et crée un plan d\'action sur mesure.',
-    desc: "Étape par étape, sans jargon technique, dans l'ordre où ça compte vraiment.",
+    title: 'And builds a tailored action plan.',
+    desc: "Step by step, no technical jargon, in the order that actually matters.",
   },
   {
-    title: 'L\'aide s\'adapte à votre façon de travailler.',
-    desc: "Que vous soyez sur du no-code, que des outils IA vous assistent déjà, ou que vous ayez un développeur dans l'équipe, UseWok ajuste ses conseils en conséquence — pour être efficace sans vous faire perdre de temps.",
+    title: 'The help adapts to how you work.',
+    desc: "Whether you use no-code tools, already work with AI assistants, or have a developer on your team, UseWok adjusts its guidance accordingly — to be effective without wasting your time.",
   },
   {
-    title: 'Un assistant qui connaît tout votre contexte.',
-    desc: "Notre chatbot IA a accès à votre profil complet — secteur, score, blocages identifiés — et répond comme un consultant qui vous connaît par cœur.",
+    title: 'An assistant that knows your full context.',
+    desc: "Our AI chatbot has access to your complete profile — industry, score, identified blockers — and responds like a consultant who knows you inside out.",
   },
 ];
 
@@ -32,7 +32,7 @@ export default function HowItWorksSection() {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <FadeIn>
           <h2 style={{ fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 800, color: T1, letterSpacing: '-0.04em', margin: '0 0 clamp(36px, 5vw, 60px)', textAlign: 'center' }}>
-            Comment ça marche
+            How it works
           </h2>
         </FadeIn>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

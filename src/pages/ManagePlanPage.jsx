@@ -214,7 +214,7 @@ export default function ManagePlanPage() {
         toast.error(res?.data?.error || 'Unable to access subscription management.');
       }
     } catch {
-      toast.error('Erreur. Contactez le support si le problème persiste.');
+      toast.error('Connection error. Please try again or contact support.');
     }
     setPortalLoading(false);
   };

@@ -42,7 +42,7 @@ function MetricRow({ label, color, value, max }) {
 
 function LineChart({ points }) {
   if (!points || points.length < 2) {
-    return <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: INK3, fontSize: 12 }}>Pas assez d'historique</div>;
+    return <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: INK3, fontSize: 12 }}>Not enough history yet</div>;
   }
   const W = 500, H = 80;
   const vals = points.map(p => p.value);
@@ -68,7 +68,7 @@ function LineChart({ points }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: INK3 }}>
         {dates.map((d, i) => <span key={i}>{d}</span>)}
       </div>
-      <div style={{ fontSize: 11, color: INK3, marginTop: 2 }}>30 derniers jours</div>
+      <div style={{ fontSize: 11, color: INK3, marginTop: 2 }}>Last 30 days</div>
     </div>
   );
 }
@@ -79,10 +79,10 @@ export default function EvolutionCard({ score, breakdown, evolution }) {
   const maxBar = Math.max(b.narrative || 0, b.authority || 0, b.referral || 0, 1);
 
   return (
-    <DashCard title="Ton score global" dot={ORANGE}>
+    <DashCard title="Your overall score" dot={ORANGE}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: -40, marginBottom: 20 }}>
         <div style={{ display: 'inline-flex', gap: 3, background: CREAM2, borderRadius: 9, padding: 3 }}>
-          {[['score', 'Ta note'], ['citations', 'Par IA']].map(([k, lbl]) => (
+          {[['score', 'Score'], ['citations', 'By AI']].map(([k, lbl]) => (
             <button key={k} onClick={() => setTab(k)}
               style={{ padding: '6px 12px', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: F,
                 fontSize: 11.5, fontWeight: 700,
@@ -97,13 +97,13 @@ export default function EvolutionCard({ score, breakdown, evolution }) {
       <div style={{ display: 'flex', gap: 28, marginBottom: 20 }}>
         <ScoreRing score={score} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center', minWidth: 0 }}>
-          <MetricRow label="Ton image" color={ORANGE_DEEP} value={b.narrative || 0} max={maxBar} />
-          <MetricRow label="Ta crédibilité" color={INK} value={b.authority || 0} max={maxBar} />
-          <MetricRow label="Tes mentions" color={AMBER_DEEP} value={b.referral || 0} max={maxBar} />
+          <MetricRow label="Brand image" color={ORANGE_DEEP} value={b.narrative || 0} max={maxBar} />
+          <MetricRow label="Authority" color={INK} value={b.authority || 0} max={maxBar} />
+          <MetricRow label="Mentions" color={AMBER_DEEP} value={b.referral || 0} max={maxBar} />
         </div>
       </div>
       <div style={{ fontSize: 11.5, color: INK3, paddingTop: 14, borderTop: '1px solid rgba(21,19,15,0.09)', marginBottom: 18 }}>
-        {b.brand_pct ?? 40}% Image · {b.website_pct ?? 30}% Site · {b.earned_pct ?? 30}% Mentions externes
+        {b.brand_pct ?? 40}% Brand · {b.website_pct ?? 30}% Website · {b.earned_pct ?? 30}% Earned mentions
       </div>
 
       <LineChart points={evolution} />

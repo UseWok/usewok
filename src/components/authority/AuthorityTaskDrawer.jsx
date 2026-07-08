@@ -49,10 +49,10 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
           onVerified(r.new_score, r.points_granted);
         }
       } else {
-        setResult({ verified: false, feedback: r?.error || 'Échec de la vérification. Réessayez.' });
+        setResult({ verified: false, feedback: r?.error || 'Verification failed. Please try again.' });
       }
     } catch (e) {
-      setResult({ verified: false, feedback: 'Erreur de vérification. Réessayez dans un instant.' });
+      setResult({ verified: false, feedback: 'Verification error. Please try again in a moment.' });
     }
     setVerifying(false);
   };
@@ -80,7 +80,7 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: CORAL }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL }} />
-              Mission autorité
+              Authority Mission
             </span>
             <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: WHITE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <X size={12} color={INK2} />
@@ -100,11 +100,11 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
             <TrendingUp size={16} color={isDone ? GREEN : ORANGE_DEEP} />
             {isDone ? (
               <span style={{ fontSize: 13, fontWeight: 700, color: GREEN }}>
-                +{task.points_granted || gain} pts gagnés · score IA mis à jour
+                +{task.points_granted || gain} pts earned · AI score updated
               </span>
             ) : (
               <span style={{ fontSize: 13, fontWeight: 700, color: ORANGE_DEEP }}>
-                +{Math.round(gain * 10) / 10} pts sur votre score IA une fois validé
+                +{Math.round(gain * 10) / 10} pts to your AI score once verified
               </span>
             )}
           </div>
@@ -123,7 +123,7 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
           {instr.signup_url && !isDone && (
             <a href={instr.signup_url} target="_blank" rel="noopener noreferrer" className="atd-cta"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 48, borderRadius: 12, background: INK, color: '#fff', fontSize: 13.5, fontWeight: 700, textDecoration: 'none', marginBottom: 20, transition: 'background .15s ease', cursor: 'pointer' }}>
-              <ExternalLink size={15} /> Aller sur {instr.platform_label}
+              <ExternalLink size={15} /> Go to {instr.platform_label}
             </a>
           )}
 
@@ -148,11 +148,11 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
             <button onClick={handleVerify} disabled={verifying} className="atd-btn-verify"
               style={{ width: '100%', height: 50, borderRadius: 12, border: 'none', background: verifying ? CREAM : result?.verified ? GREEN : CORAL, color: '#fff', fontFamily: F, fontSize: 14, fontWeight: 700, cursor: verifying ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 6, transition: 'background .15s ease' }}>
               {verifying ? (
-                <><div style={{ width: 15, height: 15, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'atdSpin 0.7s linear infinite' }} /> Vérification IA en cours…</>
+                <><div style={{ width: 15, height: 15, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'atdSpin 0.7s linear infinite' }} /> AI verification in progress…</>
               ) : result?.verified ? (
-                <><CheckCircle2 size={15} /> Validé par l'IA ✓</>
+                <><CheckCircle2 size={15} /> Verified by AI ✓</>
               ) : (
-                <><Sparkles size={15} /> Vérifier avec l'IA</>
+                <><Sparkles size={15} /> Verify with AI</>
               )}
             </button>
           )}
@@ -163,24 +163,24 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 {result.verified ? <CheckCircle2 size={14} color={GREEN} /> : <AlertTriangle size={14} color="#D97706" />}
                 <span style={{ fontSize: 11, fontWeight: 700, color: result.verified ? GREEN : '#D97706', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                  {result.verified ? 'Mission accomplie' : 'Pas encore validé'}
+                  {result.verified ? 'Mission accomplished' : 'Not verified yet'}
                 </span>
-                {result.confidence > 0 && <span style={{ fontSize: 11, color: INK2, marginLeft: 'auto' }}>{result.confidence}% confiance</span>}
+                {result.confidence > 0 && <span style={{ fontSize: 11, color: INK2, marginLeft: 'auto' }}>{result.confidence}% confidence</span>}
               </div>
               <p style={{ fontSize: 12.5, color: result.verified ? '#15803D' : '#92400E', margin: '0 0 8px', lineHeight: 1.6, fontWeight: 500 }}>{result.feedback}</p>
               {result.verified && result.points_granted > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: WHITE, borderRadius: 8, marginTop: 8 }}>
                   <TrendingUp size={14} color={GREEN} />
                   <span style={{ fontSize: 13, fontWeight: 800, color: GREEN }}>+{result.points_granted} pts</span>
-                  <span style={{ fontSize: 12, color: INK3 }}>· Score IA : {Math.round(result.new_score || 0)}/100</span>
+                  <span style={{ fontSize: 12, color: INK3 }}>· AI score: {Math.round(result.new_score || 0)}/100</span>
                 </div>
               )}
               {result.what_was_found && (
-                <p style={{ fontSize: 12, color: INK2, margin: '8px 0 0', lineHeight: 1.5 }}><strong>Trouvé :</strong> {result.what_was_found}</p>
+                <p style={{ fontSize: 12, color: INK2, margin: '8px 0 0', lineHeight: 1.5 }}><strong>Found:</strong> {result.what_was_found}</p>
               )}
               {result.profile_url && (
                 <a href={result.profile_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: CORAL, marginTop: 8, textDecoration: 'none', fontWeight: 600 }}>
-                  Voir le profil <ExternalLink size={11} />
+                  View profile <ExternalLink size={11} />
                 </a>
               )}
             </div>
@@ -191,8 +191,8 @@ export default function AuthorityTaskDrawer({ task, currentScore, onClose, onVer
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, background: GREEN_SOFT, border: `1px solid ${GREEN}40`, borderRadius: 12, marginTop: 6 }}>
               <CheckCircle2 size={18} color={GREEN} />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: GREEN, margin: 0 }}>Mission accomplie</p>
-                <p style={{ fontSize: 11.5, color: INK2, margin: '2px 0 0' }}>+{task.points_granted || gain} points ajoutés à votre score IA</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: GREEN, margin: 0 }}>Mission accomplished</p>
+                <p style={{ fontSize: 11.5, color: INK2, margin: '2px 0 0' }}>+{task.points_granted || gain} points added to your AI score</p>
               </div>
             </div>
           )}

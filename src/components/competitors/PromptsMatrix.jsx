@@ -16,7 +16,7 @@ export default function PromptsMatrix({ you, competitors, type }) {
   if (rows.length === 0) {
     return (
       <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '32px 0', fontFamily: F }}>
-        Lancez le renouvellement du scan pour générer vos prompts actifs et évaluer chaque marque.
+        Run a scan refresh to generate your active prompts and evaluate each brand.
       </p>
     );
   }
@@ -31,12 +31,12 @@ export default function PromptsMatrix({ you, competitors, type }) {
     const p = promptsByComp[compIdx]?.[promptIdx];
     if (!p) return <span style={{ color: INK3 }}>—</span>;
     return p.cited
-      ? <span style={{ padding: '3px 11px', background: CITED_BG, color: CITED_FG, borderRadius: 20, fontSize: 11, fontWeight: 700 }}>cité</span>
+      ? <span style={{ padding: '3px 11px', background: CITED_BG, color: CITED_FG, borderRadius: 20, fontSize: 11, fontWeight: 700 }}>cited</span>
       : <span style={{ color: INK3 }}>—</span>;
   };
 
   // Footer counts per column
-  const footerLabel = type === 'referral' ? 'RECOMMANDÉ SUR' : 'PRÉSENT SUR';
+  const footerLabel = type === 'referral' ? 'RECOMMENDED ON' : 'PRESENT ON';
   const total = rows.length;
   const counts = cols.map((c, ci) => {
     const pj = promptsByComp[ci];
@@ -52,7 +52,7 @@ export default function PromptsMatrix({ you, competitors, type }) {
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.05em', borderBottom: `1px solid ${BORDER}` }}>PROMPT ACTIF</th>
+            <th style={{ textAlign: 'left', padding: '10px 14px', fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.05em', borderBottom: `1px solid ${BORDER}` }}>ACTIVE PROMPT</th>
             {cols.map((c, i) => (
               <th key={i} style={{ textAlign: 'center', padding: '10px 14px', fontSize: 11.5, fontWeight: 700, color: INK, borderBottom: `1px solid ${BORDER}`, background: c.isYou ? GREEN_BG : 'transparent', whiteSpace: 'nowrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -90,7 +90,7 @@ export default function PromptsMatrix({ you, competitors, type }) {
               <td key={i} style={{ textAlign: 'center', padding: '14px 14px', background: c.isYou ? GREEN_BG : 'transparent' }}>
                 <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: c.isYou ? GREEN : INK }}>{counts[i]}/{total}</span>
                 {!c.isYou && i === bestNonYou.i && bestNonYou.v > 0 && (
-                  <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#F97316', marginTop: 2 }}>moy #1</span>
+                  <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#F97316', marginTop: 2 }}>avg #1</span>
                 )}
               </td>
             ))}

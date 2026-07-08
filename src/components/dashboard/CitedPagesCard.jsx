@@ -14,9 +14,9 @@ export default function CitedPagesCard({ pages }) {
     tab === 'top' ? (b.citations || 0) - (a.citations || 0) : (a.citations || 0) - (b.citations || 0));
 
   return (
-    <DashCard title="Tes pages populaires" dot="#FFCB6B">
+    <DashCard title="Your popular pages" dot="#FFCB6B">
       <div style={{ display: 'flex', gap: 3, background: CREAM2, borderRadius: 8, padding: 3, marginBottom: 16 }}>
-        {[['top', 'Les plus vues'], ['least', 'Les moins vues']].map(([k, lbl]) => (
+        {[['top', 'Most viewed'], ['least', 'Least viewed']].map(([k, lbl]) => (
           <button key={k} onClick={() => setTab(k)}
             style={{ padding: '6px 11px', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: F,
               fontSize: 11, fontWeight: 700,
@@ -28,7 +28,7 @@ export default function CitedPagesCard({ pages }) {
       </div>
 
       {sorted.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>Aucune de tes pages n'est encore reprise par les IA.</p>
+        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>None of your pages are referenced by AI engines yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {sorted.map((p, i) => (

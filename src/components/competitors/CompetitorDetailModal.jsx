@@ -11,7 +11,7 @@ const GREEN = '#10B981';
 
 function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { return fb; } }
 
-const NO_DATA = "Positionnement indisponible — le site n'a pas pu être analysé (site protégé, en JavaScript, ou domaine incorrect). Vérifiez le domaine et relancez le scan.";
+const NO_DATA = "Positioning unavailable — the site could not be analyzed (protected site, JavaScript-only, or incorrect domain). Verify the domain and rerun the scan.";
 
 export default function CompetitorDetailModal({ competitor, rank, onClose }) {
   const [tab, setTab] = useState('details');
@@ -40,7 +40,7 @@ export default function CompetitorDetailModal({ competitor, rank, onClose }) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 22, padding: '14px 24px 0', borderBottom: `1px solid ${BORDER}` }}>
-          {[{ id: 'details', label: 'DÉTAILS' }, { id: 'evolution', label: `ÉVOLUTION (${news.length})` }].map(t => (
+          {[{ id: 'details', label: 'DETAILS' }, { id: 'evolution', label: `NEWS (${news.length})` }].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 10px', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.05em', fontFamily: F, color: tab === t.id ? VIOLET : INK3, borderBottom: tab === t.id ? `2px solid ${VIOLET}` : '2px solid transparent' }}>
               {t.label}
@@ -65,7 +65,7 @@ export default function CompetitorDetailModal({ competitor, rank, onClose }) {
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>REFERRAL</span>
                 </div>
                 <p style={{ fontSize: 26, fontWeight: 800, color: '#0B815A', margin: 0 }}>{competitor.referral_pct}%</p>
-                <p style={{ fontSize: 11.5, color: INK3, margin: '2px 0 0' }}>recommandé {competitor.referral_cited}/{competitor.referral_total}</p>
+                <p style={{ fontSize: 11.5, color: INK3, margin: '2px 0 0' }}>recommended {competitor.referral_cited}/{competitor.referral_total}</p>
               </div>
               <div style={{ padding: '18px 24px', background: '#FAF9F6' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -73,7 +73,7 @@ export default function CompetitorDetailModal({ competitor, rank, onClose }) {
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>AUTHORITY</span>
                 </div>
                 <p style={{ fontSize: 26, fontWeight: 800, color: '#0B815A', margin: 0 }}>{competitor.authority_cited}</p>
-                <p style={{ fontSize: 11.5, color: INK3, margin: '2px 0 0' }}>présent {competitor.authority_cited}/{competitor.authority_total}</p>
+                <p style={{ fontSize: 11.5, color: INK3, margin: '2px 0 0' }}>present {competitor.authority_cited}/{competitor.authority_total}</p>
               </div>
             </div>
 
@@ -81,22 +81,22 @@ export default function CompetitorDetailModal({ competitor, rank, onClose }) {
               {/* Synthèse */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
                 <span style={{ width: 16, height: 16, borderRadius: 4, background: '#F0EDE8', fontSize: 10, fontWeight: 700, color: INK, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>SYNTHÈSE</span>
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>SUMMARY</span>
               </div>
-              <p style={{ fontSize: 14.5, fontWeight: 700, color: INK, margin: '0 0 8px' }}>Pourquoi {competitor.name} ressort</p>
+              <p style={{ fontSize: 14.5, fontWeight: 700, color: INK, margin: '0 0 8px' }}>Why {competitor.name} stands out</p>
               <div style={{ border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ORANGE}`, borderRadius: 10, padding: '12px 14px', marginBottom: 22 }}>
                 <p style={{ fontSize: 13, color: '#3D3D3D', margin: 0, lineHeight: 1.6 }}>
-                  {competitor.synthesis || `${competitor.name} est recommandé par les IA sur ${competitor.referral_cited}/${competitor.referral_total} de vos prompts referral, présent sur ${competitor.authority_cited}/${competitor.authority_total} requêtes éducatives.`}
+                  {competitor.synthesis || `${competitor.name} is recommended by AI engines on ${competitor.referral_cited}/${competitor.referral_total} of your referral prompts, and present on ${competitor.authority_cited}/${competitor.authority_total} educational queries.`}
                 </p>
               </div>
 
               {/* Positionnement */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
                 <span style={{ width: 16, height: 16, borderRadius: 4, background: '#F0EDE8', fontSize: 10, fontWeight: 700, color: INK, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>2</span>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>POSITIONNEMENT STRATÉGIQUE</span>
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: INK3, letterSpacing: '0.06em' }}>STRATEGIC POSITIONING</span>
               </div>
-              <p style={{ fontSize: 14.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>Comment ils se présentent</p>
-              <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 8px' }}>Différenciateurs observés sur le site · cibles éditoriales inférées</p>
+              <p style={{ fontSize: 14.5, fontWeight: 700, color: INK, margin: '0 0 2px' }}>How they present themselves</p>
+              <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 8px' }}>Observed differentiators on their site · inferred editorial targets</p>
               {competitor.positioning_available && competitor.positioning ? (
                 <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: '12px 14px', background: '#FAF9F6' }}>
                   <p style={{ fontSize: 13, color: '#3D3D3D', margin: 0, lineHeight: 1.6 }}>{competitor.positioning}</p>
@@ -111,7 +111,7 @@ export default function CompetitorDetailModal({ competitor, rank, onClose }) {
           )
         ) : (
           <div style={{ padding: '18px 24px 24px' }}>
-            {news.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Aucune actualité détectée pour le moment.</p>}
+            {news.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>No news detected yet.</p>}
             {news.map((n, i) => (
               <div key={i} style={{ borderLeft: `3px solid ${VIOLET}`, padding: '4px 0 4px 14px', marginBottom: 18 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>

@@ -153,7 +153,7 @@ export default function FixDrawer({ issue, profile, user, isFree, onClose, onUpg
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: ORANGE_DEEP }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL }} />
-              Correction
+              Fix
             </span>
             <button onClick={onClose} className="fd-close"
               style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: WHITE, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>

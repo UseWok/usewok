@@ -24,9 +24,9 @@ export default function LLMCitingCard({ llms, onDetail, onWantMore }) {
   const max = Math.max(1, ...rows.map(r => r.citations || 0));
 
   return (
-    <DashCard title="Qui parle de toi" dot={GREEN} action="Voir le détail →" onAction={onDetail}>
+    <DashCard title="Who mentions you" dot={GREEN} action="See details →" onAction={onDetail}>
       {rows.length === 0 && (
-        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>Aucune IA ne te cite encore.</p>
+        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>No AI mentions you yet.</p>
       )}
       {rows.map((l, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
@@ -37,17 +37,17 @@ export default function LLMCitingCard({ llms, onDetail, onWantMore }) {
           <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${((l.citations || 0) / max) * 100}%`, background: ORANGE, borderRadius: 100 }} />
           </div>
-          <span style={{ width: 56, fontSize: 11.5, color: INK3, textAlign: 'right', flexShrink: 0 }}>{l.citations || 0} fois</span>
+          <span style={{ width: 56, fontSize: 11.5, color: INK3, textAlign: 'right', flexShrink: 0 }}>{l.citations || 0}× cited</span>
         </div>
       ))}
 
       <div style={{ fontSize: 11, color: INK3, lineHeight: 1.5, margin: '12px 0 14px' }}>
-        Combien de fois chaque IA a parlé de toi sur la période.
+        How many times each AI engine mentioned you during the period.
       </div>
 
       <button onClick={onWantMore}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: INK, color: '#FBF8F2', border: 'none', borderRadius: 10, height: 42, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-        <Plus size={14} /> Être cité plus souvent
+        <Plus size={14} /> Get cited more often
       </button>
     </DashCard>
   );

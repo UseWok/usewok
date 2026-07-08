@@ -61,15 +61,15 @@ export default function AuthorityTasksCard({ siteUrl, score, onScoreUpdate }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: CORAL }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Missions autorité IA</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.03em' }}>AI Authority Missions</span>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: doneCount === 3 ? GREEN : ORANGE_DEEP }}>
-          {doneCount}/3 validées
+          {doneCount}/3 completed
         </span>
       </div>
 
       <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px', lineHeight: 1.5 }}>
-        Créez vos profils sur ces plateformes de référence. Chaque profil validé augmente votre score IA — plus votre score est élevé, moins chaque mission rapporte (rendements décroissants).
+        Create your profiles on these reference platforms. Each verified profile increases your AI score — the higher your score, the less each mission grants (diminishing returns).
       </p>
 
       {/* Tasks */}
@@ -82,7 +82,7 @@ export default function AuthorityTasksCard({ siteUrl, score, onScoreUpdate }) {
         </div>
       ) : ordered.length === 0 ? (
         <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-          Lancez une analyse de votre site pour débloquer vos missions autorité.
+          Run a site analysis to unlock your authority missions.
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

@@ -91,10 +91,10 @@ export default function AuditCrawlability({ data = {} }) {
   const inboundMax = Math.max(...inboundLinks.map(i => i.count || 0), 1);
 
   const depthData = data.depth_distribution || [
-    { label: '1 clic', pages: data.pages_crawled || 0 },
-    { label: '2 clics', pages: 0 },
-    { label: '3 clics', pages: 0 },
-    { label: '4+ clics', pages: 0 },
+    { label: '1 click', pages: data.pages_crawled || 0 },
+    { label: '2 clicks', pages: 0 },
+    { label: '3 clicks', pages: 0 },
+    { label: '4+ clicks', pages: 0 },
   ];
   const depthMax = Math.max(...depthData.map(d => d.pages || 0), 1);
 
@@ -106,7 +106,7 @@ export default function AuditCrawlability({ data = {} }) {
   ];
 
   const analyzedDate = data.analyzed_at
-    ? new Date(data.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    ? new Date(data.analyzed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
 
   const pagesAxisMax = Math.max(data.pages_crawled || 0, 8);
@@ -125,14 +125,14 @@ export default function AuditCrawlability({ data = {} }) {
         {/* ── Topbar ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: INK, margin: 0 }}>Crawlabilité</h1>
+            <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: INK, margin: 0 }}>Crawlability</h1>
             <div style={{ color: MUTED, fontSize: 13, marginTop: 6 }}>
-              Score global · <b style={{ color: INK }}>{data.crawlability_score ?? '—'} / 100</b>
+              Overall score · <b style={{ color: INK }}>{data.crawlability_score ?? '—'} / 100</b>
             </div>
           </div>
           {analyzedDate && (
             <div style={{ fontSize: 12, color: MUTED, padding: '6px 12px', border: `1px solid ${LINE}`, borderRadius: 20, background: WHITE }}>
-              Mis à jour · {analyzedDate}
+              Updated · {analyzedDate}
             </div>
           )}
         </div>
@@ -142,7 +142,7 @@ export default function AuditCrawlability({ data = {} }) {
 
           {/* Indexabilité */}
           <Card>
-            <CardLabel>INDEXABILITÉ DU SITE</CardLabel>
+            <CardLabel>SITE INDEXABILITY</CardLabel>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Donut
                 segments={[
@@ -157,11 +157,11 @@ export default function AuditCrawlability({ data = {} }) {
               <div style={{ display: 'flex', gap: 22, marginTop: 16, fontSize: 12.5, color: INK_SOFT }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 9, height: 9, borderRadius: 2, background: '#DCD5C4' }} />
-                  {nonIndexable} non indexables
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 9, height: 9, borderRadius: 2, background: INK }} />
-                  {indexable} indexables
+                  {nonIndexable} non-indexable
+                                   </span>
+                                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                     <span style={{ width: 9, height: 9, borderRadius: 2, background: INK }} />
+                                     {indexable} indexable
                 </span>
               </div>
             </div>
@@ -169,19 +169,19 @@ export default function AuditCrawlability({ data = {} }) {
 
           {/* Budget de crawl */}
           <Card>
-            <CardLabel>BUDGET DE CRAWL GASPILLÉ — {data.crawl_budget_waste ?? '—'} / 10</CardLabel>
+            <CardLabel>CRAWL BUDGET WASTED — {data.crawl_budget_waste ?? '—'} / 10</CardLabel>
             {crawlBudgetItems.length > 0 ? (
               crawlBudgetItems.map((item, i) => (
                 <BarItem key={i} label={item.label} value={item.value || 0} max={crawlBudgetMax} color={(item.value || 0) > 0 ? ORANGE : INK} />
               ))
             ) : (
-              <p style={{ fontSize: 13, color: MUTED, padding: '20px 0' }}>Aucune donnée disponible</p>
+              <p style={{ fontSize: 13, color: MUTED, padding: '20px 0' }}>No data available</p>
             )}
           </Card>
 
           {/* Pages explorées */}
           <Card>
-            <CardLabel>PAGES EXPLORÉES</CardLabel>
+            <CardLabel>PAGES CRAWLED</CardLabel>
             <div style={{ height: 150, display: 'flex', alignItems: 'flex-end', gap: 8, position: 'relative', paddingLeft: 28 }}>
               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: 11, color: MUTED }}>
                 {pagesAxisSteps.map((v, i) => <span key={i}>{v}</span>)}
@@ -194,7 +194,7 @@ export default function AuditCrawlability({ data = {} }) {
               />
             </div>
             <div style={{ fontSize: 11.5, color: MUTED, marginTop: 8, marginLeft: 28 }}>
-              {analyzedDate || "Aujourd'hui"}
+              {analyzedDate || "Today"}
             </div>
           </Card>
         </div>
@@ -204,7 +204,7 @@ export default function AuditCrawlability({ data = {} }) {
 
           {/* Liens internes entrants */}
           <Card>
-            <CardLabel>LIENS INTERNES ENTRANTS</CardLabel>
+            <CardLabel>INBOUND INTERNAL LINKS</CardLabel>
             {inboundLinks.length > 0 ? (
               <>
                 <div style={{ height: 150, display: 'flex', alignItems: 'flex-end', gap: 26, position: 'relative', paddingLeft: 28 }}>
@@ -229,13 +229,13 @@ export default function AuditCrawlability({ data = {} }) {
                 </div>
               </>
             ) : (
-              <p style={{ fontSize: 13, color: MUTED, padding: '20px 0' }}>Aucune donnée disponible</p>
+              <p style={{ fontSize: 13, color: MUTED, padding: '20px 0' }}>No data available</p>
             )}
           </Card>
 
           {/* Profondeur de crawl */}
           <Card style={{ display: 'flex', flexDirection: 'column' }}>
-            <CardLabel>PROFONDEUR DE CRAWL</CardLabel>
+            <CardLabel>CRAWL DEPTH</CardLabel>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ flex: 1 }}>
                 {depthData.map((d, i) => (
@@ -247,7 +247,7 @@ export default function AuditCrawlability({ data = {} }) {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <span style={{ fontSize: 19, fontWeight: 700, color: INK }}>{data.crawl_depth_avg ?? '—'}</span>
-                <span style={{ fontSize: 9.5, color: MUTED }}>niveau</span>
+                <span style={{ fontSize: 9.5, color: MUTED }}>level</span>
               </div>
             </div>
           </Card>
@@ -258,23 +258,23 @@ export default function AuditCrawlability({ data = {} }) {
 
           {/* Sitemap */}
           <Card style={{ display: 'flex', flexDirection: 'column' }}>
-            <CardLabel>SITEMAP VS. PAGES EXPLORÉES</CardLabel>
+            <CardLabel>SITEMAP VS. PAGES CRAWLED</CardLabel>
             {data.sitemap_status === 'found' ? (
               <div style={{ background: CREAM_2, borderRadius: 12, padding: '20px 22px', marginTop: 'auto' }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: INK, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  Sitemap trouvé <span style={{ color: ORANGE, fontWeight: 700 }}>✓</span>
-                </div>
-                <div style={{ fontSize: 13, color: INK_SOFT, marginTop: 4 }}>{data.sitemap_url_count || 0} URL déclarées</div>
+                  Sitemap found <span style={{ color: ORANGE, fontWeight: 700 }}>✓</span>
+                                   </div>
+                                   <div style={{ fontSize: 13, color: INK_SOFT, marginTop: 4 }}>{data.sitemap_url_count || 0} URLs declared</div>
               </div>
             ) : (
               <div style={{ background: CREAM_2, borderRadius: 12, padding: '20px 22px', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: INK }}>Sitemap introuvable</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: INK }}>Sitemap not found</div>
                 <div style={{ fontSize: 13, color: INK_SOFT, lineHeight: 1.5 }}>
-                  Aucun fichier sitemap.xml détecté. Cela peut limiter l'indexation par les moteurs IA et Google.
+                  No sitemap.xml file detected. This may limit indexing by AI engines and Google.
                 </div>
                 <button onClick={() => setSitemapDrawer(true)}
                   style={{ fontSize: 12, fontWeight: 600, color: WHITE, background: INK, border: 'none', borderRadius: 7, padding: '8px 14px', cursor: 'pointer', fontFamily: F, alignSelf: 'flex-start' }}>
-                  Comment créer un sitemap →
+                  How to create a sitemap →
                 </button>
               </div>
             )}
@@ -282,7 +282,7 @@ export default function AuditCrawlability({ data = {} }) {
 
           {/* Codes de statut HTTP */}
           <Card>
-            <CardLabel>CODES DE STATUT HTTP</CardLabel>
+            <CardLabel>HTTP STATUS CODES</CardLabel>
             <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
               <Donut segments={httpData} size={110} stroke={14} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9, fontSize: 13.5, color: INK_SOFT }}>
@@ -306,7 +306,7 @@ export default function AuditCrawlability({ data = {} }) {
             <div style={{ padding: '20px 24px', borderBottom: `1px solid ${LINE}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: 10, fontWeight: 600, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>Guide</p>
-                <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>Créer un sitemap.xml</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: INK, margin: 0 }}>Create a sitemap.xml</p>
               </div>
               <button onClick={() => setSitemapDrawer(false)} style={{ width: 28, height: 28, borderRadius: 7, border: `1px solid ${LINE}`, background: WHITE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={13} color={INK_SOFT} />
@@ -315,11 +315,11 @@ export default function AuditCrawlability({ data = {} }) {
             <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
               <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
-                  'Générez un sitemap XML depuis votre CMS (WordPress : Yoast SEO, Shopify : intégré)',
-                  'Si SPA/React : utilisez le package "sitemap" sur Node.js pour le générer au build',
-                  'Placez le fichier à la racine : https://votre-domaine.com/sitemap.xml',
-                  'Déclarez-le dans robots.txt via la directive : Sitemap: https://…/sitemap.xml',
-                  "Soumettez l'URL du sitemap dans Google Search Console",
+                  'Generate an XML sitemap from your CMS (WordPress: Yoast SEO, Shopify: built-in)',
+                  'If SPA/React: use the "sitemap" package on Node.js to generate it at build time',
+                  'Place the file at the root: https://your-domain.com/sitemap.xml',
+                  'Declare it in robots.txt with the directive: Sitemap: https://…/sitemap.xml',
+                  "Submit the sitemap URL in Google Search Console",
                 ].map((step, i) => (
                   <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <div style={{ width: 22, height: 22, borderRadius: '50%', background: INK, color: WHITE, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>

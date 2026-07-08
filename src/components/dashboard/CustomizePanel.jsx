@@ -8,11 +8,11 @@ const BORDER = 'rgba(21,19,15,0.10)';
 const F = 'Inter, system-ui, sans-serif';
 
 export const DASHBOARD_WIDGETS = [
-  { id: 'evolution',   label: 'Ton score global',       sub: 'Note sur 100 + progression' },
-  { id: 'tasks',       label: 'Ce que tu dois faire',   sub: 'Tes actions du moment' },
-  { id: 'competitors', label: 'Tes concurrents',        sub: 'Ton classement face à eux' },
-  { id: 'llms',        label: 'Qui parle de toi',       sub: 'Les IA qui te citent' },
-  { id: 'pages',       label: 'Tes pages populaires',   sub: 'Les pages que les IA préfèrent' },
+  { id: 'evolution',   label: 'Your overall score',     sub: 'Score out of 100 + progress' },
+  { id: 'tasks',       label: 'What you need to do',    sub: 'Your current actions' },
+  { id: 'competitors', label: 'Your competitors',       sub: 'Your ranking vs them' },
+  { id: 'llms',        label: 'Who mentions you',        sub: 'AI engines that cite you' },
+  { id: 'pages',       label: 'Your popular pages',     sub: 'Pages AI engines prefer' },
 ];
 
 function Toggle({ on, onClick }) {
@@ -40,7 +40,7 @@ export default function CustomizePanel({ open, onClose, visibility, onToggle }) 
               background: '#fff', fontFamily: F, display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 40px rgba(0,0,0,0.12)' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 26px 18px', borderBottom: `1px solid ${BORDER}` }}>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Personnaliser le dashboard</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Customize your dashboard</h2>
               <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: '#F3EEE3', cursor: 'pointer', display: 'grid', placeItems: 'center', color: INK3 }}>
                 <X size={15} />
               </button>
@@ -63,7 +63,7 @@ export default function CustomizePanel({ open, onClose, visibility, onToggle }) 
 
             <div style={{ padding: '16px 26px', borderTop: `1px solid ${BORDER}` }}>
               <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-                Affiche ou masque les cartes. Ton choix est gardé pour tes prochaines visites.
+                Show or hide cards. Your choice is saved for future visits.
               </p>
             </div>
           </motion.div>
