@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen, Target, FileSearch, Users, CheckSquare, Award, Sparkle } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen, Target, FileSearch, Users, CheckSquare, Award, Sparkle, PanelLeft } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
@@ -475,6 +475,23 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         )}
       </AnimatePresence>
 
+      {/* Floating collapse/expand toggle — sits on the sidebar's outer edge */}
+      {!isMobile && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          title={expanded ? 'Collapse' : 'Expand'}
+          style={{
+            position: 'fixed', top: 18, left: (expanded ? EXPANDED_W : COLLAPSED_W) - 11, zIndex: 41,
+            width: 22, height: 22, borderRadius: 6, border: '1px solid rgba(0,0,0,0.10)',
+            background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+            transition: 'left 220ms cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
+          <PanelLeft size={12} color="#777" strokeWidth={2} />
+        </button>
+      )}
+
       <motion.aside
         initial={false}
         animate={isMobile
@@ -493,28 +510,11 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       >
         {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '10px 8px 6px 12px' : '10px 0 6px' }}>
-            <button
-              onClick={() => setExpanded(!expanded)}
-              title={!expanded ? 'Expand' : undefined}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
-            >
-              <div style={{ width: 24, height: 24, borderRadius: 7, background: '#FF5A1F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 3L21 20H3L12 3Z" fill="#fff"/></svg>
-              </div>
-              {expanded && <span style={{ fontSize: 14, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>UseWok</span>}
-            </button>
-            {expanded && (
-              <button onClick={() => setExpanded(false)} title="Collapse"
-                style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 5, border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', flexShrink: 0, marginRight: 2 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(21,19,15,0.07)'; e.currentTarget.style.color = '#333'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888'; }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
-                </svg>
-              </button>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 8, padding: expanded ? '16px 12px 22px' : '16px 0 22px' }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+              <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/02ac593f2_pcloud_552088188_3_202607_1_common-20260707001315-30789-22a14-cf87f.jpg" alt="UseWok" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            {expanded && <span style={{ fontSize: 15, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { X, Download, Check, Clock, Calendar, MessageCircle, Scan, Settings } from 'lucide-react';
 import { writeAuditLog } from '@/lib/serverGuard';
-import { AVATAR_COLORS } from '@/lib/user-color';
+import { AVATAR_GRADIENTS } from '@/lib/user-color';
 import AISettingsModal from '@/components/settings/AISettingsModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { getWokFeatures } from '@/lib/wok-plans';
@@ -302,10 +302,10 @@ function AvatarColorPicker({ user, onUpdate }) {
   };
   return (
     <div style={{ display: 'flex', gap: 8 }}>
-      {AVATAR_COLORS.map(c => (
+      {AVATAR_GRADIENTS.map(c => (
         <button key={c.id} onClick={() => select(c.id)} title={c.id}
           style={{
-            width: 26, height: 26, borderRadius: 8, background: c.value, padding: 0, cursor: 'pointer',
+            width: 28, height: 28, borderRadius: 9, background: c.value, padding: 0, cursor: 'pointer',
             border: color === c.id ? '2px solid #111' : '2px solid transparent',
             boxShadow: color === c.id ? '0 0 0 2px #fff inset' : 'none',
           }} />
