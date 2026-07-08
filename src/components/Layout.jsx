@@ -101,7 +101,7 @@ export default function Layout() {
   const sidebarOffset = isMobile ? 0 : (expanded ? EXPANDED_W : COLLAPSED_W);
   // Frame bg — EXACTLY matches index.css body background so there's no seam
   // #F8F7F4 = exact sidebar bg (--sidebar-background) — all borders same color
-  const FRAME_BG = '#F5F2EC';
+  const FRAME_BG = '#FFFFFF';
   const BORDER_TOP = 11;
   const BORDER_SIDE = 11;
   const BORDER_BOTTOM = 14;
@@ -228,7 +228,7 @@ export default function Layout() {
             borderRadius: CORNER_R,
             overflow: 'hidden',
             boxSizing: 'border-box',
-            background: '#F5F2EC',
+            background: '#FFFFFF',
             boxShadow: 'none',
           }),
         }}

@@ -109,27 +109,27 @@ function AccountMenu({ user, userPlan, navigate, expanded }) {
         onClick={() => setOpen(v => !v)}
         title={!expanded ? 'Account' : undefined}
         style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          width: expanded ? '100%' : 36, height: expanded ? 'auto' : 36,
-          padding: expanded ? '7px 8px' : 0,
-          borderRadius: expanded ? 11 : 9,
-          border: `1px solid ${open ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.07)'}`,
-          background: open ? 'rgba(0,0,0,0.03)' : '#fff',
+          display: 'flex', alignItems: 'center', gap: 12,
+          width: expanded ? '100%' : 40, height: expanded ? 'auto' : 40,
+          padding: expanded ? '8px 10px' : 0,
+          borderRadius: expanded ? 11 : 10,
+          border: `1px solid ${open ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.06)'}`,
+          background: open ? 'rgba(0,0,0,0.025)' : '#FFFFFF',
           cursor: 'pointer', fontFamily: 'inherit',
-          justifyContent: expanded ? 'flex-start' : 'center',
+          justifyContent: 'center',
           margin: expanded ? 0 : '0 auto',
           transition: 'background 100ms, border-color 100ms',
         }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'rgba(0,0,0,0.025)'; }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#fff'; }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'rgba(0,0,0,0.02)'; }}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#FFFFFF'; }}
       >
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: avatarGradient, flexShrink: 0 }} />
+        <div style={{ width: 36, height: 36, borderRadius: 9, background: avatarGradient, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
         {expanded && (
-          <div style={{ minWidth: 0, textAlign: 'left' }}>
-            <p style={{ fontSize: 12.5, fontWeight: 600, color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ minWidth: 0, textAlign: 'left', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {user?.full_name || user?.email?.split('@')[0] || 'Account'}
             </p>
-            <p style={{ fontSize: 11, color: '#999', margin: 0 }}>{userPlan?.name ? `${userPlan.name} plan` : 'Free plan'}</p>
+            <p style={{ fontSize: 11, color: '#999', margin: 0, lineHeight: 1.3 }}>{userPlan?.name ? `${userPlan.name} plan` : 'Free plan'}</p>
           </div>
         )}
       </button>
@@ -514,8 +514,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         style={{
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 40,
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
-          background: '#F5F2EC',
-          borderRight: '1px solid #F5F2EC',
+          background: '#FFFFFF',
+          borderRight: '1px solid #FFFFFF',
           fontFamily: 'Inter, system-ui, sans-serif',
           minWidth: isMobile ? EXPANDED_W : COLLAPSED_W,
         }}
@@ -523,7 +523,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
         {/* ── Top: App logo + name ── */}
         <div style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: expanded ? 'flex-start' : 'center', gap: 6, padding: expanded ? '10px 12px 8px' : '10px 0 8px' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 9, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
               <img src="https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/02ac593f2_pcloud_552088188_3_202607_1_common-20260707001315-30789-22a14-cf87f.jpg" alt="UseWok" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             {expanded && <span style={{ fontSize: 17, fontWeight: 700, color: '#15130F', letterSpacing: '-0.01em', whiteSpace: 'nowrap', fontFamily: "'Wix Madefor Text', 'Wix Madefor Display', Inter, sans-serif" }}>UseWok</span>}
