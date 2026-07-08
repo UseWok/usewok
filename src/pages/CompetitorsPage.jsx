@@ -104,9 +104,9 @@ export default function CompetitorsPage() {
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Competitors</h1>
-            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>
-              Where each competitor ranks on your active prompts (Referral · Authority · Narrative), trends and news. Click a competitor for details.
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Who AI recommends instead of you 🏁</h1>
+            <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.5, maxWidth: 560 }}>
+              See which competitors ChatGPT, Gemini and Claude name before you — and by how much. Add up to 3 to track, then watch the gap close as you improve.
             </p>
           </div>
           <button onClick={runScan} disabled={scanning}

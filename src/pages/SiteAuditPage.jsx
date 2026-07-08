@@ -67,7 +67,10 @@ export default function SiteAuditPage() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Site Audit</h1>
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Is your site AI-ready? 🔍</h1>
+            <p style={{ fontSize: 12.5, color: INK3, margin: '6px 0 0', lineHeight: 1.5, maxWidth: 520 }}>We check your website the way an AI engine reads it, and spot what's holding you back. One click, and you get a clear score plus fixes anyone can follow.</p>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {nextDate && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, background: 'rgba(16,185,129,0.06)', fontSize: 12, color: '#0B815A' }}>
