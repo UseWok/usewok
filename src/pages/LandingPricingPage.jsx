@@ -30,13 +30,6 @@ export default function LandingPricingPage() {
 
   const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
 
-  if (loading) return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAF9F6', fontFamily: WIX }}>
-      <div style={{ width: 20, height: 20, border: '2px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
   return (
     <div style={{ fontFamily: WIX, background: '#FAF9F6', color: '#15130F', minHeight: '100vh', WebkitFontSmoothing: 'antialiased' }}>
       <style>{`
@@ -150,7 +143,18 @@ export default function LandingPricingPage() {
         <section style={{ paddingTop: 0 }}>
           <div className="wrap">
             <div className="pricing-grid">
-              {sortedPlans.map(plan => (
+              {loading && [0, 1, 2].map(i => (
+                <div key={i} style={{ background: '#fff', border: '1px solid rgba(21,19,15,0.10)', borderRadius: 18, padding: 26 }}>
+                  <div style={{ width: '40%', height: 13, borderRadius: 7, marginBottom: 16, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                  <div style={{ width: '55%', height: 34, borderRadius: 8, marginBottom: 22, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                  {[90, 75, 85, 65, 80].map((w, j) => (
+                    <div key={j} style={{ width: `${w}%`, height: 12, borderRadius: 6, marginBottom: 10, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                  ))}
+                  <div style={{ height: 46, borderRadius: 100, marginTop: 18, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+                  <style>{`@keyframes skel-sh{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
+                </div>
+              ))}
+              {!loading && sortedPlans.map(plan => (
                 <PlanCard
                   key={plan.id}
                   plan={plan}

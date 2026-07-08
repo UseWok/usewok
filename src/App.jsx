@@ -17,6 +17,7 @@ import ResetPassword from './pages/ResetPassword';
 import SEOHead from './components/SEOHead';
 import GlobalNotifications from './components/GlobalNotifications';
 import BuildToast from './components/chat/BuildToast';
+import AppSkeleton from './components/ui/AppSkeleton';
 
 // ── Lazy-loaded pages (code-split for faster initial load) ──
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -58,12 +59,7 @@ const BrandPerceptionPage = lazy(() => import('./pages/BrandPerceptionPage'));
 const ForAgenciesPage = lazy(() => import('./pages/ForAgenciesPage'));
 const ForEcommercePage = lazy(() => import('./pages/ForEcommercePage'));
 
-const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#FBF8F2' }}>
-    <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.10)', borderTopColor: '#FF5A1F', animation: 'spin 0.8s linear infinite' }} />
-    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-  </div>
-);
+const PageLoader = () => <AppSkeleton />;
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -86,11 +82,7 @@ const AuthenticatedApp = () => {
   const isPublic = isPublicPath(pathname);
 
   if ((isLoadingPublicSettings || isLoadingAuth) && (hasToken || !isPublic)) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <AppSkeleton />;
   }
 
   // Not authenticated → show public landing routes + auth pages

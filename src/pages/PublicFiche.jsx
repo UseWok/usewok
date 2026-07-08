@@ -785,9 +785,21 @@ export default function PublicFiche() {
 
   if (loading) {
     return (
-      <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-        <Loader2 style={{ width: 28, height: 28, color: '#ccc', animation: 'spin 1s linear infinite' }} />
-        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <div style={{ position: 'fixed', inset: 0, background: '#fff', overflow: 'hidden', padding: '32px 24px' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          {[
+            { w: '35%', h: 18, mb: 24 },
+            { w: '80%', h: 34, mb: 14 },
+            { w: '55%', h: 16, mb: 32 },
+            { w: '100%', h: 180, mb: 24 },
+            { w: '100%', h: 14, mb: 10 },
+            { w: '92%', h: 14, mb: 10 },
+            { w: '70%', h: 14, mb: 10 },
+          ].map((b, i) => (
+            <div key={i} style={{ width: b.w, height: b.h, borderRadius: 8, marginBottom: b.mb, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+          ))}
+        </div>
+        <style>{`@keyframes skel-sh{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
       </div>
     );
   }

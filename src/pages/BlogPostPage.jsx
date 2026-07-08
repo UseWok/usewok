@@ -96,9 +96,25 @@ export default function BlogPostPage() {
   }, [slug]);
 
   if (loading) return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.10)', borderTopColor: CORAL, animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <div style={{ fontFamily: F, background: BG, minHeight: '100vh' }}>
+      <Navbar />
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '9rem 24px 6rem' }}>
+        {[
+          { w: '30%', h: 14, mb: 24 },
+          { w: '90%', h: 40, mb: 12 },
+          { w: '65%', h: 40, mb: 28 },
+          { w: '100%', h: 14, mb: 10 },
+          { w: '95%', h: 14, mb: 10 },
+          { w: '88%', h: 14, mb: 36 },
+          { w: '100%', h: 220, mb: 36 },
+          { w: '100%', h: 14, mb: 10 },
+          { w: '92%', h: 14, mb: 10 },
+          { w: '75%', h: 14, mb: 10 },
+        ].map((b, i) => (
+          <div key={i} style={{ width: b.w, height: b.h, borderRadius: 8, marginBottom: b.mb, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+        ))}
+      </div>
+      <style>{`@keyframes skel-sh{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
     </div>
   );
 

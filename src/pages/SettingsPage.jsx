@@ -443,9 +443,20 @@ export default function SettingsPage() {
   };
 
   if (!user) return (
-    <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 20, height: 20, border: '2px solid #E5E5E0', borderTopColor: '#999', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#F8F7F5' }}>
+      <div style={{ maxWidth: 620 }}>
+        <div style={{ width: 160, height: 26, borderRadius: 8, marginBottom: 28, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+        {[0, 1, 2, 3, 4].map(i => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <div>
+              <div style={{ width: 140, height: 13, borderRadius: 6, marginBottom: 8, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+              <div style={{ width: 220, height: 11, borderRadius: 6, background: 'linear-gradient(90deg, rgba(21,19,15,0.04) 25%, rgba(21,19,15,0.07) 50%, rgba(21,19,15,0.04) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+            </div>
+            <div style={{ width: 180, height: 32, borderRadius: 7, background: 'linear-gradient(90deg, rgba(21,19,15,0.05) 25%, rgba(21,19,15,0.09) 50%, rgba(21,19,15,0.05) 75%)', backgroundSize: '600px 100%', animation: 'skel-sh 1.4s ease-in-out infinite' }} />
+          </div>
+        ))}
+      </div>
+      <style>{`@keyframes skel-sh{0%{background-position:-600px 0}100%{background-position:600px 0}}`}</style>
     </div>
   );
 
