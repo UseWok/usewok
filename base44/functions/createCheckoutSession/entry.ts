@@ -4,7 +4,7 @@ import Stripe from 'npm:stripe@14.21.0';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { price_id, email } = await req.json();
+    const { price_id, email, promo_code } = await req.json();
 
     if (!price_id) {
       return Response.json({ error: 'price_id is required' }, { status: 400 });
@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
 
     const origin = req.headers.get('origin') || 'https://usewok.com';
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       mode: 'subscription',
       line_items: [{ price: price_id, quantity: 1 }],
       payment_method_types: ['card', 'paypal'],
@@ -26,7 +26,14 @@ Deno.serve(async (req) => {
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID') || '',
       },
-    });
+    };
+
+    // Apply launch promo code if provided
+    if (promo_code) {
+      sessionParams.discounts = [{ promotion_code: promo_code }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return Response.json({ url: session.url });
   } catch (error) {

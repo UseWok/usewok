@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId } from '@/lib/plans-config';
+import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId, getRecommendedPlanId } from '@/lib/plans-config';
 import { useAuth } from '@/lib/AuthContext';
+import { isPromoActive, PROMO } from '@/lib/promo';
 import { Check, ArrowRight, X } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
@@ -98,7 +99,8 @@ export default function PricingPage() {
     if (!priceId) { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); return; }
     setLoadingPlanId(plan.id);
     try {
-      const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail });
+      const promoCode = isPromoActive() ? PROMO.stripePromoCode : undefined;
+      const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail, promo_code: promoCode });
       if (res.data?.url) { window.location.href = res.data.url; }
       else { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); }
     } catch {
@@ -111,6 +113,7 @@ export default function PricingPage() {
   const isFree = (plan) => !plan.price_monthly || plan.price_monthly === 0;
 
   const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
+  const recommendedPlanId = getRecommendedPlanId(authUser);
 
   if (loading) return (
     <div style={{ minHeight: '100%', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
@@ -199,10 +202,12 @@ export default function PricingPage() {
               {sortedPlans.map(plan => {
                 const curr = isCurrent(plan);
                 const free = isFree(plan);
+                const isReco = plan.id === recommendedPlanId;
+                const planWithBadge = { ...plan, badge: isReco ? 'Recommended' : undefined };
                 return (
                   <PlanCard
                     key={plan.id}
-                    plan={plan}
+                    plan={planWithBadge}
                     billing={billing}
                     isCurrent={curr}
                     loading={loadingPlanId === plan.id}

@@ -261,6 +261,23 @@ export function getNormalizedPlanId(user) {
 }
 
 /**
+ * Compute which plan should be shown as "Recommended" for a given user.
+ * Logic:
+ *   - User on Free or Starter → Pro is recommended (default)
+ *   - User on Pro → Elite is recommended (next tier up)
+ *   - User on Elite → no recommendation (already on the max plan)
+ *
+ * This is derived from `user.subscription_plan` (cloud-persisted, set by Stripe webhook),
+ * so the recommendation is automatically consistent across sessions, devices, and accounts.
+ */
+export function getRecommendedPlanId(user) {
+  const currentId = getNormalizedPlanId(user);
+  if (currentId === 'elite') return null;
+  if (currentId === 'pro') return 'elite';
+  return 'pro';
+}
+
+/**
  * Get feature flags for a user's plan.
  * Admin overrides are loaded from AppSettings ('plan_feature_flags').
  */

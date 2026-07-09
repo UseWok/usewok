@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
+import { isPromoActive, PROMO } from '@/lib/promo';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
 import SecurityBadges from '@/components/pricing/SecurityBadges';
@@ -120,7 +121,12 @@ export default function LandingPricingPage() {
             <div className="navlinks">
               <button onClick={goHome}>Product</button>
               <button onClick={goHome}>Use cases</button>
-              <button className="active">Pricing</button>
+              <button className="active" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                Pricing
+                {isPromoActive() && (
+                  <span style={{ background: '#FF5A1F', color: '#fff', fontWeight: 800, fontSize: 10, padding: '2px 6px', borderRadius: 5, lineHeight: 1 }}>{PROMO.badgeText}</span>
+                )}
+              </button>
               <button onClick={goBlog}>Resources</button>
             </div>
             <div className="navright">
@@ -129,6 +135,13 @@ export default function LandingPricingPage() {
             </div>
           </div>
         </nav>
+
+        {/* PROMO BANNER */}
+        {isPromoActive() && (
+          <div style={{ background: '#15130F', color: '#FAF9F6', textAlign: 'center', padding: '10px 20px', fontSize: 13, fontWeight: 500, fontFamily: WIX }}>
+            🔥 {PROMO.bannerText}
+          </div>
+        )}
 
         {/* HERO */}
         <section className="p-hero">

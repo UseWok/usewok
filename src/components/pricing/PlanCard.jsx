@@ -70,16 +70,27 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
         <div style={{ fontSize: 20, fontWeight: 700, color: INK, marginBottom: 10, letterSpacing: '-0.01em' }}>
           {plan.name}
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4, flexWrap: 'wrap' }}>
           {isFree ? (
             <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>Free</span>
           ) : (
             <>
-              <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>${price}</span>
+              {promoOn && (
+                <span style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.02em', color: 'rgba(21,19,15,0.4)', textDecoration: 'line-through' }}>${price}</span>
+              )}
+              <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>${finalPrice}</span>
               <span style={{ fontSize: 13, color: 'rgba(21,19,15,0.5)', fontWeight: 500 }}>/mo</span>
+              {promoOn && (
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: ORANGE_BTN, padding: '2px 7px', borderRadius: 6, marginLeft: 2, alignSelf: 'center' }}>{PROMO.badgeText}</span>
+              )}
             </>
           )}
         </div>
+        {promoOn && (
+          <div style={{ fontSize: 11, color: '#C43E14', fontWeight: 600, marginBottom: 2 }}>
+            Launch offer · {PROMO.discountPct}% off
+          </div>
+        )}
         {/* ── AI engines + scans ── */}
         {engines.length > 0 && (
           <>
