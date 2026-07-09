@@ -1,5 +1,5 @@
 import React from 'react';
-import { isPromoActive, discountedPrice, PROMO } from '@/lib/promo';
+import { isPromoActive, discountedPrice, formatPrice, PROMO } from '@/lib/promo';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const INK = '#15130F';
@@ -76,9 +76,9 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
           ) : (
             <>
               {promoOn && (
-                <span style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.02em', color: 'rgba(21,19,15,0.4)', textDecoration: 'line-through' }}>${price}</span>
+                <span style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.02em', color: 'rgba(21,19,15,0.4)', textDecoration: 'line-through' }}>{formatPrice(price)}</span>
               )}
-              <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>${finalPrice}</span>
+              <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', color: INK }}>{formatPrice(finalPrice)}</span>
               <span style={{ fontSize: 13, color: 'rgba(21,19,15,0.5)', fontWeight: 500 }}>/mo</span>
               {promoOn && (
                 <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: ORANGE_BTN, padding: '2px 7px', borderRadius: 6, marginLeft: 2, alignSelf: 'center' }}>{PROMO.badgeText}</span>

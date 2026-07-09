@@ -136,13 +136,6 @@ export default function LandingPricingPage() {
           </div>
         </nav>
 
-        {/* PROMO BANNER */}
-        {isPromoActive() && (
-          <div style={{ background: '#15130F', color: '#FAF9F6', textAlign: 'center', padding: '10px 20px', fontSize: 13, fontWeight: 500, fontFamily: WIX }}>
-            🔥 {PROMO.bannerText}
-          </div>
-        )}
-
         {/* HERO */}
         <section className="p-hero">
           <div className="wrap">

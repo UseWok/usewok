@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
-import { isPromoActive, discountedPrice, PROMO } from '@/lib/promo';
+import { isPromoActive, discountedPrice, formatPrice, PROMO } from '@/lib/promo';
 import { ArrowLeft, ShieldCheck, Lock, CreditCard, Wallet } from 'lucide-react';
 
 export function saveCart(data) { localStorage.setItem('wok_cart', JSON.stringify(data)); }
@@ -163,11 +163,11 @@ export default function CheckoutPage() {
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
             {promoOn && (
               <span style={{ fontSize: 22, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', letterSpacing: '-0.02em' }}>
-                ${baseAmount}
+                {formatPrice(baseAmount)}
               </span>
             )}
             <span style={{ fontSize: 38, fontWeight: 800, color: WHITE, letterSpacing: '-0.03em' }}>
-              ${finalAmount}
+              {formatPrice(finalAmount)}
             </span>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
               {billing === 'yearly' ? '/year' : '/month'}
@@ -239,15 +239,15 @@ export default function CheckoutPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontSize: 12, color: '#FF9057' }}>Launch offer (-{PROMO.discountPct}%)</span>
                 <span style={{ fontSize: 12, color: '#FF9057', fontWeight: 600 }}>
-                  −${baseAmount - finalAmount}
+                  −{formatPrice(baseAmount - finalAmount)}
                 </span>
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total due today</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: WHITE }}>
-                ${finalAmount}
-              </span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total due today</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: WHITE }}>
+              {formatPrice(finalAmount)}
+            </span>
             </div>
           </div>
 

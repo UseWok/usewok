@@ -93,9 +93,8 @@ export default function PricingPage() {
 
   const handleUpgrade = async (plan) => {
     try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
+    // Always use createCheckoutSession for a consistent checkout experience across all plans
     const priceId = billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
-    const directUrl = billing === 'yearly' ? plan.checkout_url_yearly : plan.checkout_url_monthly;
-    if (directUrl?.startsWith('http')) { window.location.href = directUrl; return; }
     if (!priceId) { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); return; }
     setLoadingPlanId(plan.id);
     try {
@@ -185,6 +184,14 @@ export default function PricingPage() {
 
       <div className="uw-app-pricing">
         {showContact && <ContactModal onClose={() => setShowContact(false)} />}
+
+        {/* PROMO BANNER */}
+        {isPromoActive() && (
+          <div style={{ background: '#15130F', color: '#FAF9F6', textAlign: 'center', padding: '10px 20px', fontSize: 13, fontWeight: 500, fontFamily: WIX, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ background: '#FF5A1F', color: '#fff', fontWeight: 800, fontSize: 11, padding: '2px 7px', borderRadius: 5, lineHeight: 1, flexShrink: 0 }}>{PROMO.badgeText}</span>
+            <span>{PROMO.bannerText}</span>
+          </div>
+        )}
 
         {/* HERO */}
         <section className="p-hero">

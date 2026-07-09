@@ -72,9 +72,10 @@ export default function LandingPage() {
         .uw-landing .brand .mark{ width:26px; height:26px; border-radius:7px; background:var(--orange); display:flex; align-items:center; justify-content:center; }
         .uw-landing .brand .mark svg{ width:13px; height:13px; }
         .uw-landing .brand span{ font-weight:700; font-size:15.5px; }
-        .uw-landing .navlinks{ display:flex; align-items:center; gap:34px; font-size:14px; font-weight:500; color:var(--ink-soft); }
-        .uw-landing .navlinks button{ background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit; font-weight:inherit; color:inherit; padding:0; }
-        .uw-landing .navlinks button:hover{ color:var(--ink); }
+        .uw-landing .navlinks{ display:flex; align-items:center; gap:4px; font-size:14px; font-weight:600; color:var(--ink-soft); }
+        .uw-landing .navlinks button{ background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit; font-weight:inherit; color:inherit; padding:8px 16px; border-radius:100px; transition:color .2s ease, background .2s ease; }
+        .uw-landing .navlinks button:hover{ color:var(--ink); background:rgba(21,19,15,0.05); }
+        .uw-landing .navlinks button.active{ color:var(--ink); background:rgba(21,19,15,0.06); }
         .uw-landing .navright{ display:flex; align-items:center; gap:18px; }
         .uw-landing .hero{
           position:relative; padding:120px 0 80px; text-align:center; overflow:hidden;
@@ -322,16 +323,13 @@ export default function LandingPage() {
             <span>UseWok</span>
           </div>
           <div className="navlinks">
-            <button onClick={() => scrollTo(featuresRef)}>Product</button>
-            <button onClick={() => scrollTo(howRef)}>Use cases</button>
-            <button onClick={goBlog}>Resources</button>
             <button onClick={goPricing} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               Pricing
               {promoOn && (
                 <span style={{ background: 'var(--orange)', color: '#fff', fontWeight: 800, fontSize: 10, padding: '2px 6px', borderRadius: 5, lineHeight: 1 }}>{PROMO.badgeText}</span>
               )}
             </button>
-            <button onClick={() => scrollTo(stackRef)}>Company</button>
+            <button onClick={() => navigate('/about')}>Company</button>
           </div>
           <div className="navright">
             <button className="nav-login" onClick={goLogin}>Log in</button>
