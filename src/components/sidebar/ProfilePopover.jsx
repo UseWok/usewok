@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { Settings, HelpCircle, LogOut, Gift, Ticket } from 'lucide-react';
+import { Settings, HelpCircle, LogOut, Gift, Ticket, Plus, Globe, ChevronRight } from 'lucide-react';
 import ReferralModal from '@/components/ReferralModal';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
+import DomainManagerModal from '@/components/home/DomainManagerModal';
+import { getWokFeatures } from '@/lib/wok-plans';
 import { useNavigate } from 'react-router-dom';
 import { getUserColor } from '@/lib/user-color';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import DeleteAccountModal from './DeleteAccountModal';
 
+const CORAL = '#FF5A1F';
+
 export default function ProfilePopover({ open, onClose, anchorRef, user, userInitial }) {
   const popoverRef = useRef(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [domainModal, setDomainModal] = useState(null); // 'add' | 'manage' | null
+  const maxDomains = getWokFeatures(user)?.max_sites || 1;
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -81,7 +87,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -8, scale: 0.95 }}
           transition={{ duration: 0.15 }}
-          className="fixed z-[100] w-56 bg-card rounded-lg shadow-xl border border-border overflow-hidden"
+          className="fixed z-[100] w-64 bg-card rounded-lg shadow-xl border border-border overflow-hidden"
           style={{ left: pos.left, bottom: pos.bottom }}
         >
           <div className="p-3 border-b border-border flex items-center gap-3">
@@ -94,6 +100,27 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
               <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
             </div>
           </div>
+
+          {/* ── Playful domain actions ── */}
+          <div className="p-2 border-b border-border flex flex-col gap-1.5">
+            <button
+              onClick={() => { setDomainModal('add'); onClose(); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold text-white transition-transform active:scale-[0.98]"
+              style={{ background: CORAL }}
+            >
+              <Plus className="w-4 h-4 flex-shrink-0" strokeWidth={2.4} />
+              Add a website
+            </button>
+            <button
+              onClick={() => { setDomainModal('manage'); onClose(); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-foreground bg-muted transition-colors hover:bg-accent"
+            >
+              <Globe className="w-4 h-4 flex-shrink-0" />
+              My websites
+              <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />
+            </button>
+          </div>
+
           <div className="py-1">
             {items.map((item, i) =>
               item.divider ? (
@@ -130,6 +157,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
       <DeleteAccountModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} user={user} />
       <ReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
       <ActivationCodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} />
+      <DomainManagerModal open={!!domainModal} tab={domainModal || 'add'} onClose={() => setDomainModal(null)} user={user} maxDomains={maxDomains} />
     </AnimatePresence>
   );
 }
