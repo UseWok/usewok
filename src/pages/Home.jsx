@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Zap, AlertCircle, Plus, Globe, SlidersHorizontal, RefreshCw } from 'lucide-react';
-import { setActiveDomain, getActiveDomain, initActiveDomainFromUser } from '@/lib/active-domain';
+import { setActiveDomain, getActiveDomain, initActiveDomainFromUser, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
@@ -296,6 +296,14 @@ export default function Home() {
     if (user?.id && activeUrl) loadOverview();
   }, [user?.id, activeUrl]);
 
+  // Reload data when the active domain changes elsewhere (sidebar switch, etc.)
+  useEffect(() => {
+    const unsub = onActiveDomainChange((d) => {
+      if (d?.url) { setActiveUrl(d.url); loadAll(); }
+    });
+    return unsub;
+  }, []);
+
   const toggleWidget = (id) => {
     setWidgetVis(prev => {
       const next = { ...prev, [id]: prev[id] === false ? true : false };
@@ -393,6 +401,9 @@ export default function Home() {
   ];
 
   const brand = overview?.brand_name || activeProfile?.identity_name || getDomain(activeProfile?.site_url);
+  const lastScanDate = activeProfile?.last_scan
+    ? new Date(activeProfile.last_scan).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+    : '';
   const vis = (id) => widgetVis[id] !== false;
   const allHidden = DASHBOARD_WIDGETS.every(w => widgetVis[w.id] === false);
 
@@ -406,7 +417,7 @@ export default function Home() {
             <h1 style={{ fontSize: 26, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>
               Hi {getFirstName(user?.full_name)} 👋
             </h1>
-            <p style={{ fontSize: 15, color: INK2, margin: 0 }}>Here's how AI sees {brand}.</p>
+            <p style={{ fontSize: 15, color: INK2, margin: 0 }}>Here's how AI sees {brand}{lastScanDate ? ` · Last check on ${lastScanDate}` : ''}.</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setDomainModal('add')}
