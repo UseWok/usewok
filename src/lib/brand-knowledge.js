@@ -4,6 +4,7 @@
 
 import { base44 } from '@/api/base44Client';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
+import { getCachedUser, getCachedProfiles } from '@/lib/data-cache';
 
 // ── Default empty structure ────────────────────────────────────────
 export function emptyBrandKnowledge() {
@@ -77,8 +78,9 @@ export const LANGUAGES = [
 
 // ── Load active profile + brand knowledge ──────────────────────────
 export async function loadBrandKnowledge(activeDomainUrl) {
-  const u = await base44.auth.me();
-  const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+  const u = await getCachedUser();
+  if (!u) return { profile: null, extra: {}, knowledge: emptyBrandKnowledge() };
+  const profiles = await getCachedProfiles(u.id);
   const profile = activeDomainUrl
     ? (profiles.find(p => p.site_url === activeDomainUrl) || profiles[0])
     : profiles[0];

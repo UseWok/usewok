@@ -1,21 +1,33 @@
 import { base44 } from '@/api/base44Client';
 
+// In-memory cache for profile data — avoids re-fetching the same JSON
+// blob URL on every page visit. Keyed by brand_keywords value (URL or raw JSON).
+const _profileDataCache = new Map();
+
 export async function getProfileData(profile) {
   if (!profile) return {};
   if (!profile.brand_keywords) return {};
-  if (profile.brand_keywords.startsWith('http')) {
+
+  const key = profile.brand_keywords;
+  if (_profileDataCache.has(key)) return _profileDataCache.get(key);
+
+  let result;
+  if (key.startsWith('http')) {
     try {
-      const res = await fetch(profile.brand_keywords);
-      return await res.json();
+      const res = await fetch(key);
+      result = await res.json();
     } catch {
-      return {};
+      result = {};
+    }
+  } else {
+    try {
+      result = JSON.parse(key);
+    } catch {
+      result = {};
     }
   }
-  try {
-    return JSON.parse(profile.brand_keywords);
-  } catch {
-    return {};
-  }
+  _profileDataCache.set(key, result);
+  return result;
 }
 
 export async function uploadProfileData(data) {

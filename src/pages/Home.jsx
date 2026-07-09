@@ -210,10 +210,12 @@ export default function Home() {
 
   const loadAll = async () => {
     try {
-      const u = await getCachedUser();
+      // Use authUser from context first — avoids redundant base44.auth.me() network call
+      const u = authUser || peekCache('__user__') || await getCachedUser();
       if (!u) return;
       setUser(u);
-      await initActiveDomainFromUser();
+      setCache('__user__', u);
+      initActiveDomainFromUser(); // non-blocking (has internal guard)
       const list = await getCachedProfiles(u.id);
       const enriched = await Promise.all(list.map(async p => {
         const extra = await getProfileData(p).catch(() => ({}));

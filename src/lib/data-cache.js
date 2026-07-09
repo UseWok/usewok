@@ -33,12 +33,27 @@ export function clearCache(key) {
 }
 
 /**
- * Load a value through the cache. Dedupes concurrent calls for the same key.
+ * Load a value through the cache using stale-while-revalidate.
+ * If cached data exists, returns it INSTANTLY and revalidates in the background.
+ * If no cache, waits for the fetcher. Dedupes concurrent calls for the same key.
  * @param {string} key
  * @param {() => Promise<any>} fetcher
  * @returns {Promise<any>}
  */
 export async function loadCached(key, fetcher) {
+  const entry = store.get(key);
+  if (entry) {
+    // Serve stale data instantly — revalidate in background if stale
+    if (!inflight.has(key) && (Date.now() - entry.ts) > TTL) {
+      const p = (async () => {
+        try { const data = await fetcher(); setCache(key, data); return data; }
+        catch {} finally { inflight.delete(key); }
+      })();
+      inflight.set(key, p);
+    }
+    return entry.data;
+  }
+  // No cache — must wait for fetch
   if (inflight.has(key)) return inflight.get(key);
   const p = (async () => {
     try {

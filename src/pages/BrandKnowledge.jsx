@@ -9,6 +9,7 @@ import { BK_SECTIONS, completionPercent } from '@/lib/brand-knowledge-steps';
 import { FieldLabel, FieldValue, TextInput, TextArea } from '@/components/brand/BrandField';
 import TagListEditor, { PillList } from '@/components/brand/TagListEditor';
 import ChoiceChips from '@/components/brand/ChoiceChips';
+import BrandKnowledgeSkeleton from '@/components/skeletons/BrandKnowledgeSkeleton';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#111827';
@@ -69,15 +70,8 @@ export default function BrandKnowledge() {
     } finally { setSaving(false); }
   };
 
-  // ── Chargement / pas de profil ──
-  if (phase === 'loading') {
-    return (
-      <div style={{ minHeight: '100vh', background: BG, fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 26, height: 26, borderRadius: '50%', border: `3px solid ${BORDER}`, borderTopColor: VIOLET, animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
-  }
+  // ── Chargement ──
+  if (phase === 'loading') return <BrandKnowledgeSkeleton />;
 
   if (phase === 'no_profile') {
     return (
