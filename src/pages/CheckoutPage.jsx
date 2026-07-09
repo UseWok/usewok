@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
-import { isPromoActive, discountedPrice, formatPrice, PROMO, getPromoPriceId } from '@/lib/promo';
+import { isPromoActive, discountedPrice, formatPrice, PROMO } from '@/lib/promo';
 import { ArrowLeft, ShieldCheck, Lock, CreditCard, Wallet } from 'lucide-react';
 
 export function saveCart(data) { localStorage.setItem('wok_cart', JSON.stringify(data)); }
@@ -111,12 +111,12 @@ export default function CheckoutPage() {
       return;
     }
     // Fallback: use Stripe price ID to create a checkout session
-    const promoPriceId = getPromoPriceId(plan?.id);
-    const priceId = promoPriceId || (billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly);
+    const priceId = billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly;
     if (priceId) {
       setLoading(true);
       try {
-        const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email });
+        const promoCode = isPromoActive() ? PROMO.stripePromoCode : undefined;
+        const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email, promo_code: promoCode });
         if (res.data?.url) { window.location.href = res.data.url; }
         else { alert('Error while creating the payment session.'); }
       } catch (e) {
