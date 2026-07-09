@@ -112,7 +112,8 @@ export default function PricingPage() {
   const isFree = (plan) => !plan.price_monthly || plan.price_monthly === 0;
 
   const sortedPlans = [...plans].sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0));
-  const recommendedPlanId = getRecommendedPlanId(authUser);
+  // Derive recommendation from userPlanId (same source as isCurrent) to avoid auth context mismatch
+  const recommendedPlanId = getRecommendedPlanId({ subscription_plan: userPlanId });
 
   if (loading) return (
     <div style={{ minHeight: '100%', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
