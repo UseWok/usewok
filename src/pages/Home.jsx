@@ -11,6 +11,9 @@ import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
+import NextStepCard from '@/components/home/NextStepCard';
+import VisibilityPillars from '@/components/home/VisibilityPillars';
+import TestedQuestions from '@/components/home/TestedQuestions';
 import { getWokFeatures, getWokPlanId } from '@/lib/wok-plans';
 import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
 
@@ -760,21 +763,38 @@ export default function Home() {
 
   const activeProfile = profiles.find(p => p.site_url === activeUrl) || profiles[0];
   const lrs = Math.round(activeProfile?.lrs_score || activeProfile?.score_overall || 0);
-  const lrsLabel = lrs >= 65 ? 'Good visibility' : lrs >= 30 ? 'Partial visibility' : 'Low visibility';
   const isScanningActive = !!scanningUrls[activeProfile?.site_url];
   const hasData = !!(activeProfile?.score_overall > 0 || activeProfile?.lrs_score > 0);
 
-  const ENGINES_BARS = [
-    { key: 'chatgpt', label: 'ChatGPT', logoId: 'chatgpt' },
-    { key: 'gemini',  label: 'Gemini',  logoId: 'gemini' },
-    { key: 'claude',  label: 'Claude',  logoId: 'claude' },
+  // ── Real data only. Missing values stay null → shown honestly as "no data". ──
+  const issues = Array.isArray(activeProfile?.issues) ? activeProfile.issues : [];
+  const actionsLeft = issues.length;
+  const nextMilestone = lrs < 50 ? 50 : lrs < 65 ? 65 : lrs < 85 ? 85 : 100;
+  const topIssue = issues[0]?.problem || null;
+
+  // Hero sentence — built from real scores, no fabricated counts.
+  const aiVis = activeProfile?.score_ai_visibility;
+  const heroLabel = lrs >= 65 ? 'Strong AI visibility' : lrs >= 35 ? 'Partial AI visibility' : 'Low AI visibility';
+
+  // Only Gemini has a real per-engine score today. ChatGPT/Claude → null (not tested yet).
+  const ENGINES_TESTED = [
+    { label: 'ChatGPT', logoId: 'chatgpt', question: 'Are you recommended in your category?', score: (activeProfile?.chatgpt_score ?? null) },
+    { label: 'Gemini',  logoId: 'gemini',  question: 'Does it cite you as a source?',         score: (activeProfile?.gemini_score ?? null) },
+    { label: 'Claude',  logoId: 'claude',  question: 'Does it mention your brand?',           score: (activeProfile?.claude_score ?? null) },
+  ];
+
+  // Three pillars in plain language, mapped to real scores.
+  const PILLARS = [
+    { label: 'Content',   explain: 'What AI reads about you.',            score: (activeProfile?.score_message_clarity ?? null) },
+    { label: 'Authority', explain: 'Who talks about you elsewhere.',      score: (activeProfile?.score_commercial_signal ?? null) },
+    { label: 'Technical', explain: 'Is your site readable by an AI?',     score: (activeProfile?.score_ai_visibility ?? null) },
   ];
 
   const MODULES = [
-    { label: 'AI Report',   sub: 'LRS · engines',      Icon: BarChart2,      route: '/ai-report' },
-    { label: 'Audit',       sub: 'Technical & crawl',  Icon: ClipboardCheck,  route: '/audit' },
-    { label: 'Performance', sub: 'Share of voice',     Icon: TrendingUp,      route: '/performance' },
-    { label: 'Connections', sub: 'GSC · Analytics',    Icon: Link2,           route: '/connections' },
+    { label: 'How AI sees me',        sub: 'Your full report',      Icon: BarChart2,      route: '/ai-report' },
+    { label: 'Fix my weak spots',     sub: 'Prioritized actions',   Icon: ClipboardCheck, route: '/audit' },
+    { label: 'Track my progress',     sub: 'Score over time',       Icon: TrendingUp,     route: '/performance' },
+    { label: 'What AI already knows', sub: 'Your brand profile',    Icon: Link2,          route: '/brand-knowledge' },
   ];
 
   return (
@@ -859,6 +879,17 @@ export default function Home() {
           </AnimatePresence>
         </div>
 
+        {/* ── Next recommended step (top priority, gamified) ── */}
+        {hasData && !isScanningActive && (
+          <NextStepCard
+            currentScore={lrs}
+            targetScore={nextMilestone}
+            actionsLeft={actionsLeft}
+            action={topIssue}
+            onClick={() => navigate('/audit')}
+          />
+        )}
+
         {/* ── Carte Score ── */}
         <div style={{ marginBottom: 12 }}>
           {isScanningActive ? (
@@ -881,46 +912,24 @@ export default function Home() {
                 />
               </div>
 
-              {/* ── Row 1: donut + badge visibilité ── */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+              {/* ── Hero number — one single, measurable figure in plain language ── */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <BigDonut score={lrs} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ padding: '3px 10px', background: 'rgba(249,87,56,0.13)', border: '1px solid rgba(249,87,56,0.25)', borderRadius: 20, display: 'inline-block' }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: CORAL }}>{lrsLabel}</span>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: WHITE, lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+                    AI visibility score: {lrs}/100
                   </div>
+                  <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0', lineHeight: 1.5 }}>
+                    {heroLabel}
+                    {aiVis !== null && aiVis !== undefined
+                      ? ` — measured across your site and Gemini's responses, tracked over time.`
+                      : ` — run a full analysis to track it over time.`}
+                  </p>
                 </div>
               </div>
 
-              {/* ── Insight ── */}
-              <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.40)', margin: '0 0 12px', lineHeight: 1.65 }}>
-                {activeProfile?.shock_insight
-                  ? activeProfile.shock_insight.slice(0, 130) + (activeProfile.shock_insight.length > 130 ? '…' : '')
-                  : 'Analyze your visibility across 8 AI engines — ChatGPT, Gemini, Claude and more.'}
-              </p>
-
-              <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 12 }} />
-
-              {/* ── Engine bars ── */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 12 }}>
-                {ENGINES_BARS.map(e => {
-                  const s = activeProfile[`${e.key}_score`] || 0;
-                  return (
-                    <div key={e.key} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                      <div style={{ width: 18, height: 18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.65, filter: 'grayscale(1) brightness(10)' }}>
-                        <AILogoImg id={e.logoId} size={16} />
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: WHITE, width: 54, flexShrink: 0 }}>{e.label}</span>
-                      <div style={{ flex: 1, height: 5, background: 'rgba(255,255,255,0.10)', borderRadius: 999, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${Math.min(s, 100)}%`, background: CORAL, borderRadius: 999 }} />
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: WHITE, width: 20, textAlign: 'right' }}>{s}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
               {/* ── Footer: voir rapport ── */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 14 }}>
                 <span style={{ fontSize: 12.5, fontWeight: 400, color: CORAL }}>View full report</span>
                 <ArrowRight size={12} color={CORAL} strokeWidth={1.8} />
               </div>
@@ -940,7 +949,17 @@ export default function Home() {
           )}
         </div>
 
-        {/* ── Modules 2x2 ── */}
+        {/* ── Three pillars in plain language ── */}
+        {hasData && !isScanningActive && <VisibilityPillars pillars={PILLARS} />}
+
+        {/* ── Questions tested on the AI engines ── */}
+        {hasData && !isScanningActive && (
+          <div style={{ marginBottom: 22 }}>
+            <TestedQuestions engines={ENGINES_TESTED} scanning={isScanningActive} AILogoImg={AILogoImg} />
+          </div>
+        )}
+
+        {/* ── Benefit-oriented modules 2x2 ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 7, marginBottom: 22 }}>
           {MODULES.map(m => (
             <ModuleCard key={m.label} label={m.label} sub={m.sub} Icon={m.Icon} onClick={() => navigate(m.route)} />
