@@ -1,104 +1,118 @@
-// Guided Brand Knowledge — step-by-step config.
-// Each step is one friendly "question" the assistant asks, one at a time.
-// `why` = plain-language reason it matters (shown to reassure non-experts).
-// `fields` describe what to collect and how to render it.
+// Brand Knowledge — configuration des sections.
+// Ton professionnel B2B, sans émoji. Chaque champ propose des réponses pré-faites
+// à sélectionner (chips) pour minimiser la saisie.
 
-export const BK_STEPS = [
+export const BK_SECTIONS = [
   {
     id: 'identity',
-    emoji: '🏷️',
-    title: "Let's start with the basics",
-    intro: "First, the essentials — who you are.",
-    why: "This is the very first thing AI needs. Get it right and every answer about you starts on solid ground.",
+    title: 'Identité',
+    intro: "Les informations de base sur votre entreprise.",
     fields: [
-      { key: 'business_name', type: 'text', label: 'Your business name', placeholder: 'e.g. UseWok' },
-      { key: 'industry',      type: 'text', label: 'What do you do, in a few words?', placeholder: 'e.g. marketing software' },
-      { key: 'site_url',      type: 'text', label: 'Your website', placeholder: 'usewok.com' },
-      { key: 'headquarters',  type: 'text', label: 'Where are you based?', placeholder: 'e.g. Paris, France' },
+      { key: 'business_name', type: 'text', label: "Nom de l'entreprise", placeholder: 'ex. UseWok' },
+      { key: 'industry',      type: 'text', label: 'Secteur d\'activité', placeholder: 'ex. logiciel marketing' },
+      { key: 'site_url',      type: 'text', label: 'Site web', placeholder: 'usewok.com' },
+      { key: 'headquarters',  type: 'text', label: 'Siège / localisation', placeholder: 'ex. Paris, France' },
     ],
   },
   {
-    id: 'audience',
-    emoji: '🎯',
-    title: 'Who do you sell to?',
-    intro: 'Now, your customers.',
-    why: "When AI knows exactly who you serve, it recommends you to the right people instead of a generic competitor.",
+    id: 'market',
+    title: 'Marché cible',
+    intro: 'À qui vous vous adressez.',
     fields: [
-      { key: 'audience',       type: 'textarea', label: 'Describe your typical customers', placeholder: 'e.g. small business owners who want more visibility…', rows: 3 },
-      { key: 'target_segment', type: 'text',     label: 'What type of customers? (short)', placeholder: 'e.g. small businesses' },
-      { key: 'scope',          type: 'select',   label: 'Where do you sell?', options: ['Local', 'Regional', 'National', 'Continental', 'Worldwide'] },
+      {
+        key: 'business_model', type: 'choice', label: 'Modèle économique',
+        options: ['B2B', 'B2C', 'B2B2C', 'Marketplace'],
+      },
+      {
+        key: 'target_segment', type: 'choice', label: 'Type de clients',
+        options: ['Grandes entreprises', 'PME', 'Startups', 'Indépendants', 'Grand public', 'Secteur public'],
+      },
+      {
+        key: 'scope', type: 'choice', label: 'Zone de vente',
+        options: ['Local', 'Régional', 'National', 'Continental', 'Mondial'],
+      },
+      { key: 'audience', type: 'textarea', label: 'Décrivez votre client type (optionnel)', placeholder: 'ex. dirigeants de PME cherchant plus de visibilité…', rows: 3 },
     ],
   },
   {
     id: 'value',
-    emoji: '💎',
-    title: 'What makes you special?',
-    intro: "Let's talk about your edge.",
-    why: "This is why AI would pick you over someone else. The clearer your strengths, the more often you get recommended by name.",
+    title: 'Proposition de valeur',
+    intro: 'Ce qui vous distingue de la concurrence.',
     fields: [
-      { key: 'value_description', type: 'textarea', label: 'In one sentence, what do you do best?', placeholder: 'e.g. we help businesses show up in ChatGPT answers…', rows: 3 },
-      { key: 'value_keywords',    type: 'tags',     label: 'Your strengths (up to 5)', suggestKey: 'value_keywords', placeholder: 'e.g. easy to use' },
+      { key: 'value_description', type: 'textarea', label: 'En une phrase, que faites-vous de mieux ?', placeholder: 'ex. nous aidons les entreprises à apparaître dans les réponses de ChatGPT…', rows: 3 },
+      {
+        key: 'value_keywords', type: 'tags', label: 'Vos points forts (max 5)',
+        chipOptions: ['Simple à utiliser', 'Rapide', 'Support réactif', 'Meilleur prix', 'Sur-mesure', 'Innovant', 'Fiable', 'Expertise reconnue'],
+      },
     ],
   },
   {
     id: 'use_cases',
-    emoji: '🛠️',
-    title: 'How do people use you?',
-    intro: 'Real situations where customers turn to you.',
-    why: "AI matches questions to real needs. List the moments people need you, and you'll surface in those exact conversations.",
+    title: "Cas d'usage",
+    intro: 'Les situations concrètes où vos clients font appel à vous.',
     fields: [
-      { key: 'use_cases', type: 'tags', label: 'Common use cases (up to 5)', suggestKey: 'use_cases', placeholder: 'e.g. check your AI presence' },
+      {
+        key: 'use_cases', type: 'tags', label: "Cas d'usage courants (max 5)",
+        chipOptions: ['Gagner en visibilité', 'Automatiser une tâche', 'Analyser des données', 'Réduire les coûts', 'Se lancer rapidement', 'Piloter la performance'],
+      },
     ],
   },
   {
     id: 'authority',
-    emoji: '🧠',
-    title: "What are you an expert in?",
-    intro: 'The topics you own.',
-    why: "AI trusts specialists. Name your areas of expertise and it'll cite you as a source, not just a vendor.",
+    title: 'Expertise',
+    intro: 'Les sujets sur lesquels vous faites autorité.',
     fields: [
-      { key: 'authority_topics', type: 'tags', label: 'Your expertise topics (up to 5)', suggestKey: 'authority_topics', placeholder: 'e.g. AI visibility' },
+      {
+        key: 'authority_topics', type: 'tags', label: "Vos domaines d'expertise (max 5)",
+        chipOptions: ['Visibilité IA', 'SEO', 'Marketing digital', 'Data & analytics', 'Automatisation', 'Stratégie de contenu'],
+      },
     ],
   },
   {
     id: 'questions',
-    emoji: '❓',
-    title: 'What do customers wonder before buying?',
-    intro: 'The questions running through their heads.',
-    why: "These are the exact things people ask AI. Answer them here and you become the reply they get.",
+    title: 'Questions clients',
+    intro: 'Ce que vos prospects se demandent avant d\'acheter.',
     fields: [
-      { key: 'pre_purchase_questions', type: 'tags', label: 'Questions people ask (up to 5)', suggestKey: 'pre_purchase_questions', placeholder: 'e.g. how to get cited by AI?' },
+      {
+        key: 'pre_purchase_questions', type: 'tags', label: 'Questions fréquentes (max 5)',
+        chipOptions: ['Combien ça coûte ?', 'Est-ce difficile à installer ?', 'Quels résultats attendre ?', 'Y a-t-il un essai gratuit ?', 'Est-ce adapté à mon secteur ?'],
+      },
     ],
   },
   {
     id: 'objections',
-    emoji: '🚧',
-    title: 'What holds people back?',
-    intro: 'Common hesitations you overcome.',
-    why: "When AI knows your customers' worries, it can reassure them for you — turning doubt into a recommendation.",
+    title: 'Objections',
+    intro: 'Les freins que vous levez habituellement.',
     fields: [
-      { key: 'objections', type: 'tags', label: 'Common hesitations (up to 5)', suggestKey: 'objections', placeholder: 'e.g. is it hard to set up?' },
+      {
+        key: 'objections', type: 'tags', label: 'Hésitations fréquentes (max 5)',
+        chipOptions: ['Trop cher', 'Trop compliqué', 'Manque de temps', 'Pas sûr du résultat', 'Déjà un autre outil'],
+      },
     ],
   },
   {
     id: 'avoid',
-    emoji: '🙅',
-    title: 'Anything to steer clear of?',
-    intro: "Last one — topics you'd rather not be linked to.",
-    why: "This keeps AI from associating you with the wrong things. Totally optional, but it sharpens your image.",
+    title: 'À éviter (optionnel)',
+    intro: "Les sujets auxquels vous préférez ne pas être associé.",
     fields: [
-      { key: 'avoid_topics', type: 'tags', label: 'Topics to avoid (optional)', suggestKey: 'avoid_topics', placeholder: 'e.g. sensitive topics' },
+      {
+        key: 'avoid_topics', type: 'tags', label: 'Sujets à éviter (optionnel)',
+        chipOptions: ['Sujets politiques', 'Concurrents nommés', 'Promesses irréalistes', 'Sujets sensibles'],
+      },
     ],
   },
 ];
 
-// All field keys that count toward completion.
+// Compat : ancien nom encore importé ailleurs.
+export const BK_STEPS = BK_SECTIONS;
+
+// Toutes les clés qui comptent pour la complétion.
 export const BK_COMPLETION_KEYS = [
   'business_name', 'industry', 'site_url', 'headquarters',
-  'audience', 'target_segment', 'scope',
+  'business_model', 'target_segment', 'scope',
   'value_description', 'value_keywords',
   'use_cases', 'authority_topics', 'pre_purchase_questions', 'objections',
-  // avoid_topics is optional and intentionally NOT counted
+  // avoid_topics et audience sont optionnels — non comptés
 ];
 
 function filled(v) {
@@ -106,25 +120,26 @@ function filled(v) {
   return !!(v && String(v).trim());
 }
 
-// Completion % across the meaningful fields (0–100).
+// % de complétion sur les champs utiles (0–100).
 export function completionPercent(k) {
   const total = BK_COMPLETION_KEYS.length;
   const done = BK_COMPLETION_KEYS.filter(key => filled(k?.[key])).length;
   return Math.round((done / total) * 100);
 }
 
-// Is a single step considered "done"? (all its non-optional fields filled)
-export function isStepComplete(step, k) {
-  if (!step || !Array.isArray(step.fields)) return false;
-  const keys = step.fields.map(f => f.key).filter(key => key !== 'avoid_topics');
+// Une section est-elle "complète" ? (tous ses champs non optionnels remplis)
+export function isStepComplete(section, k) {
+  if (!section || !Array.isArray(section.fields)) return false;
+  const optional = ['avoid_topics', 'audience'];
+  const keys = section.fields.map(f => f.key).filter(key => !optional.includes(key));
   if (keys.length === 0) return true;
   return keys.every(key => filled(k?.[key]));
 }
 
-// Friendly line based on completion.
+// Libellé selon le taux de complétion.
 export function completionMessage(pct) {
-  if (pct >= 100) return "Your profile is complete — AI now knows you inside out. 🎉";
-  if (pct >= 75)  return `Almost there! The more complete, the more precise your AI answers.`;
-  if (pct >= 40)  return `Nice progress — keep going, every detail helps AI recommend you.`;
-  return `Just getting started. The more you add, the better AI talks about you.`;
+  if (pct >= 100) return "Profil complet — l'IA vous connaît parfaitement.";
+  if (pct >= 75)  return "Presque terminé. Plus c'est complet, plus les réponses IA sont précises.";
+  if (pct >= 40)  return "Bonne progression. Chaque détail aide l'IA à vous recommander.";
+  return "À compléter. Plus vous ajoutez d'informations, mieux l'IA parle de vous.";
 }
