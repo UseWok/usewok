@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId, getRecommendedPlanId } from '@/lib/plans-config';
+import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId, getRecommendedPlanId, DEFAULT_PLANS } from '@/lib/plans-config';
 import { useAuth } from '@/lib/AuthContext';
 import { isPromoActive, PROMO } from '@/lib/promo';
 import { Check, ArrowRight, X } from 'lucide-react';
@@ -99,17 +99,19 @@ export default function PricingPage() {
     try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
     // During promo: use the dedicated promo price IDs ($42/$85/$255) directly
     const promoOn = isPromoActive();
+    // Fallback to DEFAULT_PLANS if the plan from DB/localStorage doesn't have the price ID
+    const def = DEFAULT_PLANS.find(d => d.id === plan.id) || {};
     const priceId = promoOn
-      ? (billing === 'yearly' ? plan.stripe_promo_price_id_yearly : plan.stripe_promo_price_id_monthly)
-      : (billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly);
-    if (!priceId) { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); return; }
+      ? (billing === 'yearly' ? (plan.stripe_promo_price_id_yearly || def.stripe_promo_price_id_yearly) : (plan.stripe_promo_price_id_monthly || def.stripe_promo_price_id_monthly))
+      : (billing === 'yearly' ? (plan.stripe_price_id_yearly || def.stripe_price_id_yearly) : (plan.stripe_price_id_monthly || def.stripe_price_id_monthly));
+    if (!priceId) { alert('This plan is not available for checkout yet.'); return; }
     setLoadingPlanId(plan.id);
     try {
       const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail });
       if (res.data?.url) { window.location.href = res.data.url; }
-      else { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); }
+      else { alert('Error while creating the payment session. Please try again.'); }
     } catch {
-      navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
+      alert('Error while creating the payment session. Please try again.');
     }
     setLoadingPlanId(null);
   };
