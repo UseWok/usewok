@@ -21,11 +21,11 @@ function engineStatus(score, scanning) {
 }
 
 const STATUS_UI = {
-  recommended: { icon: Check, color: GREEN, bg: 'rgba(34,168,122,0.10)', label: "You're recommended" },
-  weak:        { icon: Check, color: AMBER, bg: 'rgba(217,119,6,0.10)',  label: 'Mentioned, but weakly' },
-  absent:      { icon: X,     color: RED,   bg: 'rgba(239,68,68,0.10)',  label: "You don't appear" },
-  pending:     { icon: Clock, color: INK2,  bg: 'rgba(21,19,15,0.06)',   label: 'Test in progress' },
-  untested:    { icon: Clock, color: INK3,  bg: 'rgba(21,19,15,0.04)',   label: 'Not tested yet' },
+  recommended: { icon: Check, color: GREEN, bg: 'rgba(34,168,122,0.12)', label: 'Vous êtes recommandé' },
+  weak:        { icon: Check, color: AMBER, bg: 'rgba(217,119,6,0.12)',  label: 'Cité, mais faiblement' },
+  absent:      { icon: X,     color: RED,   bg: 'rgba(239,68,68,0.12)',  label: "Vous n'apparaissez pas" },
+  pending:     { icon: Clock, color: INK2,  bg: 'rgba(21,19,15,0.06)',   label: 'En cours de test' },
+  untested:    { icon: Clock, color: INK3,  bg: 'rgba(21,19,15,0.04)',   label: 'Pas encore testé' },
 };
 
 /**
@@ -36,8 +36,8 @@ const STATUS_UI = {
 export default function TestedQuestions({ engines, scanning, AILogoImg }) {
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: INK2, marginBottom: 10 }}>
-        Questions tested on ChatGPT, Gemini &amp; Claude
+      <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 10 }}>
+        Questions testées sur ChatGPT, Gemini &amp; Claude
       </div>
       <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 13, overflow: 'hidden' }}>
         {engines.map((e, i) => {
@@ -53,12 +53,12 @@ export default function TestedQuestions({ engines, scanning, AILogoImg }) {
                 <AILogoImg id={e.logoId} size={20} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: INK }}>{e.label}</div>
-                <div style={{ fontSize: 12, color: INK3, marginTop: 1 }}>{e.question}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: INK }}>{e.label}</div>
+                <div style={{ fontSize: 12.5, color: INK2, marginTop: 2 }}>{e.question}</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: ui.bg, borderRadius: 20, flexShrink: 0 }}>
-                <Icon size={12} color={ui.color} strokeWidth={2.4} />
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: ui.color, whiteSpace: 'nowrap' }}>{ui.label}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 11px', background: ui.bg, borderRadius: 20, flexShrink: 0 }}>
+                <Icon size={13} color={ui.color} strokeWidth={2.4} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: ui.color, whiteSpace: 'nowrap' }}>{ui.label}</span>
               </div>
             </div>
           );

@@ -10,10 +10,10 @@ const RED = '#EF4444';
 
 // Color by score so the whole thing is never all-red — good scores turn green.
 function tone(score) {
-  if (score === null || score === undefined) return { c: INK3, bg: 'rgba(21,19,15,0.04)', word: 'No data' };
-  if (score >= 65) return { c: GREEN, bg: 'rgba(34,168,122,0.10)', word: 'Good' };
-  if (score >= 35) return { c: AMBER, bg: 'rgba(217,119,6,0.10)', word: 'Fair' };
-  return { c: RED, bg: 'rgba(239,68,68,0.08)', word: 'Needs work' };
+  if (score === null || score === undefined) return { c: INK3, bg: 'rgba(21,19,15,0.04)', word: 'À analyser' };
+  if (score >= 65) return { c: GREEN, bg: 'rgba(34,168,122,0.10)', word: 'Bon' };
+  if (score >= 35) return { c: AMBER, bg: 'rgba(217,119,6,0.10)', word: 'Correct' };
+  return { c: RED, bg: 'rgba(239,68,68,0.08)', word: 'À améliorer' };
 }
 
 /**
@@ -32,12 +32,12 @@ export default function VisibilityPillars({ pillars }) {
             padding: '14px 14px 13px', fontFamily: F,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{p.label}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: t.c, background: t.bg, borderRadius: 6, padding: '2px 7px' }}>{t.word}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>{p.label}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: t.c, background: t.bg, borderRadius: 6, padding: '3px 8px' }}>{t.word}</span>
             </div>
-            <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 12px', lineHeight: 1.5, minHeight: 34 }}>{p.explain}</p>
+            <p style={{ fontSize: 12.5, color: INK2, margin: '0 0 12px', lineHeight: 1.5, minHeight: 36 }}>{p.explain}</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: hasScore ? INK : INK3, letterSpacing: '-0.02em' }}>
+              <span style={{ fontSize: 22, fontWeight: 700, color: hasScore ? INK : INK3, letterSpacing: '-0.02em' }}>
                 {hasScore ? p.score : '—'}
               </span>
               {hasScore && <span style={{ fontSize: 11, color: INK3, fontWeight: 500 }}>/100</span>}

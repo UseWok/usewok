@@ -375,7 +375,7 @@ function ModuleCard({ label, sub, Icon, onClick }) {
 // ── Scan loader ────────────────────────────────────────────────────────────────
 function ScanLoader({ url }) {
   const [step, setStep] = useState(0);
-  const steps = ['Fetching site…', 'Querying AI engines…', 'Calculating LRS…', 'Generating report…'];
+  const steps = ['Récupération du site…', 'Interrogation des moteurs IA…', 'Calcul du score…', 'Génération du rapport…'];
   useEffect(() => {
     const iv = setInterval(() => setStep(s => Math.min(s + 1, steps.length - 1)), 8000);
     return () => clearInterval(iv);
@@ -383,8 +383,8 @@ function ScanLoader({ url }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: CARD_BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: F }}>
       <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite', marginBottom: 18 }} />
-      <div style={{ fontSize: 19, fontWeight: 700, color: WHITE, marginBottom: 5 }}>Analyzing <span style={{ color: CORAL }}>{getDomain(url)}</span></div>
-      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>8 AI engines · ~60 seconds</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: WHITE, marginBottom: 5 }}>Analyse de <span style={{ color: CORAL }}>{getDomain(url)}</span></div>
+      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>8 moteurs IA · ~60 secondes</div>
       <div style={{ width: '100%', maxWidth: 320, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '14px 18px' }}>
         {steps.map((s, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', opacity: i <= step ? 1 : 0.2, transition: 'opacity 0.5s' }}>
@@ -406,19 +406,19 @@ function ScanHero({ onScan }) {
   const [url, setUrl] = useState('');
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', fontFamily: F, background: BG }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em', textAlign: 'center' }}>Are you recommended by AI?</h1>
-      <p style={{ fontSize: 14, color: INK3, margin: '0 0 28px', textAlign: 'center' }}>Your LRS score in 60 seconds — 8 AI engines analyzed.</p>
+      <h1 style={{ fontSize: 26, fontWeight: 700, color: INK, margin: '0 0 6px', letterSpacing: '-0.02em', textAlign: 'center' }}>Êtes-vous recommandé par l'IA ?</h1>
+      <p style={{ fontSize: 15, color: INK3, margin: '0 0 28px', textAlign: 'center' }}>Votre score de visibilité en 60 secondes — 8 moteurs IA analysés.</p>
       <div style={{ width: '100%', maxWidth: 480, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, display: 'flex', alignItems: 'center', padding: '9px 9px 9px 16px', gap: 8 }}>
         <Plus size={14} color={INK3} strokeWidth={1.7} style={{ flexShrink: 0 }} />
         <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && url.trim() && onScan(url.trim())}
-          placeholder="Search a domain, launch an analysis…" autoFocus
+          placeholder="Entrez un domaine pour lancer une analyse…" autoFocus
           style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: INK, fontFamily: F }} />
         <button onClick={() => url.trim() && onScan(url.trim())}
           style={{ width: 34, height: 34, borderRadius: '50%', background: CORAL, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ArrowUp size={14} color={WHITE} strokeWidth={2.2} />
         </button>
       </div>
-      <p style={{ fontSize: 11, color: INK3, marginTop: 10 }}>Free · Instant result · No card required</p>
+      <p style={{ fontSize: 12, color: INK3, marginTop: 10 }}>Gratuit · Résultat instantané · Sans carte bancaire</p>
     </div>
   );
 }
@@ -772,29 +772,32 @@ export default function Home() {
   const nextMilestone = lrs < 50 ? 50 : lrs < 65 ? 65 : lrs < 85 ? 85 : 100;
   const topIssue = issues[0]?.problem || null;
 
-  // Hero sentence — built from real scores, no fabricated counts.
-  const aiVis = activeProfile?.score_ai_visibility;
-  const heroLabel = lrs >= 65 ? 'Strong AI visibility' : lrs >= 35 ? 'Partial AI visibility' : 'Low AI visibility';
-
-  // Only Gemini has a real per-engine score today. ChatGPT/Claude → null (not tested yet).
+  // Moteurs — seul Gemini a un vrai score par moteur aujourd'hui.
   const ENGINES_TESTED = [
-    { label: 'ChatGPT', logoId: 'chatgpt', question: 'Are you recommended in your category?', score: (activeProfile?.chatgpt_score ?? null) },
-    { label: 'Gemini',  logoId: 'gemini',  question: 'Does it cite you as a source?',         score: (activeProfile?.gemini_score ?? null) },
-    { label: 'Claude',  logoId: 'claude',  question: 'Does it mention your brand?',           score: (activeProfile?.claude_score ?? null) },
+    { label: 'ChatGPT', logoId: 'chatgpt', question: 'Vous recommande-t-il dans votre catégorie ?', score: (activeProfile?.chatgpt_score ?? null) },
+    { label: 'Gemini',  logoId: 'gemini',  question: 'Vous cite-t-il comme source ?',                score: (activeProfile?.gemini_score ?? null) },
+    { label: 'Claude',  logoId: 'claude',  question: 'Mentionne-t-il votre marque ?',                score: (activeProfile?.claude_score ?? null) },
   ];
 
-  // Three pillars in plain language, mapped to real scores.
+  // Phrase héros — comptée sur les vrais scores moteurs, ramenée sur 10 pour rester lisible.
+  const engineScores = ENGINES_TESTED.map(e => e.score).filter(s => s !== null && s !== undefined);
+  const positives = engineScores.filter(s => s >= 50).length;
+  const testedCount = engineScores.length;
+  // Sur 10 : proportion des réponses positives parmi les moteurs réellement testés.
+  const onTen = testedCount > 0 ? Math.round((positives / testedCount) * 10) : null;
+
+  // Trois piliers en langage humain, reliés aux vrais scores.
   const PILLARS = [
-    { label: 'Content',   explain: 'What AI reads about you.',            score: (activeProfile?.score_message_clarity ?? null) },
-    { label: 'Authority', explain: 'Who talks about you elsewhere.',      score: (activeProfile?.score_commercial_signal ?? null) },
-    { label: 'Technical', explain: 'Is your site readable by an AI?',     score: (activeProfile?.score_ai_visibility ?? null) },
+    { label: 'Contenu',   explain: 'Ce que l\u2019IA lit sur vous.',                   score: (activeProfile?.score_message_clarity ?? null) },
+    { label: 'Backlinks', explain: 'Qui parle de vous ailleurs.',                      score: (activeProfile?.score_commercial_signal ?? null) },
+    { label: 'Technique', explain: 'Est-ce que votre site est lisible par une IA ?',   score: (activeProfile?.score_ai_visibility ?? null) },
   ];
 
   const MODULES = [
-    { label: 'How AI sees me',        sub: 'Your full report',      Icon: BarChart2,      route: '/ai-report' },
-    { label: 'Fix my weak spots',     sub: 'Prioritized actions',   Icon: ClipboardCheck, route: '/audit' },
-    { label: 'Track my progress',     sub: 'Score over time',       Icon: TrendingUp,     route: '/performance' },
-    { label: 'What AI already knows', sub: 'Your brand profile',    Icon: Link2,          route: '/brand-knowledge' },
+    { label: 'Comment l\u2019IA me voit',    sub: 'Votre rapport complet',   Icon: BarChart2,      route: '/ai-report' },
+    { label: 'Corriger mes points faibles', sub: 'Actions prioritaires',    Icon: ClipboardCheck, route: '/audit' },
+    { label: 'Suivre ma progression',       sub: 'Score dans le temps',     Icon: TrendingUp,     route: '/performance' },
+    { label: 'Ce que l\u2019IA sait de moi', sub: 'Votre profil de marque',  Icon: Link2,          route: '/brand-knowledge' },
   ];
 
   return (
@@ -803,10 +806,10 @@ export default function Home() {
 
         {/* ── Header ── */}
         <div style={{ marginBottom: 18 }}>
-          <h1 style={{ fontSize: 25, fontWeight: 600, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>
-            Hi {getFirstName(user?.full_name)}.
+          <h1 style={{ fontSize: 27, fontWeight: 700, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+            Bonjour {getFirstName(user?.full_name)}.
           </h1>
-          <p style={{ fontSize: 13.5, color: INK2, margin: 0 }}>What would you like to analyze today?</p>
+          <p style={{ fontSize: 15, color: INK2, margin: 0 }}>Que souhaitez-vous analyser aujourd'hui ?</p>
         </div>
 
         {/* ── Barre de recherche ── */}
@@ -823,7 +826,7 @@ export default function Home() {
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setTrollError(false); }}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmitSearch(); } }}
-              placeholder={mode === 'scan' ? "Search a domain, launch an analysis…" : "Ask a question, get help..."}
+              placeholder={mode === 'scan' ? "Entrez un domaine pour lancer une analyse…" : "Posez une question, obtenez de l'aide…"}
               rows={1}
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
@@ -862,7 +865,7 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 style={{ padding: '5px 12px 0', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <AlertCircle size={12} color="#EF4444" />
-                <span style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 500 }}>Couldn't identify a website. Try a direct link or domain name.</span>
+                <span style={{ fontSize: 12, color: '#EF4444', fontWeight: 500 }}>Impossible d'identifier un site. Essayez un lien ou un nom de domaine.</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -895,8 +898,8 @@ export default function Home() {
           {isScanningActive ? (
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite' }} />
-              <p style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.82)', margin: 0 }}>Analyzing {getDomain(activeProfile?.site_url)}…</p>
-              <p style={{ fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.3)', margin: 0, textAlign: 'center' }}>8 AI engines · ~60s · Feel free to navigate</p>
+              <p style={{ fontSize: 15, fontWeight: 500, color: 'rgba(255,255,255,0.85)', margin: 0 }}>Analyse de {getDomain(activeProfile?.site_url)}…</p>
+              <p style={{ fontSize: 13, fontWeight: 400, color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>8 moteurs IA · ~60 s · Vous pouvez continuer à naviguer</p>
             </div>
           ) : hasData ? (
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', position: 'relative' }}
@@ -912,38 +915,38 @@ export default function Home() {
                 />
               </div>
 
-              {/* ── Hero number — one single, measurable figure in plain language ── */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {/* ── Un seul chiffre héros, en langage clair et mesurable ── */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
                 <BigDonut score={lrs} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: WHITE, lineHeight: 1.3, letterSpacing: '-0.01em' }}>
-                    AI visibility score: {lrs}/100
+                  <div style={{ fontSize: 18, fontWeight: 700, color: WHITE, lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+                    Score de visibilité IA : {lrs}/100
                   </div>
-                  <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0', lineHeight: 1.5 }}>
-                    {heroLabel}
-                    {aiVis !== null && aiVis !== undefined
-                      ? ` — measured across your site and Gemini's responses, tracked over time.`
-                      : ` — run a full analysis to track it over time.`}
+                  <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', margin: '6px 0 0', lineHeight: 1.55 }}>
+                    {onTen !== null
+                      ? `Vous apparaissez dans ${onTen} réponse${onTen > 1 ? 's' : ''} sur 10 testées.`
+                      : `Lancez une analyse complète pour mesurer votre présence dans les réponses IA.`}
+                    <span style={{ color: 'rgba(255,255,255,0.4)' }}> Suivi dans le temps.</span>
                   </p>
                 </div>
               </div>
 
               {/* ── Footer: voir rapport ── */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 14 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 400, color: CORAL }}>View full report</span>
-                <ArrowRight size={12} color={CORAL} strokeWidth={1.8} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 16 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: CORAL }}>Voir le rapport complet</span>
+                <ArrowRight size={13} color={CORAL} strokeWidth={1.8} />
               </div>
             </div>
           ) : (
             <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
               <AlertCircle size={18} color="rgba(255,255,255,0.4)" strokeWidth={1.7} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>No analysis for this domain</p>
-                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Run an analysis — 8 AI engines in parallel</p>
+                <p style={{ fontSize: 14.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Aucune analyse pour ce domaine</p>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Lancez une analyse — 8 moteurs IA en parallèle</p>
               </div>
               <button onClick={() => startScan(activeProfile.site_url)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', background: CORAL, borderRadius: 8, fontSize: 12.5, fontWeight: 700, color: WHITE, border: 'none', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
-                <Zap size={12} strokeWidth={2} /> Analyze
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: CORAL, borderRadius: 8, fontSize: 13, fontWeight: 700, color: WHITE, border: 'none', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
+                <Zap size={13} strokeWidth={2} /> Analyser
               </button>
             </div>
           )}
@@ -969,11 +972,11 @@ export default function Home() {
         {/* ── Mes domaines ── */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 400, color: INK2 }}>My domains · {profiles.length}/{maxDomains}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: INK2 }}>Mes domaines · {profiles.length}/{maxDomains}</span>
             <button onClick={() => setShowAddModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', border: 'none', borderRadius: 999, background: '#272522', fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.82)', cursor: 'pointer', fontFamily: F }}>
-              <Zap size={12} color={WHITE} strokeWidth={2} />
-              Analyze
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', border: 'none', borderRadius: 999, background: '#272522', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.85)', cursor: 'pointer', fontFamily: F }}>
+              <Zap size={13} color={WHITE} strokeWidth={2} />
+              Analyser
             </button>
           </div>
 
@@ -1001,7 +1004,7 @@ export default function Home() {
                   {isScanning ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 9px', background: `${CORAL}15`, borderRadius: 20, flexShrink: 0 }}>
                       <Loader size={10} color={CORAL} style={{ animation: 'spin 1s linear infinite' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: CORAL }}>Analyzing…</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: CORAL }}>Analyse…</span>
                     </div>
                   ) : score > 0 ? (
                     <SmallDonut score={score} />
@@ -1034,8 +1037,8 @@ export default function Home() {
                 style={{ position: 'absolute', top: 13, right: 13, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 7, border: `1px solid ${BORDER}`, background: BG, cursor: 'pointer' }}>
                 <X size={11} color={INK3} />
               </button>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>New domain</h2>
-              <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>The AI will analyze this site and calculate its LRS score.</p>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>Nouveau domaine</h2>
+              <p style={{ fontSize: 13, color: INK3, margin: '0 0 16px' }}>L'IA analyse ce site et calcule son score de visibilité.</p>
               <AddDomainForm onSubmit={(url) => { startScan(url); setShowAddModal(false); }} />
             </motion.div>
           </motion.div>
@@ -1071,7 +1074,7 @@ export default function Home() {
               <div style={{ background: WHITE, borderRadius: 20, overflow: 'hidden' }}>
                 {/* Site preview header */}
                 <div style={{ background: CARD_BG, padding: '24px 24px 20px' }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Site identified</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Site identifié</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Globe size={18} color="rgba(255,255,255,0.6)" />
@@ -1091,11 +1094,11 @@ export default function Home() {
                   <button onClick={() => confirmAndScan(confirmSite.url)}
                     style={{ width: '100%', padding: '13px', background: CARD_BG, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <Zap size={13} color={CORAL} />
-                    Analyze this site
+                    Analyser ce site
                   </button>
                   <button onClick={() => setConfirmSite(null)}
                     style={{ width: '100%', padding: '11px', background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 13, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-                    Not the right site
+                    Ce n'est pas le bon site
                   </button>
                 </div>
               </div>
@@ -1115,12 +1118,12 @@ function AddDomainForm({ onSubmit }) {
   return (
     <div>
       <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && url.trim() && onSubmit(clean())} autoFocus
-        placeholder="https://your-site.com"
+        placeholder="https://votre-site.com"
         style={{ width: '100%', padding: '10px 13px', fontSize: 13.5, border: `1px solid rgba(21,19,15,0.15)`, borderRadius: 9, outline: 'none', boxSizing: 'border-box', marginBottom: 12, fontFamily: F, color: INK, background: '#EEE5D2' }} />
       <button onClick={() => url.trim() && onSubmit(clean())} disabled={!url.trim()}
         style={{ width: '100%', padding: '11px', fontSize: 13.5, fontWeight: 700, color: WHITE, background: url.trim() ? CORAL : '#ccc', border: 'none', borderRadius: 9, cursor: url.trim() ? 'pointer' : 'not-allowed', fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
         <Zap size={13} />
-        Launch analysis
+        Lancer l'analyse
       </button>
     </div>
   );
