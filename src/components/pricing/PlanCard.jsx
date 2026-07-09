@@ -1,4 +1,5 @@
 import React from 'react';
+import { isPromoActive, discountedPrice, PROMO } from '@/lib/promo';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const INK = '#15130F';
@@ -30,6 +31,8 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
   const price = billing === 'yearly' && plan.price_yearly
     ? Math.round(plan.price_yearly / 12)
     : plan.price_monthly;
+  const promoOn = !isFree && isPromoActive();
+  const finalPrice = promoOn ? discountedPrice(price) : price;
 
   const engines = [...(plan.engines || [])].sort((a, b) => {
     const ia = ENGINE_ORDER.indexOf(a), ib = ENGINE_ORDER.indexOf(b);

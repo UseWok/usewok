@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, X, Zap, AlertTriangle, TrendingUp, CheckCircle, BarChart2 } from 'lucide-react';
+import { ArrowRight, X, Zap, AlertTriangle, TrendingUp, CheckCircle, BarChart2, Target, Bot } from 'lucide-react';
+import OpportunityBenchmark from './scan/OpportunityBenchmark';
+import AgentPositioning from './scan/AgentPositioning';
 
 const F = 'Inter, system-ui, sans-serif';
 const INK = '#0A0A0B';
@@ -112,8 +114,24 @@ function IllustrationPlan() {
 
 const STEPS = [
   {
+    key: 'benchmark',
+    title: 'Your Opportunity Benchmark',
+    subtitle: 'Where you stand vs. where you could be',
+    icon: Target,
+    color: '#10B981',
+    Illustration: IllustrationScore,
+  },
+  {
+    key: 'agent',
+    title: 'The AI Agent, live on your case',
+    subtitle: 'A positioning rewrite made for you',
+    icon: Bot,
+    color: '#7C6AF4',
+    Illustration: IllustrationPlan,
+  },
+  {
     key: 'score',
-    title: 'Votre Score LRS',
+    title: 'Your LRS Score',
     subtitle: 'LLM Resonance Score™',
     icon: BarChart2,
     color: '#7C6AF4',
@@ -121,16 +139,16 @@ const STEPS = [
   },
   {
     key: 'issues',
-    title: 'Problèmes détectés',
-    subtitle: 'Ce qui bloque votre visibilité IA',
+    title: 'What we found',
+    subtitle: "What's holding your AI visibility back",
     icon: AlertTriangle,
     color: '#EF4444',
     Illustration: IllustrationIssues,
   },
   {
     key: 'plan',
-    title: 'Votre Plan d\'action',
-    subtitle: '3 leviers prioritaires pour cette semaine',
+    title: 'Your action plan',
+    subtitle: '3 priorities to tackle this week',
     icon: TrendingUp,
     color: '#10B981',
     Illustration: IllustrationPlan,
@@ -147,16 +165,24 @@ export default function ScanResultsOnboarding({ data, onClose }) {
   const clarity = data?.message_clarity_score || 0;
   const commercial = data?.commercial_presence_score || 0;
   const issues = data?.issues || [];
-  const businessName = data?.business_name || 'Votre site';
+  const businessName = data?.business_name || 'Your website';
 
   const renderStepContent = () => {
+    if (current.key === 'benchmark') {
+      return <OpportunityBenchmark data={data} />;
+    }
+
+    if (current.key === 'agent') {
+      return <AgentPositioning data={data} />;
+    }
+
     if (current.key === 'score') {
       return (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
             <ScoreRing score={lrs} size={90} />
             <div>
-              <div style={{ fontSize: 13, color: INK3, marginBottom: 4 }}>Score global</div>
+              <div style={{ fontSize: 13, color: INK3, marginBottom: 4 }}>Overall score</div>
               <div style={{ fontSize: 28, fontWeight: 900, color: INK, letterSpacing: '-0.04em', lineHeight: 1 }}>{lrs}<span style={{ fontSize: 14, color: INK3, fontWeight: 500 }}>/100</span></div>
               <div style={{
                 display: 'inline-block', marginTop: 6, padding: '3px 10px', borderRadius: 20,
@@ -164,13 +190,13 @@ export default function ScanResultsOnboarding({ data, onClose }) {
                 color: lrs >= 65 ? '#10B981' : lrs >= 35 ? '#F59E0B' : '#EF4444',
                 fontSize: 11, fontWeight: 700,
               }}>
-                {lrs >= 65 ? '✓ Bonne visibilité' : lrs >= 35 ? '⚠ Partielle' : '✗ Invisible aux IA'}
+                {lrs >= 65 ? '✓ Good visibility' : lrs >= 35 ? '⚠ Partial' : '✗ Invisible to AI'}
               </div>
             </div>
           </div>
-          <MiniBar label="Visibilité IA" value={aiVis} />
-          <MiniBar label="Clarté du message" value={clarity} />
-          <MiniBar label="Signal commercial" value={commercial} />
+          <MiniBar label="AI visibility" value={aiVis} />
+          <MiniBar label="Message clarity" value={clarity} />
+          <MiniBar label="Commercial signal" value={commercial} />
           {data?.shock_insight && (
             <div style={{ marginTop: 16, padding: '12px 14px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 10, fontSize: 12, color: '#B91C1C', lineHeight: 1.55 }}>
               💡 {data.shock_insight}
@@ -186,8 +212,8 @@ export default function ScanResultsOnboarding({ data, onClose }) {
         return (
           <div style={{ textAlign: 'center', padding: '32px 0' }}>
             <CheckCircle size={40} color="#10B981" style={{ margin: '0 auto 12px', display: 'block' }} />
-            <div style={{ fontSize: 14, fontWeight: 700, color: INK }}>Aucun problème critique détecté</div>
-            <div style={{ fontSize: 12, color: INK3, marginTop: 4 }}>Votre site est bien structuré pour les IA.</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: INK }}>No critical issues found</div>
+            <div style={{ fontSize: 12, color: INK3, marginTop: 4 }}>Your site is well structured for AI engines.</div>
           </div>
         );
       }
@@ -204,7 +230,7 @@ export default function ScanResultsOnboarding({ data, onClose }) {
           ))}
           {issues.length > 3 && (
             <div style={{ fontSize: 11.5, color: INK3, textAlign: 'center', padding: '4px 0' }}>
-              + {issues.length - 3} autres problèmes dans le rapport complet
+              + {issues.length - 3} more findings in your full report
             </div>
           )}
         </div>
@@ -219,15 +245,15 @@ export default function ScanResultsOnboarding({ data, onClose }) {
       return (
         <div>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Score par moteur IA</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Score by AI engine</div>
             {topEngines.map((e, i) => <MiniBar key={e.name} label={e.name} value={e.score} />)}
           </div>
           <div style={{ padding: '14px 16px', background: SURFACE, borderRadius: 12, border: `1px solid ${BORDER}` }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 8 }}>🎯 Vos 3 priorités cette semaine</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 8 }}>🎯 Your 3 priorities this week</div>
             {[
-              'Ajouter des balises Schema sur vos pages clés',
-              'Publier du contenu structuré pour les IA citantes',
-              'Renforcer votre présence sur les plateformes référencées',
+              'Add Schema markup to your key pages',
+              'Publish structured content the AI engines can cite',
+              'Strengthen your presence on the platforms they reference',
             ].map((a, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: i < 2 ? 8 : 0 }}>
                 <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#7C6AF4', color: WHITE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
@@ -293,12 +319,12 @@ export default function ScanResultsOnboarding({ data, onClose }) {
           <div style={{ display: 'flex', gap: 8 }}>
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, fontSize: 13, fontWeight: 600, color: INK2, cursor: 'pointer', fontFamily: F }}>
-                Retour
+                Back
               </button>
             )}
             <button onClick={() => isLast ? onClose() : setStep(s => s + 1)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, border: 'none', background: INK, fontSize: 13, fontWeight: 700, color: WHITE, cursor: 'pointer', fontFamily: F }}>
-              {isLast ? 'Voir le rapport complet' : 'Suivant'}
+              {isLast ? 'See my full report' : 'Next'}
               <ArrowRight size={13} />
             </button>
           </div>

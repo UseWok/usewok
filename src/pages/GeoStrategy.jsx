@@ -114,57 +114,57 @@ export default function GeoStrategy() {
     return null;
   };
 
-  // ── Configuration des sections ──
+  // ── Section configuration ──
   const SECTIONS = [
     {
       id: 'positioning',
-      title: 'Positionnement souhaité',
-      intro: "Le rôle que vous voudriez que l'IA vous donne quand elle parle de votre domaine.",
+      title: 'Desired positioning',
+      intro: "The role you'd like AI to give you when it talks about your space.",
       fields: [
-        { key: 'positioning_target', type: 'choice', label: 'Votre position idéale', options: POSITIONING_TARGETS },
-        { key: 'positioning_note', type: 'text', label: 'Comment aimeriez-vous être présenté ?', rows: 3, placeholder: 'ex. la solution la plus simple pour être visible sur les IA…' },
+        { key: 'positioning_target', type: 'choice', label: 'Your ideal position', options: POSITIONING_TARGETS },
+        { key: 'positioning_note', type: 'text', label: 'How would you like to be introduced?', rows: 3, placeholder: 'e.g. the simplest way to get seen by AI engines…' },
       ],
     },
     {
       id: 'queries',
-      title: 'Questions ciblées',
-      intro: "Quand quelqu'un pose ces questions à ChatGPT, vous voulez être la réponse.",
+      title: 'Target questions',
+      intro: "When someone asks ChatGPT these questions, you want to be the answer.",
       fields: [
-        { key: 'target_queries', type: 'tags', label: 'Vos questions prioritaires (5 max)', placeholder: 'ex. quel est le meilleur outil pour la visibilité IA ?', chipOptions: TARGET_QUERY_CHIPS },
-        { key: 'query_intents', type: 'pills', label: "Ce que vos clients cherchent", options: QUERY_INTENTS },
+        { key: 'target_queries', type: 'tags', label: 'Your priority questions (up to 5)', placeholder: 'e.g. what is the best tool for AI visibility?', chipOptions: TARGET_QUERY_CHIPS },
+        { key: 'query_intents', type: 'pills', label: "What your customers are looking for", options: QUERY_INTENTS },
       ],
     },
     {
       id: 'tone',
-      title: 'Tonalité',
-      intro: "Comment vous voulez que l'IA parle de vous : le style, les mots, l'angle.",
+      title: 'Tone of voice',
+      intro: "How you want AI to talk about you — the style, the words, the angle.",
       fields: [
-        { key: 'query_philosophy', type: 'text', label: 'Vos directives', rows: 4, placeholder: 'ex. toujours nous présenter comme la solution simple et rapide, mettre en avant les résultats…' },
+        { key: 'query_philosophy', type: 'text', label: 'Your guidelines', rows: 4, placeholder: 'e.g. always present us as the simple, fast option; lead with results…' },
       ],
     },
     {
       id: 'sources',
-      title: 'Sources d\'autorité',
-      intro: "Sites et médias qui, s'ils parlent de vous, boostent votre crédibilité.",
+      title: 'Authority sources',
+      intro: "Sites and media that boost your credibility when they mention you.",
       fields: [
-        { key: 'known_sources', type: 'pills', label: 'Médias reconnus à cibler', options: KNOWN_SOURCES },
-        { key: 'authority_sources', type: 'tags', label: 'Autres sites qui comptent pour vous (5 max)', placeholder: 'ex. nom d\'un blog ou média…', chipOptions: [] },
+        { key: 'known_sources', type: 'pills', label: 'Trusted media to target', options: KNOWN_SOURCES },
+        { key: 'authority_sources', type: 'tags', label: 'Other sites that matter to you (up to 5)', placeholder: 'e.g. name of a blog or outlet…', chipOptions: [] },
       ],
     },
     {
       id: 'content',
-      title: 'Thèmes de contenu',
-      intro: "Les grands axes de contenu à produire pour devenir une référence.",
+      title: 'Content themes',
+      intro: "The main content areas to build so you become a go-to reference.",
       fields: [
-        { key: 'content_pillars', type: 'tags', label: 'Vos piliers de contenu (5 max)', placeholder: 'ex. guides pratiques, comparatifs, témoignages…', chipOptions: CONTENT_PILLAR_CHIPS },
+        { key: 'content_pillars', type: 'tags', label: 'Your content pillars (up to 5)', placeholder: 'e.g. how-to guides, comparisons, case studies…', chipOptions: CONTENT_PILLAR_CHIPS },
       ],
     },
     {
       id: 'competitors',
-      title: 'Concurrents à battre',
-      intro: "Les marques que vous voulez devancer dans les réponses IA.",
+      title: 'Competitors to beat',
+      intro: "The brands you want to outrank in AI answers.",
       fields: [
-        { key: 'priority_competitors', type: 'tags', label: 'Vos concurrents prioritaires (5 max)', placeholder: 'ex. Semrush, Ahrefs…', chipOptions: COMPETITOR_CHIPS },
+        { key: 'priority_competitors', type: 'tags', label: 'Your priority competitors (up to 5)', placeholder: 'e.g. Semrush, Ahrefs…', chipOptions: COMPETITOR_CHIPS },
       ],
     },
   ];
@@ -175,26 +175,26 @@ export default function GeoStrategy() {
       <div style={{ background: '#fff', borderBottom: `1px solid ${BORDER}`, position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>Plan de visibilité IA</h1>
+            <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>AI Visibility Plan</h1>
             <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>
-              {editing ? "Modifiez vos réponses, puis enregistrez." : `${domainLabel} · Ce que UseWok doit optimiser pour vous`}
+              {editing ? "Edit your answers, then save." : `${domainLabel} · What UseWok should optimize for you`}
             </p>
           </div>
           {editing ? (
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
               <button onClick={cancelEdit} disabled={saving}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 15px', border: `1px solid ${BORDER}`, background: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 600, color: INK3, cursor: 'pointer', fontFamily: F }}>
-                <X size={14} /> Annuler
+                <X size={14} /> Cancel
               </button>
               <button onClick={save} disabled={saving}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', border: 'none', background: VIOLET, borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: F, opacity: saving ? 0.7 : 1 }}>
-                <Check size={14} /> {saving ? 'Enregistrement…' : 'Enregistrer'}
+                <Check size={14} /> {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
           ) : (
             <button onClick={startEdit}
               style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', border: 'none', background: VIOLET, borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
-              <Pencil size={14} /> Modifier
+              <Pencil size={14} /> Edit
             </button>
           )}
         </div>
@@ -208,9 +208,9 @@ export default function GeoStrategy() {
             <Info size={16} color={VIOLET} />
           </div>
           <div>
-            <p style={{ fontSize: 13.5, fontWeight: 600, color: BANNER_TEXT, margin: '0 0 3px' }}>Pourquoi cette page ?</p>
+            <p style={{ fontSize: 13.5, fontWeight: 600, color: BANNER_TEXT, margin: '0 0 3px' }}>Why this page matters</p>
             <p style={{ fontSize: 12.5, color: BANNER_TEXT, margin: 0, lineHeight: 1.55, opacity: 0.85 }}>
-              Ce plan indique à UseWok exactement quoi optimiser pour apparaître sur les bonnes questions. Plus il est précis, plus nos recommandations sont ciblées.
+              This plan tells UseWok exactly what to optimize so you show up for the right questions. The more precise it is, the sharper our recommendations get.
             </p>
           </div>
         </div>

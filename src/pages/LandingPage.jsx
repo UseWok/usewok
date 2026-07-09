@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 const AnalyzeLeadModal = lazy(() => import('@/components/landing/AnalyzeLeadModal'));
 import LandingTestimonials from '@/components/landing/LandingTestimonials';
+import { PROMO, isPromoActive } from '@/lib/promo';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ export default function LandingPage() {
   const goLogin = () => navigate('/login');
   const goPricing = () => navigate('/pricing');
   const goBlog = () => navigate('/blog');
+
+  const promoOn = isPromoActive();
 
   return (
     <div className="uw-landing">
@@ -296,6 +299,21 @@ export default function LandingPage() {
         }
       `}</style>
 
+      {/* PROMO BANNER */}
+      {promoOn && (
+        <div style={{
+          background: '#15130F', color: '#FBF8F2', textAlign: 'center',
+          fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em',
+          padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <span style={{
+            background: 'var(--orange)', color: '#fff', fontWeight: 800, fontSize: 11,
+            padding: '2px 7px', borderRadius: 5, letterSpacing: '0.01em', flexShrink: 0,
+          }}>{PROMO.badgeText}</span>
+          <span>{PROMO.bannerText}</span>
+        </div>
+      )}
+
       {/* NAV */}
       <nav>
         <div className="wrap">
@@ -307,7 +325,12 @@ export default function LandingPage() {
             <button onClick={() => scrollTo(featuresRef)}>Product</button>
             <button onClick={() => scrollTo(howRef)}>Use cases</button>
             <button onClick={goBlog}>Resources</button>
-            <button onClick={goPricing}>Pricing</button>
+            <button onClick={goPricing} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              Pricing
+              {promoOn && (
+                <span style={{ background: 'var(--orange)', color: '#fff', fontWeight: 800, fontSize: 10, padding: '2px 6px', borderRadius: 5, lineHeight: 1 }}>{PROMO.badgeText}</span>
+              )}
+            </button>
             <button onClick={() => scrollTo(stackRef)}>Company</button>
           </div>
           <div className="navright">
