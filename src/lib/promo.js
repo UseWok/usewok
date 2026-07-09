@@ -17,12 +17,11 @@ export function isPromoActive() {
   return PROMO.active && new Date() <= PROMO.deadline;
 }
 
-// Apply the discount and return the EXACT amount Stripe will charge (rounded to the cent).
-// This ensures the displayed price matches the Stripe checkout total perfectly.
+// Apply the discount and round UP to a whole dollar — matches the Stripe promo code charge.
 export function discountedPrice(amount) {
   if (!isPromoActive() || !amount) return amount;
   const discounted = amount * (1 - PROMO.discountPct / 100);
-  return Math.round(discounted * 100) / 100;
+  return Math.ceil(discounted);
 }
 
 // Format a price for display — shows whole dollars without decimals, cents otherwise.

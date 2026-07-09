@@ -22,8 +22,8 @@ const ENGINE_LOGOS = {
   llama:      'https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/116d6a5ab_generated_image.png',
 };
 
-// Ordre d'affichage fixe des IA (identique pour tous les plans)
-const ENGINE_ORDER = ['chatgpt', 'gemini', 'claude', 'perplexity', 'copilot', 'grok', 'mistral', 'llama'];
+// Fixed display order of AI engines (same for all plans) — Grok always last
+const ENGINE_ORDER = ['chatgpt', 'gemini', 'claude', 'perplexity', 'copilot', 'mistral', 'llama', 'grok'];
 
 export default function PlanCard({ plan, billing, isCurrent, onCta, loading, ctaLabel }) {
   const isReco = !!plan.badge;
@@ -86,11 +86,6 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
             </>
           )}
         </div>
-        {promoOn && (
-          <div style={{ fontSize: 11, color: '#C43E14', fontWeight: 600, marginBottom: 2 }}>
-            Launch offer · {PROMO.discountPct}% off
-          </div>
-        )}
         {/* ── AI engines + scans ── */}
         {engines.length > 0 && (
           <>
