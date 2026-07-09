@@ -34,7 +34,7 @@ export default function CreditsModal({ open, onClose, user }) {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4">
-              <p className="text-base font-bold" style={{ color: '#111' }}>Message credits</p>
+              <p className="text-base font-bold" style={{ color: '#111' }}>Crédits de messages</p>
               <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-black/5">
                 <X className="w-4 h-4" style={{ color: '#999' }} />
               </button>
@@ -58,14 +58,14 @@ export default function CreditsModal({ open, onClose, user }) {
                   )}
                 </div>
                 <p className="text-xs text-right mt-0.5" style={{ color: '#999' }}>
-                  {limit} plan credits{bonus > 0 ? ` + ${bonus} bonus` : ''}
+                  {limit} crédits plan{bonus > 0 ? ` + ${bonus} bonus` : ''}
                 </p>
               </div>
 
               {/* Info */}
               <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(0,0,0,0.03)' }}>
                 <p className="text-xs" style={{ color: '#666' }}>
-                  Bonus credits come from admin gifts or referrals. They are cleared on the next monthly reset.
+                  Les crédits bonus proviennent de cadeaux admin ou de parrainages. Ils sont effacés lors de la prochaine réinitialisation mensuelle.
                 </p>
               </div>
 
@@ -77,7 +77,7 @@ export default function CreditsModal({ open, onClose, user }) {
                   style={{ background: '#FF4F00', color: '#ffffff' }}
                 >
                   <span className="flex items-center justify-center gap-2">
-                    <TrendingUp className="w-4 h-4" /> Upgrade →
+                    <TrendingUp className="w-4 h-4" /> Mettre à niveau →
                   </span>
                 </button>
               )}

@@ -21,7 +21,6 @@ Deno.serve(async (req) => {
       line_items: [{ price: price_id, quantity: 1 }],
       payment_method_types: ['card', 'paypal'],
       customer_email: email || undefined,
-      locale: 'en',
       success_url: `${origin}/settings?checkout=success`,
       cancel_url: `${origin}/pricing`,
       metadata: {
