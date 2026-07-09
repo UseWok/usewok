@@ -97,11 +97,7 @@ export default function PricingPage() {
 
   const handleUpgrade = async (plan) => {
     try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
-    // During promo: use the dedicated promo price IDs ($42/$85/$255) directly — no promo code needed
-    const promoOn = isPromoActive();
-    const priceId = promoOn
-      ? (billing === 'yearly' ? plan.stripe_promo_price_id_yearly : plan.stripe_promo_price_id_monthly)
-      : (billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly);
+    const priceId = billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
     if (!priceId) { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); return; }
     setLoadingPlanId(plan.id);
     try {

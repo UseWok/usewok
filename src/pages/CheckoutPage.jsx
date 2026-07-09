@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig } from '@/lib/plans-config';
-import { isPromoActive, discountedPrice, formatPrice, PROMO } from '@/lib/promo';
+import { formatPrice } from '@/lib/promo';
 import { ArrowLeft, ShieldCheck, Lock, CreditCard, Wallet } from 'lucide-react';
 
 export function saveCart(data) { localStorage.setItem('wok_cart', JSON.stringify(data)); }
@@ -94,11 +94,6 @@ export default function CheckoutPage() {
     ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
     : 0;
 
-  // Promo pricing
-  const promoOn = isPromoActive() && monthlyPrice > 0;
-  const baseAmount = billing === 'yearly' ? yearlyPrice : monthlyPrice;
-  const finalAmount = promoOn ? discountedPrice(baseAmount) : baseAmount;
-
   const handleCheckout = async () => {
     if (inIframe) {
       alert('Checkout is only available from the published app.');
@@ -110,11 +105,7 @@ export default function CheckoutPage() {
       window.location.href = url;
       return;
     }
-    // During promo: use dedicated promo price IDs ($42/$85/$255) directly
-    const promoOn = isPromoActive();
-    const priceId = promoOn
-      ? (billing === 'yearly' ? plan?.stripe_promo_price_id_yearly : plan?.stripe_promo_price_id_monthly)
-      : (billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly);
+    const priceId = billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly;
     if (priceId) {
       setLoading(true);
       try {
@@ -163,26 +154,13 @@ export default function CheckoutPage() {
 
           {/* Price big */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-            {promoOn && (
-              <span style={{ fontSize: 22, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', letterSpacing: '-0.02em' }}>
-                {formatPrice(baseAmount)}
-              </span>
-            )}
             <span style={{ fontSize: 38, fontWeight: 800, color: WHITE, letterSpacing: '-0.03em' }}>
-              {formatPrice(finalAmount)}
+              {formatPrice(billing === 'yearly' ? yearlyPrice : monthlyPrice)}
             </span>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
               {billing === 'yearly' ? '/year' : '/month'}
             </span>
-            {promoOn && (
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: CORAL, padding: '2px 8px', borderRadius: 6, marginLeft: 2, alignSelf: 'center' }}>{PROMO.badgeText}</span>
-            )}
           </div>
-          {promoOn && (
-            <div style={{ fontSize: 12, color: '#FF9057', fontWeight: 600, marginBottom: 4 }}>
-              Launch offer · {PROMO.discountPct}% off applied
-            </div>
-          )}
 
           {billing === 'yearly' && (
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
@@ -234,21 +212,13 @@ export default function CheckoutPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Subtotal</span>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                {billing === 'yearly' ? formatPrice(yearlyPrice) : formatPrice(monthlyPrice)}
+                {formatPrice(billing === 'yearly' ? yearlyPrice : monthlyPrice)}
               </span>
             </div>
-            {promoOn && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: '#FF9057' }}>Launch offer (-{PROMO.discountPct}%)</span>
-                <span style={{ fontSize: 12, color: '#FF9057', fontWeight: 600 }}>
-                  −{formatPrice(baseAmount - finalAmount)}
-                </span>
-              </div>
-            )}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>Total due today</span>
             <span style={{ fontSize: 14, fontWeight: 700, color: WHITE }}>
-              {formatPrice(finalAmount)}
+              {formatPrice(billing === 'yearly' ? yearlyPrice : monthlyPrice)}
             </span>
             </div>
           </div>
