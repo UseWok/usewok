@@ -222,17 +222,17 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <span style={{ fontSize: 13, color: WHITE }}>
-                {billing === 'yearly' ? `$${yearlyPrice}` : `$${monthlyPrice}`}
+                {billing === 'yearly' ? formatPrice(yearlyPrice) : formatPrice(monthlyPrice)}
               </span>
             </div>
           </div>
 
-          {/* Sous-total & Total */}
+          {/* Subtotal & Total */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Subtotal</span>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                {billing === 'yearly' ? `$${yearlyPrice}` : `$${monthlyPrice}`}
+                {billing === 'yearly' ? formatPrice(yearlyPrice) : formatPrice(monthlyPrice)}
               </span>
             </div>
             {promoOn && (
