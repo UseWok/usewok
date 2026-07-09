@@ -553,30 +553,30 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               {[
                 {
-                  section: 'STRATEGY',
+                  section: 'KNOW MY BRAND',
                   items: [
                     { id: 'brand', label: 'Brand Knowledge', icon: BookOpen, route: '/brand-knowledge' },
-                    { id: 'geo',   label: 'GEO Strategy',    icon: Sparkle,  route: '/geo-strategy' },
                   ],
                 },
                 {
-                  section: 'AUDIT',
+                  section: 'MY STRATEGY',
                   items: [
-                    { id: 'siteaudit',   label: 'Site audit',   icon: FileSearch, route: '/site-audit' },
-                    { id: 'competitors', label: 'Competitors',  icon: Users,      route: '/competitors' },
+                    { id: 'geo',         label: 'AI Visibility Plan', icon: Sparkle, route: '/geo-strategy' },
+                    { id: 'competitors', label: 'Competitors',        icon: Users,   route: '/competitors' },
                   ],
                 },
                 {
-                  section: 'ACTIONS',
+                  section: 'MY DIAGNOSIS',
                   items: [
-                    { id: 'tasks', label: 'Tasks',     icon: CheckSquare, route: '/tasks' },
+                    { id: 'siteaudit', label: 'Site Audit',           icon: FileSearch, route: '/site-audit' },
+                    { id: 'auth',      label: 'My Online Reputation', icon: Award,      route: '/ai-report' },
+                    { id: 'reco',      label: 'What AI Says About Me', icon: Target,     route: '/recommendations' },
                   ],
                 },
                 {
-                  section: 'AI VISIBILITY',
+                  section: 'MY ACTIONS',
                   items: [
-                    { id: 'auth',  label: 'Authority',        icon: Award,    route: '/ai-report' },
-                    { id: 'reco',  label: 'Recommendations',  icon: Target,   route: '/recommendations' },
+                    { id: 'tasks', label: 'Tasks', icon: CheckSquare, route: '/tasks' },
                   ],
                 },
               ].map(group => (

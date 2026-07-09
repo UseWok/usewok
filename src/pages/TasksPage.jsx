@@ -150,7 +150,7 @@ export default function TasksPage() {
           </div>
           <Dropdown label="All statuses" value={fStatus} onChange={setFStatus} options={[{ id: 'all', label: 'All statuses' }, { id: 'todo', label: 'To do' }, { id: 'in_progress', label: 'In progress' }, { id: 'done', label: 'Done' }]} />
           <Dropdown label="All types" value={fType} onChange={setFType} options={[{ id: 'all', label: 'All types' }, { id: 'Technical', label: 'Technical' }, { id: 'Content', label: 'Content' }, { id: 'Off-site', label: 'Off-site' }]} />
-          <Dropdown label="All sources" value={fSource} onChange={setFSource} options={[{ id: 'all', label: 'All sources' }, { id: 'Audit', label: 'Audit' }, { id: 'Brand image', label: 'Brand image' }, { id: 'Recommendations', label: 'Recommendations' }]} />
+          <Dropdown label="All sources" value={fSource} onChange={setFSource} options={[{ id: 'all', label: 'All sources' }, { id: 'Audit', label: 'Audit' }, { id: 'Brand image', label: 'Brand image' }, { id: 'What AI Says About Me', label: 'What AI Says About Me' }]} />
           <Dropdown label="All priorities" value={fPriority} onChange={setFPriority} options={[{ id: 'all', label: 'All priorities' }, { id: 'High', label: 'High' }, { id: 'Medium', label: 'Medium' }, { id: 'Low', label: 'Low' }]} />
         </div>
 
@@ -163,7 +163,7 @@ export default function TasksPage() {
           </div>
           {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '28px 0' }}>Loading…</p>}
           {!loading && filtered.length === 0 && (
-            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>No tasks yet. Add recommendations from Brand image or Recommendations.</p>
+            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>No tasks yet. Add findings from "What AI Says About Me" or your Site Audit to build your action list.</p>
           )}
           {filtered.map(t => {
             const m = parseMeta(t);

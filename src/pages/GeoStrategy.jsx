@@ -67,9 +67,9 @@ export default function GeoStrategy() {
       setCache(`geo_${profile?.site_url || 'all'}`, { profile, extra: newExtra, strategy: draft });
       setEditing(false);
       setDraft(null);
-      toast.success('Plan de visibilité enregistré');
+      toast.success('Visibility plan saved');
     } catch {
-      toast.error("L'enregistrement a échoué");
+      toast.error("Couldn't save — please try again");
     } finally { setSaving(false); }
   };
 
@@ -89,9 +89,9 @@ export default function GeoStrategy() {
         <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
           <Compass size={22} color={INK3} />
         </div>
-        <p style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Ajoutez d'abord votre site</p>
-        <p style={{ fontSize: 13, color: INK3, margin: '0 0 16px', maxWidth: 340 }}>Une fois votre site ajouté, vous pourrez définir votre plan de visibilité IA.</p>
-        <button onClick={() => navigate('/app')} style={{ padding: '11px 22px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Aller à l'accueil</button>
+        <p style={{ fontSize: 16, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Add your website first</p>
+        <p style={{ fontSize: 13, color: INK3, margin: '0 0 16px', maxWidth: 340 }}>Once your site is added, you can set up your AI visibility plan.</p>
+        <button onClick={() => navigate('/app')} style={{ padding: '11px 22px', background: VIOLET, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Go to home</button>
       </div>
     );
   }

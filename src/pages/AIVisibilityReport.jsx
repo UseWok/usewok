@@ -234,8 +234,8 @@ export default function AIVisibilityReport() {
 
         {/* ── Title ── */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 21, fontWeight: 500, color: INK }}>Your AI Visibility</div>
-          <div style={{ fontSize: 13, color: INK2, marginTop: 3 }}>{domainLabel} · Updated {data.last_scan ? new Date(data.last_scan).toLocaleDateString('en-US') : "today"}</div>
+          <div style={{ fontSize: 21, fontWeight: 500, color: INK }}>My Online Reputation</div>
+          <div style={{ fontSize: 13, color: INK2, marginTop: 3 }}>How credible you look to AI · {domainLabel} · Updated {data.last_scan ? new Date(data.last_scan).toLocaleDateString('en-US') : "today"}</div>
         </div>
 
         {/* ── Dark hero: score ring + mentions ── */}

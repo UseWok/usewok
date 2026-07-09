@@ -105,8 +105,8 @@ export default function CompetitorsPage() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
           <div>
             <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Competitors</h1>
-            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>
-              Where each competitor ranks on your active prompts (Referral · Authority · Narrative), trends and news. Click a competitor for details.
+            <p style={{ fontSize: 12.5, color: INK3, margin: 0, maxWidth: 620, lineHeight: 1.55 }}>
+              See who AI recommends most often in your market. Add up to 3 rivals, run a scan, and get a side-by-side chart of who ChatGPT, Gemini and Claude cite the most — plus how each one is trending.
             </p>
           </div>
           <button onClick={runScan} disabled={scanning}
@@ -115,6 +115,18 @@ export default function CompetitorsPage() {
             {scanning ? 'Scanning…' : 'Refresh scan'}
           </button>
         </div>
+
+        {/* ── What you'll get (shown until competitors are tracked) ── */}
+        {!loading && competitors.length === 0 && (
+          <div style={{ background: '#F3F0FB', border: '1px solid #E0D9F5', borderRadius: 14, padding: '18px 20px', marginBottom: 18 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#4C1D95', margin: '0 0 8px' }}>What you'll see once you add competitors</p>
+            <ul style={{ margin: 0, padding: '0 0 0 18px', color: '#5B4A82' }}>
+              <li style={{ fontSize: 12.5, lineHeight: 1.7 }}>A ranking of who AI recommends most often in your market — you vs your rivals.</li>
+              <li style={{ fontSize: 12.5, lineHeight: 1.7 }}>A prompt-by-prompt chart showing which brand ChatGPT, Gemini and Claude cite for each question.</li>
+              <li style={{ fontSize: 12.5, lineHeight: 1.7 }}>Each competitor's 90-day trend, positioning summary and latest news.</li>
+            </ul>
+          </div>
+        )}
 
         {/* ── Tracked competitors table ── */}
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', marginBottom: 18 }}>

@@ -12,8 +12,8 @@ const IMPACT_C = { 'High': '#10B981', 'Fort': '#10B981', 'Medium': '#F97316', 'M
 export default function RecoGrid({ recommendations, onAddTask, addedKeys }) {
   return (
     <div style={{ fontFamily: F }}>
-      <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '22px 0 4px' }}>Recommendations</p>
-      <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 14px' }}>Based on this audit · click "Add to my tasks" to track them.</p>
+      <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '22px 0 4px' }}>What to do about it</p>
+      <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 14px' }}>Each finding turns into a task in one click — then track it under Tasks.</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {recommendations.length === 0 && <p style={{ fontSize: 13, color: INK3 }}>No recommendations yet.</p>}
         {recommendations.map((r, i) => {

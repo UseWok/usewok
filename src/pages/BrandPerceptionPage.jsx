@@ -22,9 +22,9 @@ function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { re
  */
 export default function BrandPerceptionPage({ kind = 'brand' }) {
   const isReco = kind === 'reco';
-  const title = isReco ? 'Recommendations' : 'Brand image';
+  const title = isReco ? 'What AI Says About Me' : 'Brand image';
   const subtitle = isReco
-    ? "Concrete actions to improve your presence in AI answers, prioritized by impact."
+    ? "What we found when we asked the AI about you — and, for each finding, a one-click button to turn it into a task."
     : "How AI engines talk about your brand — narrative, authority and sentiment.";
 
   const _active0 = getActiveDomain();
