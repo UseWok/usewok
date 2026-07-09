@@ -116,14 +116,14 @@ export default function PricingPage() {
   const recommendedPlanId = getRecommendedPlanId({ subscription_plan: userPlanId });
 
   if (loading) return (
-    <div style={{ minHeight: '100%', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
+    <div style={{ minHeight: '100vh', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
       <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2.5px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100%', background: '#FAF9F6', fontFamily: WIX, color: '#15130F' }}>
+    <div style={{ minHeight: '100vh', flex: 1, background: '#FAF9F6', fontFamily: WIX, color: '#15130F' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
 
@@ -210,7 +210,7 @@ export default function PricingPage() {
               {sortedPlans.map(plan => {
                 const curr = isCurrent(plan);
                 const free = isFree(plan);
-                const isReco = plan.id === recommendedPlanId;
+                const isReco = plan.id === recommendedPlanId && !curr;
                 const planWithBadge = { ...plan, badge: isReco ? 'Recommended' : undefined };
                 return (
                   <PlanCard
