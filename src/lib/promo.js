@@ -17,12 +17,12 @@ export function isPromoActive() {
   return PROMO.active && new Date() <= PROMO.deadline;
 }
 
-// Apply the discount and set the price to end in .85 (psychological pricing).
-// Keeps the -15% promo badge while showing clean .85-ending prices.
+// Apply the discount and round UP to a whole dollar.
+// $49→$42, $99→$85, $299→$255 (matches Stripe promo code charge).
 export function discountedPrice(amount) {
   if (!isPromoActive() || !amount) return amount;
   const discounted = amount * (1 - PROMO.discountPct / 100);
-  return Math.floor(discounted) + 0.85;
+  return Math.ceil(discounted);
 }
 
 // Format a price for display — shows whole dollars without decimals, cents otherwise.
