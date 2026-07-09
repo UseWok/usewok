@@ -6,7 +6,6 @@ let started = false;
 
 const PAGE_LOADERS = [
   () => import('@/pages/Home.jsx'),
-  () => import('@/pages/Dashboard.jsx'),
   () => import('@/pages/WokAIPage.jsx'),
   () => import('@/pages/BrandKnowledge.jsx'),
   () => import('@/pages/GeoStrategy.jsx'),

@@ -44,7 +44,6 @@ const AdminBlog = lazy(() => import('./pages/admin/AdminBlog.jsx'));
 const AIVisibilityReport = lazy(() => import('./pages/AIVisibilityReport.jsx'));
 const WokAIPage = lazy(() => import('./pages/WokAIPage.jsx'));
 const PerformancePage = lazy(() => import('./pages/PerformancePage.jsx'));
-const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const BrandKnowledge = lazy(() => import('./pages/BrandKnowledge.jsx'));
 const GeoStrategy = lazy(() => import('./pages/GeoStrategy.jsx'));
 const AuditPage = lazy(() => import('./pages/AuditPage.jsx'));
@@ -146,7 +145,7 @@ const AuthenticatedApp = () => {
 
           <Route element={<Layout />}>
             <Route path="/app" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Navigate to="/app" replace />} />
             <Route path="/brand-knowledge" element={<BrandKnowledge />} />
             <Route path="/geo-strategy" element={<GeoStrategy />} />
             <Route path="/projects" element={<AllProjects />} />
