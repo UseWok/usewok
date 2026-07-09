@@ -115,6 +115,7 @@ export function completionPercent(k) {
 
 // Is a single step considered "done"? (all its non-optional fields filled)
 export function isStepComplete(step, k) {
+  if (!step || !Array.isArray(step.fields)) return false;
   const keys = step.fields.map(f => f.key).filter(key => key !== 'avoid_topics');
   if (keys.length === 0) return true;
   return keys.every(key => filled(k?.[key]));
