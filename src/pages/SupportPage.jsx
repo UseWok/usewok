@@ -26,14 +26,14 @@ function FileAttachment({ url }) {
   const filename = url.split('/').pop().split('?')[0] || 'file';
   if (isImage) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 8, overflow: 'hidden', maxWidth: 140, border: '1px solid #2A2A2A', marginTop: 6 }}>
+      <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', borderRadius: 8, overflow: 'hidden', maxWidth: 140, border: '1px solid rgba(0,0,0,0.10)', marginTop: 6 }}>
         <img src={url} alt="attachment" style={{ width: '100%', objectFit: 'cover', maxHeight: 90 }} />
       </a>
     );
   }
   return (
     <a href={url} target="_blank" rel="noopener noreferrer"
-      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 7, marginTop: 6, fontSize: 11, color: '#888', border: '1px solid #2A2A2A', maxWidth: 180, textDecoration: 'none', background: '#141414' }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 7, marginTop: 6, fontSize: 11, color: '#666', border: '1px solid rgba(0,0,0,0.10)', maxWidth: 180, textDecoration: 'none', background: '#F5F5F3' }}>
       <FileText style={{ width: 12, height: 12, flexShrink: 0 }} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename.slice(0, 24)}</span>
     </a>
@@ -95,18 +95,18 @@ export default function SupportPage() {
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 80px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2A2A2A' }} />
-            <div style={{ width: 90, height: 20, borderRadius: 6, background: '#2A2A2A' }} />
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,0,0,0.05)', backgroundSize: '400px 100%', animation: 'sp-sk 1.6s ease-in-out infinite' }} />
+            <div style={{ width: 90, height: 20, borderRadius: 6, background: 'rgba(0,0,0,0.05)', backgroundSize: '400px 100%', animation: 'sp-sk 1.6s ease-in-out infinite' }} />
           </div>
-          <div style={{ width: 120, height: 34, borderRadius: 8, background: '#2A2A2A' }} />
+          <div style={{ width: 120, height: 34, borderRadius: 8, background: 'rgba(0,0,0,0.05)', backgroundSize: '400px 100%', animation: 'sp-sk 1.6s ease-in-out infinite' }} />
         </div>
         {[1,2,3,4].map(i => (
-          <div key={i} style={{ height: 70, borderRadius: 10, background: '#EBEBEA', border: '1px solid rgba(0,0,0,0.08)', marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.12}s infinite` }} />
+          <div key={i} style={{ height: 70, borderRadius: 10, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(0,0,0,0.04),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.12}s infinite` }} />
           </div>
         ))}
       </div>
-      <style>{`@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+      <style>{`@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes sp-sk{0%{background-position:-400px 0}100%{background-position:400px 0}}`}</style>
     </div>
   );
 
@@ -173,9 +173,13 @@ export default function SupportPage() {
         )}
 
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
-            <div style={{ width: 20, height: 20, border: '2px solid #2A2A2A', borderTopColor: '#F95738', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ height: 70, borderRadius: 10, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(0,0,0,0.04),transparent)', backgroundSize: '200% 100%', animation: `sk 1.4s ease-in-out ${i*0.12}s infinite` }} />
+              </div>
+            ))}
+            <style>{`@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
           </div>
         ) : filteredTickets.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 48, gap: 12, border: `1px solid ${DK.border}`, borderRadius: 12, background: DK.surface }}>
@@ -364,18 +368,18 @@ function NewTicketModal({ onClose, user }) {
                 <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }}
                   onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
                 <button onClick={() => fileInputRef.current?.click()}
-                  style={{ width: '100%', padding: '11px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#555', background: 'transparent', border: '1px dashed #2A2A2A', borderRadius: 8, cursor: 'pointer', transition: 'border-color 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = '#3A3A3A'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#2A2A2A'}>
+                  style={{ width: '100%', padding: '11px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 12, color: '#555', background: 'transparent', border: '1px dashed rgba(0,0,0,0.18)', borderRadius: 8, cursor: 'pointer', transition: 'border-color 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.35)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'}>
                   <Upload style={{ width: 13, height: 13 }} /> Attach files
                 </button>
                 {files.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                     {files.map((f, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 6 }}>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 6 }}>
                         <FileText style={{ width: 10, height: 10, color: '#666' }} />
                         <span style={{ fontSize: 10, color: '#888', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#444' }}>
+                        <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#999' }}>
                           <X style={{ width: 9, height: 9 }} />
                         </button>
                       </div>
@@ -392,25 +396,25 @@ function NewTicketModal({ onClose, user }) {
 
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 0', gap: 14 }}>
-              <div style={{ width: 28, height: 28, border: '2px solid #2A2A2A', borderTopColor: '#F95738', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              <div style={{ width: 40, height: 22, borderRadius: 4, background: 'linear-gradient(90deg, rgba(21,19,15,0.04) 30%, rgba(21,19,15,0.08) 50%, rgba(21,19,15,0.04) 70%)', backgroundSize: '400px 100%', animation: 'nt-sk 1.6s ease-in-out infinite' }} />
+              <style>{`@keyframes nt-sk{0%{background-position:-400px 0}100%{background-position:400px 0}}`}</style>
               <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: '0 0 3px' }}>Processing…</p>
-                <p style={{ fontSize: 11, color: '#555', margin: 0 }}>Please wait</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#15130F', margin: '0 0 3px' }}>Processing…</p>
+                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>Please wait</p>
               </div>
             </div>
           )}
 
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0 }}>Select a category</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#15130F', margin: 0 }}>Select a category</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {CATS.map(cat => {
                   const Icon = cat.icon;
                   const isSelected = selectedCategory === cat.id;
                   return (
                     <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 8px', borderRadius: 9, border: `1px solid ${isSelected ? cat.color : '#2A2A2A'}`, background: isSelected ? `${cat.color}18` : '#1A1A1A', cursor: 'pointer', transition: 'all 120ms' }}>
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 8px', borderRadius: 9, border: `1px solid ${isSelected ? cat.color : 'rgba(0,0,0,0.10)'}`, background: isSelected ? `${cat.color}18` : '#F5F5F3', cursor: 'pointer', transition: 'all 120ms' }}>
                       <Icon style={{ width: 18, height: 18, color: cat.color }} />
                       <span style={{ fontSize: 11, fontWeight: 600, color: isSelected ? cat.color : '#888' }}>{cat.label}</span>
                     </button>
@@ -418,7 +422,7 @@ function NewTicketModal({ onClose, user }) {
                 })}
               </div>
               <button onClick={handleSubmit} disabled={submitting || !selectedCategory}
-                style={{ padding: '11px 0', background: submitting || !selectedCategory ? '#EBEBEA' : '#111', color: submitting || !selectedCategory ? '#888' : '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: selectedCategory ? 'pointer' : 'not-allowed' }}>
+                style={{ padding: '11px 0', background: submitting || !selectedCategory ? '#EBEBEA' : '#15130F', color: submitting || !selectedCategory ? '#888' : '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: selectedCategory ? 'pointer' : 'not-allowed' }}>
                 {submitting ? 'Submitting…' : 'Submit ticket'}
               </button>
             </div>
@@ -518,7 +522,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#15130F', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {isAdmin ? (currentTicket.user_name || currentTicket.user_email?.split('@')[0] || 'User') : 'WOK Support'}
                 </p>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: cat.bg, color: cat.color, flexShrink: 0 }}>
@@ -560,9 +564,9 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
           </div>
         )}
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10, background: '#1A1A1A' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10, background: '#F5F5F3' }}>
           {messages.length === 0 ? (
-            <p style={{ textAlign: 'center', fontSize: 13, color: '#555', padding: '32px 0' }}>No messages</p>
+            <p style={{ textAlign: 'center', fontSize: 13, color: '#999', padding: '32px 0' }}>No messages</p>
           ) : messages.map((msg, i) => {
             const isSystem = msg.author === 'system';
             const isMe = isAdmin ? msg.author === 'admin' : msg.author === 'user';
@@ -580,16 +584,16 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
             return (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
                 {!isMe && (
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#F95738', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', border: '1px solid #333' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#F95738', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', border: '1px solid rgba(0,0,0,0.08)' }}>
                     W
                   </div>
                 )}
                 <div style={{ maxWidth: '72%' }}>
                   <div style={{
                     padding: '10px 13px',
-                    background: isMe ? '#fff' : '#141414',
-                    color: isMe ? '#000' : '#ccc',
-                    border: isMe ? 'none' : '1px solid #2A2A2A',
+                    background: isMe ? '#15130F' : '#fff',
+                    color: isMe ? '#fff' : '#15130F',
+                    border: isMe ? 'none' : '1px solid rgba(0,0,0,0.10)',
                     borderRadius: isMe ? '14px 3px 14px 14px' : '3px 14px 14px 14px',
                   }}>
                     {msg.text && <p style={{ fontSize: 13, lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>{msg.text}</p>}
@@ -604,7 +608,7 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
                   </div>
                 </div>
                 {isMe && (
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#2A2A2A', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#888', border: '1px solid #333' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#E8E8E6', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#555', border: '1px solid rgba(0,0,0,0.08)' }}>
                     {(currentTicket.user_name?.charAt(0) || 'U').toUpperCase()}
                   </div>
                 )}
@@ -615,21 +619,21 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
         </div>
 
         {isClosed ? (
-          <div style={{ padding: '14px 16px', textAlign: 'center', borderTop: '1px solid #2A2A2A', background: '#141414', flexShrink: 0 }}>
-            <p style={{ fontSize: 12, color: '#555', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <div style={{ padding: '14px 16px', textAlign: 'center', borderTop: '1px solid rgba(0,0,0,0.08)', background: '#fff', flexShrink: 0 }}>
+            <p style={{ fontSize: 12, color: '#888', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <CheckCircle style={{ width: 13, height: 13, color: '#22c55e' }} />
               This ticket is resolved
             </p>
           </div>
         ) : (
-          <div style={{ padding: '10px 14px', borderTop: '1px solid #2A2A2A', background: '#141414', flexShrink: 0 }}>
+          <div style={{ padding: '10px 14px', borderTop: '1px solid rgba(0,0,0,0.08)', background: '#fff', flexShrink: 0 }}>
             {files.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {files.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 6 }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 6 }}>
                     <FileText style={{ width: 10, height: 10, color: '#666', flexShrink: 0 }} />
                     <span style={{ fontSize: 10, color: '#888', maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                    <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#444' }}>
+                    <button onClick={() => setFiles(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#999' }}>
                       <X style={{ width: 8, height: 8 }} />
                     </button>
                   </div>
@@ -640,16 +644,16 @@ function ChatPanel({ ticket, user, onClose, onUpdate }) {
               <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }}
                 onChange={e => setFiles(p => [...p, ...Array.from(e.target.files || [])])} />
               <button onClick={() => fileInputRef.current?.click()}
-                style={{ width: 32, height: 32, borderRadius: '50%', background: '#1A1A1A', border: '1px solid #2A2A2A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', flexShrink: 0 }}>
+                style={{ width: 32, height: 32, borderRadius: '50%', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', flexShrink: 0 }}>
                 <Upload style={{ width: 13, height: 13 }} />
               </button>
               <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                 placeholder="Type your message…"
-                style={{ flex: 1, padding: '9px 12px', fontSize: 13, color: '#ccc', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8, outline: 'none', fontFamily: 'Inter, sans-serif' }} />
+                style={{ flex: 1, padding: '9px 12px', fontSize: 13, color: '#15130F', background: '#F5F5F3', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 8, outline: 'none', fontFamily: 'Inter, sans-serif' }} />
               <button onClick={handleSendMessage}
                 disabled={(!newMessage.trim() && files.length === 0) || sending}
-                style={{ width: 32, height: 32, borderRadius: '50%', background: (newMessage.trim() || files.length > 0) ? '#F95738' : '#2A2A2A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0, transition: 'background 120ms' }}>
+                style={{ width: 32, height: 32, borderRadius: '50%', background: (newMessage.trim() || files.length > 0) ? '#F95738' : '#E8E8E6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0, transition: 'background 120ms' }}>
                 <Send style={{ width: 13, height: 13 }} />
               </button>
             </div>

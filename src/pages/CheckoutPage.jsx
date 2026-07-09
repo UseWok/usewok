@@ -110,13 +110,15 @@ export default function CheckoutPage() {
       window.location.href = url;
       return;
     }
-    // Fallback: use Stripe price ID to create a checkout session
-    const priceId = billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly;
+    // During promo: use dedicated promo price IDs ($42/$85/$255) directly
+    const promoOn = isPromoActive();
+    const priceId = promoOn
+      ? (billing === 'yearly' ? plan?.stripe_promo_price_id_yearly : plan?.stripe_promo_price_id_monthly)
+      : (billing === 'yearly' ? plan?.stripe_price_id_yearly : plan?.stripe_price_id_monthly);
     if (priceId) {
       setLoading(true);
       try {
-        const promoCode = isPromoActive() ? PROMO.stripePromoCode : undefined;
-        const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email, promo_code: promoCode });
+        const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email });
         if (res.data?.url) { window.location.href = res.data.url; }
         else { alert('Error while creating the payment session.'); }
       } catch (e) {

@@ -23,6 +23,7 @@ import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
 import AuthorityTasksCard from '@/components/authority/AuthorityTasksCard';
+import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 
 // ── Design System ──────────────────────────────
 const F       = '"Wix Madefor Text", "Wix Madefor Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -359,12 +360,7 @@ export default function Home() {
   const firstScanUrl = profiles.length === 0 && Object.keys(scanningUrls)[0];
   if (firstScanUrl) return <ScanLoader url={firstScanUrl} />;
 
-  if (!user && profiles.length === 0) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG }}>
-      <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${BORDER}`, borderTopColor: CORAL, animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
+  if (!user && profiles.length === 0) return <HomeSkeleton />;
 
   if (profiles.length === 0) return (
     <>
@@ -444,10 +440,42 @@ export default function Home() {
 
         {/* ═══════════ DASHBOARD CARDS FIRST ═══════════ */}
         {overviewPhase === 'thinking' && !overview && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(21,19,15,0.09)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite', marginBottom: 14 }} />
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 4px' }}>Building your dashboard…</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>Looking at your AI visibility across the engines</p>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: '5%', marginBottom: 24 }}>
+              <div style={{ background: CARD_BG, borderRadius: 14, padding: 22 }}>
+                <div style={{ height: 14, borderRadius: 4, marginBottom: 16, background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                  <div>
+                    <div style={{ width: 80, height: 20, borderRadius: 4, marginBottom: 6, background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                    <div style={{ width: 160, height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 22 }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: 6, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ width: '90%', height: 12, borderRadius: 4, marginBottom: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                      <div style={{ width: '50%', height: 10, borderRadius: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 22 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ background: BG, borderRadius: 10, padding: 14 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, marginBottom: 8, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                    <div style={{ width: '80%', height: 12, borderRadius: 4, marginBottom: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                    <div style={{ width: '50%', height: 10, borderRadius: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <style>{`@keyframes hm-sk{0%{background-position:-800px 0}100%{background-position:800px 0}}`}</style>
           </div>
         )}
 

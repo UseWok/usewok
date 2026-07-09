@@ -57,6 +57,10 @@ export const DEFAULT_PLANS = [
     price_monthly: 49,
     price_yearly: 468,
     credits_limit: PLAN_CREDIT_LIMITS.starter,
+    stripe_price_id_monthly: 'price_1Tl3vlGzhCsAbRD15AHDEK10',
+    stripe_price_id_yearly: 'price_1Tl42RGzhCsAbRD1AwGUPgsN',
+    stripe_promo_price_id_monthly: 'price_1TrL2IGzhCsAbRD1VqrFpRZF',
+    stripe_promo_price_id_yearly: 'price_1Tl42RGzhCsAbRD1AwGUPgsN',
     checkout_url_monthly: null,
     checkout_url_yearly: null,
     description: 'For teams starting out with AI visibility and an action plan.',
@@ -83,8 +87,12 @@ export const DEFAULT_PLANS = [
     name: 'Pro',
     badge: 'Recommended',
     price_monthly: 99,
-    price_yearly: 960,
+    price_yearly: 948,
     credits_limit: PLAN_CREDIT_LIMITS.pro,
+    stripe_price_id_monthly: 'price_1Tl457GzhCsAbRD1B6X2J6DV',
+    stripe_price_id_yearly: 'price_1Tl46KGzhCsAbRD1VIjudXUh',
+    stripe_promo_price_id_monthly: 'price_1TrL2IGzhCsAbRD1l0l2qg3E',
+    stripe_promo_price_id_yearly: 'price_1Tl46KGzhCsAbRD1VIjudXUh',
     checkout_url_monthly: null,
     checkout_url_yearly: null,
     description: 'For teams actively optimizing their AI visibility every day.',
@@ -111,6 +119,10 @@ export const DEFAULT_PLANS = [
     price_monthly: 299,
     price_yearly: 2870,
     credits_limit: PLAN_CREDIT_LIMITS.elite,
+    stripe_price_id_monthly: 'price_1TqIMuGzhCsAbRD1GQ29dfMc',
+    stripe_price_id_yearly: 'price_1TqTzPGzhCsAbRD1GIF0cqm2',
+    stripe_promo_price_id_monthly: 'price_1TrL2IGzhCsAbRD10SZW5htX',
+    stripe_promo_price_id_yearly: 'price_1TqTzPGzhCsAbRD1GIF0cqm2',
     checkout_url_monthly: null,
     checkout_url_yearly: null,
     description: 'For agencies and teams managing AI visibility at scale across multiple clients.',
@@ -211,9 +223,23 @@ export async function loadPlansFromDB() {
     // would otherwise silently fall back to default plans on the pricing page.
     const res = await base44.functions.invoke('getPublicPlans', {});
     if (res?.data?.plans) {
+      // Merge Stripe price IDs from defaults — ensures promo price IDs are always
+      // present even if the admin saved plans before the promo fields existed.
+      const merged = res.data.plans.map(p => {
+        const def = DEFAULT_PLANS.find(d => d.id === p.id);
+        if (!def) return p;
+        return {
+          ...def,
+          ...p,
+          stripe_price_id_monthly: def.stripe_price_id_monthly,
+          stripe_price_id_yearly: def.stripe_price_id_yearly,
+          stripe_promo_price_id_monthly: def.stripe_promo_price_id_monthly,
+          stripe_promo_price_id_yearly: def.stripe_promo_price_id_yearly,
+        };
+      });
       // Sync local cache with DB truth
-      localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(res.data.plans));
-      return res.data.plans;
+      localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(merged));
+      return merged;
     }
   } catch {}
   // Fallback: local cache

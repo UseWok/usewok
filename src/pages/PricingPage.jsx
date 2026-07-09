@@ -8,6 +8,7 @@ import { Check, ArrowRight, X } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
 import SecurityBadges from '@/components/pricing/SecurityBadges';
+import PricingSkeleton from '@/components/skeletons/PricingSkeleton';
 
 const WIX = "'Inter', 'Madefor Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const SERIF = "'Fraunces', 'Helvetica Neue', serif";
@@ -76,13 +77,16 @@ export default function PricingPage() {
   const billing = 'monthly';
 
   useEffect(() => {
+    // Instant render from local cache — no cloud wait
+    const cached = getPlansConfig().filter(p => p.visible !== false);
+    if (cached.length > 0) { setPlans(cached); setLoading(false); }
+    // Sync from cloud in background
     loadPlansFromDB()
-      .then(db => { setPlans((db || getPlansConfig()).filter(p => p.visible !== false)); setLoading(false); })
+      .then(db => { if (db) setPlans(db.filter(p => p.visible !== false)); setLoading(false); })
       .catch(() => { setPlans(getPlansConfig().filter(p => p.visible !== false)); setLoading(false); });
-    base44.auth.me().then(async u => {
+    base44.auth.me().then(u => {
       if (!u) return;
       setUserEmail(u.email || '');
-      await loadPlansFromDB().catch(() => {});
       setUserPlanId(getNormalizedPlanId(u));
     }).catch(() => {});
   }, []);
@@ -93,13 +97,15 @@ export default function PricingPage() {
 
   const handleUpgrade = async (plan) => {
     try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
-    // Always use createCheckoutSession for a consistent checkout experience across all plans
-    const priceId = billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
+    // During promo: use the dedicated promo price IDs ($42/$85/$255) directly — no promo code needed
+    const promoOn = isPromoActive();
+    const priceId = promoOn
+      ? (billing === 'yearly' ? plan.stripe_promo_price_id_yearly : plan.stripe_promo_price_id_monthly)
+      : (billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly);
     if (!priceId) { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); return; }
     setLoadingPlanId(plan.id);
     try {
-      const promoCode = isPromoActive() ? PROMO.stripePromoCode : undefined;
-      const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail, promo_code: promoCode });
+      const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail });
       if (res.data?.url) { window.location.href = res.data.url; }
       else { navigate(`/checkout?plan=${plan.id}&billing=${billing}`); }
     } catch {
@@ -115,12 +121,7 @@ export default function PricingPage() {
   // Derive recommendation from userPlanId (same source as isCurrent) to avoid auth context mismatch
   const recommendedPlanId = getRecommendedPlanId({ subscription_plan: userPlanId });
 
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: WIX }}>
-      <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2.5px solid rgba(21,19,15,0.08)', borderTopColor: '#FF5A1F', animation: 'spin 0.7s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
+  if (loading) return <PricingSkeleton />;
 
   return (
     <div style={{ minHeight: '100vh', flex: 1, background: '#FAF9F6', fontFamily: WIX, color: '#15130F' }}>

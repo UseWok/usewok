@@ -36,7 +36,7 @@ export function prefetchAllPages(isAuthenticated) {
   const loaders = isAuthenticated ? [...PAGE_LOADERS, ...PUBLIC_LOADERS] : [...PUBLIC_LOADERS, ...PAGE_LOADERS];
   const run = () => {
     // Stagger imports so we never block the main thread or saturate the network
-    loaders.forEach((load, i) => setTimeout(() => { load().catch(() => {}); }, i * 120));
+    loaders.forEach((load, i) => setTimeout(() => { load().catch(() => {}); }, i * 40));
   };
   if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2500 });
   else setTimeout(run, 1200);
