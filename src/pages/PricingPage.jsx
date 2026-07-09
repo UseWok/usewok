@@ -97,7 +97,25 @@ export default function PricingPage() {
 
   const handleUpgrade = async (plan) => {
     try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
-    navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
+    const defaults = DEFAULT_PLANS.find(item => item.id === plan.id) || {};
+    const priceId = billing === 'yearly'
+      ? (plan.stripe_price_id_yearly || defaults.stripe_price_id_yearly)
+      : (plan.stripe_price_id_monthly || defaults.stripe_price_id_monthly);
+    if (!priceId) { alert('This plan is not available for checkout yet.'); return; }
+    setLoadingPlanId(plan.id);
+    try {
+      const response = await base44.functions.invoke('createCheckoutSession', {
+        price_id: priceId,
+        email: userEmail,
+        promo_code: isPromoActive() ? PROMO.stripePromoCode : undefined,
+      });
+      if (response.data?.url) window.location.href = response.data.url;
+      else alert('Unable to create the Stripe checkout session.');
+    } catch {
+      alert('Unable to create the Stripe checkout session.');
+    } finally {
+      setLoadingPlanId(null);
+    }
   };
 
   const isCurrent = (plan) => plan.id === userPlanId;
