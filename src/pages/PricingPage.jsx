@@ -97,23 +97,7 @@ export default function PricingPage() {
 
   const handleUpgrade = async (plan) => {
     try { if (window.self !== window.top) { alert('Checkout is only available from the published app.'); return; } } catch {}
-    // During promo: use the dedicated promo price IDs ($42/$85/$255) directly
-    const promoOn = isPromoActive();
-    // Fallback to DEFAULT_PLANS if the plan from DB/localStorage doesn't have the price ID
-    const def = DEFAULT_PLANS.find(d => d.id === plan.id) || {};
-    const priceId = promoOn
-      ? (billing === 'yearly' ? (plan.stripe_promo_price_id_yearly || def.stripe_promo_price_id_yearly) : (plan.stripe_promo_price_id_monthly || def.stripe_promo_price_id_monthly))
-      : (billing === 'yearly' ? (plan.stripe_price_id_yearly || def.stripe_price_id_yearly) : (plan.stripe_price_id_monthly || def.stripe_price_id_monthly));
-    if (!priceId) { alert('This plan is not available for checkout yet.'); return; }
-    setLoadingPlanId(plan.id);
-    try {
-      const res = await base44.functions.invoke('createCheckoutSession', { price_id: priceId, email: userEmail });
-      if (res.data?.url) { window.location.href = res.data.url; }
-      else { alert('Error while creating the payment session. Please try again.'); }
-    } catch {
-      alert('Error while creating the payment session. Please try again.');
-    }
-    setLoadingPlanId(null);
+    navigate(`/checkout?plan=${plan.id}&billing=${billing}`);
   };
 
   const isCurrent = (plan) => plan.id === userPlanId;

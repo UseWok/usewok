@@ -25,6 +25,7 @@ const Home = lazy(() => import('./pages/Home.jsx'));
 const AllProjects = lazy(() => import('./pages/AllProjects'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
@@ -150,6 +151,7 @@ const AuthenticatedApp = () => {
             <Route path="/projects" element={<AllProjects />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/admin/products" element={<AdminProducts />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/manage-plan" element={<ManagePlanPage />} />
