@@ -7,13 +7,21 @@ export const PROMO = {
   discountPct: 15,
   // Offer runs until Aug 1st.
   deadline: new Date('2026-08-01T23:59:59'),
-  bannerText: 'Launch offer: 15% off the Starter plan until August 1st.',
+  bannerText: 'Launch offer: 15% off all plans until August 1st.',
   badgeText: '-15%',
-  // Promo applies to this plan only.
-  planId: 'starter',
-  // Stripe promotion code ID — applied at checkout.
-  stripePromoCode: 'promo_1TrYbLGzhCsAbRD10hbQL8Ko',
+  // Per-plan Stripe promotion code IDs — applied at checkout.
+  stripePromoCodes: {
+    starter: 'promo_1TrYzjGzhCsAbRD1fgcsKL6F',
+    pro: 'promo_1TrZ0SGzhCsAbRD1sqxFOV7a',
+    elite: 'promo_1TrZ1XGzhCsAbRD1Hrg7GJ2s',
+  },
 };
+
+/** Returns the Stripe promo code id for a given plan, or undefined. */
+export function getPromoCodeForPlan(planId) {
+  if (!isPromoActive()) return undefined;
+  return PROMO.stripePromoCodes[planId];
+}
 
 export function isPromoActive() {
   return PROMO.active && new Date() <= PROMO.deadline;

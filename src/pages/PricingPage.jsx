@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { loadPlansFromDB, getPlansConfig, getNormalizedPlanId, getRecommendedPlanId, DEFAULT_PLANS } from '@/lib/plans-config';
 import { useAuth } from '@/lib/AuthContext';
-import { isPromoActive, PROMO } from '@/lib/promo';
+import { isPromoActive, PROMO, getPromoCodeForPlan } from '@/lib/promo';
 import { Check, ArrowRight, X } from 'lucide-react';
 import PlanCard from '@/components/pricing/PlanCard';
 import BrandLogos from '@/components/pricing/BrandLogos';
@@ -107,7 +107,7 @@ export default function PricingPage() {
       const response = await base44.functions.invoke('createCheckoutSession', {
         price_id: priceId,
         email: userEmail,
-        promo_code: (isPromoActive() && plan.id === PROMO.planId) ? PROMO.stripePromoCode : undefined,
+        promo_code: getPromoCodeForPlan(plan.id),
       });
       if (response.data?.url) window.location.href = response.data.url;
       else alert('Unable to create the Stripe checkout session.');
