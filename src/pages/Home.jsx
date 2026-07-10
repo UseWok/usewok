@@ -3,15 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Zap, AlertCircle, Plus, Globe, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { ArrowRight, Zap, AlertCircle, Plus, Globe, SlidersHorizontal, RefreshCw, ChevronDown, LayoutGrid } from 'lucide-react';
 import { setActiveDomain, getActiveDomain, initActiveDomainFromUser, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
-import NextStepCard from '@/components/home/NextStepCard';
-import VisibilityPillars from '@/components/home/VisibilityPillars';
-import TestedQuestions from '@/components/home/TestedQuestions';
+import HeroVerdict from '@/components/home/HeroVerdict';
+import TodayAction from '@/components/home/TodayAction';
 import DomainManagerModal from '@/components/home/DomainManagerModal';
 import { getWokFeatures } from '@/lib/wok-plans';
 import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
@@ -192,6 +191,7 @@ export default function Home() {
   const [overviewPhase, setOverviewPhase] = useState('loading'); // loading | thinking | done | error
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [widgetVis, setWidgetVis] = useState({});
+  const [showAllData, setShowAllData] = useState(false);
 
   const scanningRef = useRef({});
   const pendingScanUrlsRef = useRef([]);
@@ -391,11 +391,20 @@ export default function Home() {
   const positives = engineScores.filter(s => s >= 50).length;
   const testedCount = engineScores.length;
   const onTen = testedCount > 0 ? Math.round((positives / testedCount) * 10) : null;
+  // % of tested AI answers where the brand shows up (real number, null if never scanned deeply)
+  const appearPct = onTen !== null ? onTen * 10 : null;
+  // The single top competitor to beat — highest visibility that isn't the user's own brand
+  const leader = (() => {
+    const comp = (overview?.competitors || []).filter(c => !c.is_you && c.name);
+    if (!comp.length) return null;
+    const top = [...comp].sort((a, b) => (b.visibility_pct || 0) - (a.visibility_pct || 0))[0];
+    return { name: top.name, pct: Math.round(top.visibility_pct || 0) };
+  })();
 
   const PILLARS = [
-    { label: 'Your content',   explain: 'What AI reads about you.',           score: (activeProfile?.score_message_clarity ?? null) },
-    { label: 'Your mentions',  explain: 'Who talks about you elsewhere.',      score: (activeProfile?.score_commercial_signal ?? null) },
-    { label: 'Your website',   explain: 'Can AI actually read your site?',     score: (activeProfile?.score_ai_visibility ?? null) },
+    { label: 'Ton contenu',    explain: 'Ce que les IA lisent sur toi.',        score: (activeProfile?.score_message_clarity ?? null) },
+    { label: 'Tes mentions',   explain: 'Qui parle de toi ailleurs.',           score: (activeProfile?.score_commercial_signal ?? null) },
+    { label: 'Ton site',       explain: 'Les IA peuvent-elles lire ton site ?', score: (activeProfile?.score_ai_visibility ?? null) },
   ];
 
   const brand = overview?.brand_name || activeProfile?.identity_name || getDomain(activeProfile?.site_url);
@@ -413,18 +422,18 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 14 }}>
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-              Hi {getFirstName(user?.full_name)} 👋
+              Salut {getFirstName(user?.full_name)} 👋
             </h1>
-            <p style={{ fontSize: 15, color: INK2, margin: 0 }}>Here's how AI sees {brand}{lastScanDate ? ` · Last check on ${lastScanDate}` : ''}.</p>
+            <p style={{ fontSize: 15, color: INK2, margin: 0 }}>Voici comment les IA voient {brand}{lastScanDate ? ` · Dernière analyse le ${lastScanDate}` : ''}.</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setDomainModal('add')}
               style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 11, border: 'none', background: CORAL, color: WHITE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <Plus size={14} strokeWidth={2.4} /> Add a website
+              <Plus size={14} strokeWidth={2.4} /> Ajouter un site
             </button>
             <button onClick={() => setCustomizeOpen(true)}
               style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 11, border: `1px solid ${CORAL}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <SlidersHorizontal size={14} /> Customize
+              <SlidersHorizontal size={14} /> Personnaliser
             </button>
           </div>
         </div>
@@ -434,8 +443,8 @@ export default function Home() {
           <div style={{ background: CARD_BG, borderRadius: 14, padding: '20px', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
             <div style={{ width: 30, height: 30, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: CORAL, animation: 'spin 0.9s linear infinite', flexShrink: 0 }} />
             <div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Checking {getDomain(activeProfile?.site_url)}…</p>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: 0 }}>8 AI engines · about 60s · you can keep browsing</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Analyse de {getDomain(activeProfile?.site_url)}…</p>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: 0 }}>8 moteurs IA · environ 60s · tu peux continuer à naviguer</p>
             </div>
           </div>
         )}
@@ -481,70 +490,59 @@ export default function Home() {
           </div>
         )}
 
-        {overview && !allHidden && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 28 }}>
-            {(vis('evolution') || vis('tasks')) && (
-              <div style={{ display: 'grid', gridTemplateColumns: vis('evolution') && vis('tasks') ? '1.55fr 1fr' : '1fr', gap: '5%', alignItems: 'stretch' }}>
-                {vis('evolution') && <EvolutionCard score={overview.geo_score} breakdown={overview.score_breakdown} evolution={overview.evolution} />}
-                {vis('tasks') && <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />}
-              </div>
-            )}
-
-            <AuthorityTasksCard siteUrl={activeProfile?.site_url} score={activeProfile?.score_ai_visibility || 0} onScoreUpdate={() => {}} />
-
-            {(vis('competitors') || vis('llms') || vis('pages')) && (
-              <div style={{ display: 'grid', gridTemplateColumns: [vis('competitors'), vis('llms'), vis('pages')].filter(Boolean).map(() => '1fr').join(' '), gap: '5%', alignItems: 'stretch' }}>
-                {vis('competitors') && <CompetitorsCard competitors={overview.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />}
-                {vis('llms') && <LLMCitingCard llms={overview.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />}
-                {vis('pages') && <CitedPagesCard pages={overview.cited_pages} />}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ═══════════ SMALLER SCORE SUMMARY ═══════════ */}
+        {/* ═══════════ THE STORY: one question, one answer, one action ═══════════ */}
         {hasData && !isScanningActive && (
           <>
-            <NextStepCard
-              currentScore={lrs}
-              targetScore={nextMilestone}
-              actionsLeft={actionsLeft}
-              action={topIssue}
-              onClick={() => navigate('/audit')}
+            <HeroVerdict
+              score={lrs}
+              appearPct={appearPct}
+              leader={leader}
+              pillars={PILLARS}
             />
 
-            <div style={{ background: CARD_BG, borderRadius: 14, padding: '14px 16px', cursor: 'pointer', position: 'relative', marginBottom: 12 }}
-              onClick={e => { if (!e.target.closest('button')) navigate('/ai-report'); }}>
-              <div style={{ position: 'absolute', top: 12, right: 14 }} onClick={e => e.stopPropagation()}>
-                <ScanStatusIndicator
-                  lastScan={activeProfile?.last_scan}
-                  planId={user?.subscription_plan || 'free'}
-                  onScan={() => startScan(activeProfile.site_url)}
-                  scanning={isScanningActive}
-                />
+            <TodayAction
+              issues={issues}
+              remaining={Math.max(actionsLeft - 1, 0)}
+              onFix={() => navigate('/audit')}
+            />
+          </>
+        )}
+
+        {/* ═══════════ ALL DATA — collapsed by default, opt-in ═══════════ */}
+        {overview && !allHidden && (
+          <>
+            <button onClick={() => setShowAllData(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '14px 18px', marginTop: 4, marginBottom: showAllData ? 20 : 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, cursor: 'pointer', fontFamily: F }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(21,19,15,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LayoutGrid size={15} color={INK2} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <ScoreDonut score={lrs} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: WHITE, lineHeight: 1.3 }}>AI visibility score: {lrs}/100</div>
-                  <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0', lineHeight: 1.5 }}>
-                    {onTen !== null
-                      ? `You show up in ${onTen} out of 10 answers we tested.`
-                      : `Run a full analysis to measure how often you appear in AI answers.`}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: CORAL }}>See the full report</span>
-                    <ArrowRight size={12} color={CORAL} strokeWidth={1.8} />
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: INK }}>Voir toutes les données</div>
+                <div style={{ fontSize: 12.5, color: INK2 }}>Concurrents, mentions, pages populaires et progression détaillée</div>
+              </div>
+              <ChevronDown size={18} color={INK2} style={{ transform: showAllData ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
+            </button>
+
+            {showAllData && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 28 }}>
+                {(vis('evolution') || vis('tasks')) && (
+                  <div style={{ display: 'grid', gridTemplateColumns: vis('evolution') && vis('tasks') ? '1.55fr 1fr' : '1fr', gap: '5%', alignItems: 'stretch' }}>
+                    {vis('evolution') && <EvolutionCard score={overview.geo_score} breakdown={overview.score_breakdown} evolution={overview.evolution} />}
+                    {vis('tasks') && <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />}
                   </div>
-                </div>
+                )}
+
+                <AuthorityTasksCard siteUrl={activeProfile?.site_url} score={activeProfile?.score_ai_visibility || 0} onScoreUpdate={() => {}} />
+
+                {(vis('competitors') || vis('llms') || vis('pages')) && (
+                  <div style={{ display: 'grid', gridTemplateColumns: [vis('competitors'), vis('llms'), vis('pages')].filter(Boolean).map(() => '1fr').join(' '), gap: '5%', alignItems: 'stretch' }}>
+                    {vis('competitors') && <CompetitorsCard competitors={overview.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />}
+                    {vis('llms') && <LLMCitingCard llms={overview.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />}
+                    {vis('pages') && <CitedPagesCard pages={overview.cited_pages} />}
+                  </div>
+                )}
               </div>
-            </div>
-
-            <VisibilityPillars pillars={PILLARS} />
-
-            <div style={{ marginBottom: 22 }}>
-              <TestedQuestions engines={ENGINES_TESTED} scanning={isScanningActive} AILogoImg={AILogoImg} />
-            </div>
+            )}
           </>
         )}
 
@@ -553,12 +551,12 @@ export default function Home() {
           <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
             <AlertCircle size={18} color="rgba(255,255,255,0.4)" strokeWidth={1.7} style={{ flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>No analysis for this website yet</p>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Run a check — 8 AI engines at once</p>
+              <p style={{ fontSize: 14.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Pas encore d'analyse pour ce site</p>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Lance une analyse — 8 moteurs IA d'un coup</p>
             </div>
             <button onClick={() => startScan(activeProfile.site_url)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: CORAL, borderRadius: 8, fontSize: 13, fontWeight: 700, color: WHITE, border: 'none', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
-              <Zap size={13} strokeWidth={2} /> Check now
+              <Zap size={13} strokeWidth={2} /> Analyser
             </button>
           </div>
         )}
@@ -566,7 +564,7 @@ export default function Home() {
         {overviewPhase === 'error' && !overview && hasData && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '18px' }}>
             <button onClick={() => loadOverview(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <RefreshCw size={13} /> Refresh dashboard
+              <RefreshCw size={13} /> Actualiser le tableau de bord
             </button>
           </div>
         )}
