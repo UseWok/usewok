@@ -318,7 +318,7 @@ export default function Home() {
   };
 
   const planFeatures = user ? getWokFeatures(user) : getWokFeatures(null);
-  const maxDomains = planFeatures?.max_sites || 1;
+  const maxDomains = planFeatures?.max_sites === -1 ? 999999 : (planFeatures?.max_sites || 1);
 
   const startScan = async (cleanUrl) => {
     const scanQuota = await checkScanQuota(user || await base44.auth.me().catch(() => null));
