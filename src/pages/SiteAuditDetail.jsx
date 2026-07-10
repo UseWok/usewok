@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { ArrowLeft, RefreshCw, ChevronUp, ChevronDown, CheckCircle2, Clock, Wrench, X } from 'lucide-react';
 import { StatusBadge, AgentChip, AGENT_ORDER } from '@/components/siteaudit/AuditBits';
+import AuditVerdict from '@/components/siteaudit/AuditVerdict';
 import FixDrawer from '@/components/report/FixDrawer';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
@@ -24,9 +25,9 @@ const ORANGE_TINT = '#FFE6D6';
 function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { return fb; } }
 
 const TABS = [
-  { id: 'freshness', label: 'Freshness' },
-  { id: 'seo', label: 'Structural SEO' },
-  { id: 'content', label: 'Content quality' },
+  { id: 'freshness', label: 'Fraîcheur du contenu' },
+  { id: 'seo', label: 'Structure des pages' },
+  { id: 'content', label: 'Qualité du contenu' },
 ];
 
 function KPICard({ label, value, color, dash }) {
@@ -41,10 +42,13 @@ function KPICard({ label, value, color, dash }) {
 }
 
 const SEV = {
-  high:   { label: 'Critical', bg: ORANGE_TINT, color: ORANGE_DARK, border: 'none' },
-  medium: { label: 'Medium',   bg: CREAM_DEEP,  color: INK2,        border: 'none' },
-  low:    { label: 'Minor',    bg: SURFACE,     color: INK_FAINT,   border: `1px solid ${BORDER_STRONG}` },
+  high:   { label: 'Critique',    bg: ORANGE_TINT, color: ORANGE_DARK, border: 'none' },
+  medium: { label: 'Moyen',       bg: CREAM_DEEP,  color: INK2,        border: 'none' },
+  low:    { label: 'Mineur',      bg: SURFACE,     color: INK_FAINT,   border: `1px solid ${BORDER_STRONG}` },
 };
+
+// Impact concret d'un problème critique — dit ce que ça coûte réellement, pas le jargon.
+const IMPACT_LINE = "Ce problème peut empêcher une IA de te recommander dans 1 réponse sur 3.";
 
 export default function SiteAuditDetail() {
   const { id } = useParams();
@@ -94,9 +98,14 @@ export default function SiteAuditDetail() {
   const agents = parseJSON(audit.agents_json, {});
   const pages = parseJSON(audit.pages_json, {});
   const results = parseJSON(audit.results_json, {});
-  const dateLabel = new Date(audit.created_date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const dateLabel = new Date(audit.created_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const activeResult = results[tab];
   const items = activeResult?.items || [];
+
+  // Nombre total de problèmes critiques (tous agents) — pour la phrase de verdict.
+  const criticalCount = Object.values(results).reduce((n, r) => {
+    return n + ((r?.items || []).filter(it => it.severity === 'high').length);
+  }, 0);
 
   return (
     <div style={{ minHeight: '100vh', background: CREAM, fontFamily: F }}>
@@ -104,21 +113,21 @@ export default function SiteAuditDetail() {
 
         {/* Back */}
         <button onClick={() => navigate('/site-audit')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: INK3, fontFamily: F, padding: 0, marginBottom: 18 }}>
-          <ArrowLeft size={13} /> Back to audits
+          <ArrowLeft size={13} /> Retour aux vérifications
         </button>
 
         {/* Title */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 14 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 600, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Audit on {dateLabel}</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 600, color: INK, margin: 0, letterSpacing: '-0.02em' }}>Vérification du {dateLabel}</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
             <StatusBadge status={audit.status} />
             <button onClick={load} title="Refresh"
               style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${BORDER_STRONG}`, background: SURFACE, cursor: 'pointer', display: 'grid', placeItems: 'center', color: INK3 }}>
               <RefreshCw size={15} />
             </button>
-            <button onClick={() => setShowHistory(v => !v)} title="Audit history"
+            <button onClick={() => setShowHistory(v => !v)} title="Historique"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 13px', borderRadius: 10, border: `1px solid ${BORDER_STRONG}`, background: showHistory ? CREAM_DEEP : SURFACE, cursor: 'pointer', color: INK2, fontSize: 12.5, fontWeight: 600, fontFamily: F }}>
-              <Clock size={14} /> History
+              <Clock size={14} /> Historique
               {history.length > 0 && <span style={{ fontSize: 10.5, fontWeight: 700, background: INK, color: '#fff', borderRadius: 10, padding: '1px 6px' }}>{history.length}</span>}
             </button>
 
@@ -126,8 +135,8 @@ export default function SiteAuditDetail() {
               <>
                 <div style={{ position: 'fixed', inset: 0, zIndex: 60 }} onClick={() => setShowHistory(false)} />
                 <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 70, width: 320, maxHeight: 360, overflowY: 'auto', background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', padding: 6 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 12px 6px' }}>Previous audits</p>
-                  {history.length === 0 && <p style={{ fontSize: 12.5, color: INK3, padding: '10px 12px' }}>No other audits.</p>}
+                  <p style={{ fontSize: 11, fontWeight: 700, color: INK3, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 12px 6px' }}>Vérifications précédentes</p>
+                  {history.length === 0 && <p style={{ fontSize: 12.5, color: INK3, padding: '10px 12px' }}>Aucune autre vérification.</p>}
                   {history.map(h => {
                     const isCur = h.id === id;
                     return (
@@ -136,7 +145,7 @@ export default function SiteAuditDetail() {
                         onMouseEnter={e => { if (!isCur) e.currentTarget.style.background = CREAM; }}
                         onMouseLeave={e => { if (!isCur) e.currentTarget.style.background = 'transparent'; }}>
                         <span style={{ fontSize: 12.5, fontWeight: isCur ? 700 : 500, color: INK }}>
-                          {new Date(h.created_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {new Date(h.created_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                         <span style={{ fontSize: 12.5, fontWeight: 800, color: ORANGE_DARK }}>{h.score_website ?? 0}/100</span>
                       </button>
@@ -153,13 +162,16 @@ export default function SiteAuditDetail() {
           {AGENT_ORDER.map(k => <AgentChip key={k} agentKey={k} status={agents[k]} />)}
         </div>
 
+        {/* Verdict — phrase de contexte immédiate */}
+        {audit.status === 'done' && <AuditVerdict score={audit.score_website ?? 0} critical={criticalCount} />}
+
         {/* KPI cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 18 }}>
-          <KPICard label="Website score" value={`${audit.score_website ?? 0}/100`} color={ORANGE_DARK} />
-          <KPICard label="Freshness" value={results.freshness ? `${Math.round(results.freshness.score || 0)}` : null} color={ORANGE} dash={!results.freshness} />
-          <KPICard label="Structural SEO" value={results.seo ? `${Math.round(results.seo.score || 0)}` : null} color={ORANGE_DARK} dash={!results.seo} />
-          <KPICard label="Content quality" value={results.content ? `${Math.round(results.content.score || 0)}` : '0'} color={ORANGE} />
-          <KPICard label="Pages analyzed" value={audit.pages_analyzed ?? 0} color={INK} />
+          <KPICard label="Note du site" value={`${audit.score_website ?? 0}/100`} color={ORANGE_DARK} />
+          <KPICard label="Fraîcheur" value={results.freshness ? `${Math.round(results.freshness.score || 0)}` : null} color={ORANGE} dash={!results.freshness} />
+          <KPICard label="Structure" value={results.seo ? `${Math.round(results.seo.score || 0)}` : null} color={ORANGE_DARK} dash={!results.seo} />
+          <KPICard label="Qualité contenu" value={results.content ? `${Math.round(results.content.score || 0)}` : '0'} color={ORANGE} />
+          <KPICard label="Pages vérifiées" value={audit.pages_analyzed ?? 0} color={INK} />
         </div>
 
         {/* Page selection */}
@@ -167,10 +179,10 @@ export default function SiteAuditDetail() {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setPagesOpen(v => !v)}>
             <div>
               <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 4px' }}>
-                Page selection — {(pages.selected || []).length} selected, {(pages.filtered || []).length} filtered
+                Pages analysées — {(pages.selected || []).length} retenues, {(pages.filtered || []).length} écartées
               </p>
               <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-                {pages.discovered ?? 0} discovered → {(pages.selected || []).length} selected → {pages.fetched ?? 0} fetched. Pages with no GEO value (utility pages, language duplicates, excess legal pages) are excluded; selected pages that are inaccessible (403/timeout) are not analyzed.
+                {pages.discovered ?? 0} pages trouvées → {(pages.selected || []).length} retenues → {pages.fetched ?? 0} lues. Les pages sans intérêt pour les IA (pages techniques, doublons de langue, pages légales en trop) sont écartées ; les pages inaccessibles ne sont pas analysées.
               </p>
             </div>
             {pagesOpen ? <ChevronUp size={16} color={INK3} /> : <ChevronDown size={16} color={INK3} />}
@@ -181,16 +193,16 @@ export default function SiteAuditDetail() {
               {(pages.category_limit_hits || 0) > 0 && (
                 <>
                   <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    Category limit reached
+                    Limite par catégorie atteinte
                     <span style={{ padding: '1px 8px', background: '#F0EDE8', borderRadius: 10, fontSize: 11, fontWeight: 700, color: INK }}>{pages.category_limit_hits}</span>
                   </p>
-                  <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 14px' }}>Legal, careers and contact pages are limited to 1 each (no need to audit 3 terms pages).</p>
+                  <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 14px' }}>Les pages légales, recrutement et contact sont limitées à 1 chacune (inutile d'analyser 3 pages de conditions).</p>
                 </>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 0.4fr', padding: '9px 4px', borderBottom: `1px solid ${BORDER}` }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>URL</span>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>Category</span>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK, textAlign: 'right' }}>Status</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>Page</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>Type</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK, textAlign: 'right' }}>Lue</span>
               </div>
               {(pages.selected || []).map((p, i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 0.4fr', padding: '10px 4px', borderBottom: `1px solid ${BORDER}`, alignItems: 'center' }}>
@@ -223,7 +235,7 @@ export default function SiteAuditDetail() {
             ))}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {items.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '18px 0', margin: 0 }}>No results for this agent.</p>}
+            {items.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '18px 0', margin: 0 }}>Rien à corriger ici — tout est bon 👍</p>}
             {items.map((it, i) => {
               const sev = SEV[it.severity] || SEV.low;
               return (
@@ -235,7 +247,13 @@ export default function SiteAuditDetail() {
                     </span>
                   </div>
                   <div style={{ fontSize: 14.5, fontWeight: 600, color: INK, marginBottom: 6 }}>{it.title}</div>
-                  {it.detail && <p style={{ fontSize: 13.5, color: INK3, margin: '0 0 10px', lineHeight: 1.5 }}>{it.detail}</p>}
+                  {it.detail && <p style={{ fontSize: 13.5, color: INK3, margin: '0 0 8px', lineHeight: 1.5 }}>{it.detail}</p>}
+                  {it.severity === 'high' && (
+                    <p style={{ fontSize: 12, color: ORANGE_DARK, margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: ORANGE_DARK, flexShrink: 0 }} />
+                      {IMPACT_LINE}
+                    </p>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                     {it.page ? (
                       <div style={{ fontSize: 12, color: INK_FAINT, display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -245,7 +263,7 @@ export default function SiteAuditDetail() {
                     ) : <span />}
                     <button onClick={() => setFixIssue({ text: it.title + (it.detail ? ` — ${it.detail}` : '') })}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 9, background: INK, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
-                      <Wrench size={13} /> Fix
+                      <Wrench size={13} /> Voir comment corriger
                     </button>
                   </div>
                 </div>

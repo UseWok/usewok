@@ -157,8 +157,53 @@ Deno.serve(async (req) => {
     // ─────────────────────────────────────────────
     if (action === 'scan') {
       const existing = await svc.entities.Competitor.filter({ user_id: user.id, site_url: siteUrl });
-      const competitors = existing.filter(c => !c.is_you);
+      let competitors = existing.filter(c => !c.is_you);
       let you = existing.find(c => c.is_you);
+
+      // ── Auto-discover competitors so every scan has 3 (min) real rivals to compare ──
+      // If the user tracks fewer than 3, find the missing ones automatically from AI recommendations.
+      if (competitors.length < 3) {
+        try {
+          const needed = 3 - competitors.length;
+          const already = competitors.map(c => c.domain).concat(youDomain);
+          const disc = await svc.integrations.Core.InvokeLLM({
+            prompt: `Brand: "${brandName}" (${youDomain})${industry ? `, industry: ${industry}` : ''}.
+
+Using internet context, identify the ${needed} MOST relevant REAL competitors of this brand — the ones ChatGPT/Gemini most frequently recommend in this exact category. They must be real companies with a working website. Do NOT include any of these already-known domains: ${already.join(', ')}.
+
+Strict JSON: { "competitors": [ { "name": "Brand Name", "domain": "domain.com" } ] }. Exactly ${needed} entries, ordered from most to least prominent.`,
+            add_context_from_internet: true,
+            model: 'gemini_3_flash',
+            response_json_schema: {
+              type: 'object',
+              properties: {
+                competitors: {
+                  type: 'array',
+                  items: { type: 'object', properties: { name: { type: 'string' }, domain: { type: 'string' } } },
+                },
+              },
+            },
+          });
+          const found = (disc?.competitors || [])
+            .map(c => ({ name: (c.name || '').trim(), domain: cleanDomain(c.domain) }))
+            .filter(c => c.domain && !already.includes(c.domain));
+          // de-dupe within the discovered batch
+          const seen = new Set(already);
+          for (const c of found) {
+            if (competitors.length >= 3) break;
+            if (seen.has(c.domain)) continue;
+            seen.add(c.domain);
+            const created = await svc.entities.Competitor.create({
+              user_id: user.id, site_url: siteUrl, name: c.name || c.domain, domain: c.domain, is_you: false,
+              referral_pct: 0, authority_pct: 0, referral_cited: 0, referral_total: 0,
+              authority_cited: 0, authority_total: 0, trend_90d: 'flat',
+              synthesis: '', positioning: '', positioning_available: false,
+              prompts_json: '[]', news_json: '[]', analyzed_at: '',
+            });
+            competitors.push(created);
+          }
+        } catch (e) { console.error('[competitorEngine] auto-discover', e); }
+      }
 
       // 1. Generate 6 referral + 6 authority prompts (text-only writing → gpt_5_mini)
       const gen = await svc.integrations.Core.InvokeLLM({

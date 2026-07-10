@@ -11,9 +11,9 @@ const ORANGE_TINT = '#FFE6D6';
 
 export function StatusBadge({ status }) {
   const map = {
-    done:    { label: 'Done',      bg: INK,           color: CREAM,      dot: ORANGE },
-    running: { label: 'Running',   bg: ORANGE_TINT,   color: ORANGE_DARK, dot: ORANGE },
-    failed:  { label: 'Failed',    bg: '#FEE2E2',     color: '#DC2626',   dot: '#DC2626' },
+    done:    { label: 'Terminé',   bg: INK,           color: CREAM,      dot: ORANGE },
+    running: { label: 'En cours',  bg: ORANGE_TINT,   color: ORANGE_DARK, dot: ORANGE },
+    failed:  { label: 'Échoué',    bg: '#FEE2E2',     color: '#DC2626',   dot: '#DC2626' },
   };
   const s = map[status] || map.done;
   return (
@@ -25,14 +25,14 @@ export function StatusBadge({ status }) {
 }
 
 export const AGENT_ORDER = ['crawl', 'freshness', 'seo', 'content'];
-export const AGENT_LABELS = { crawl: 'Crawl', freshness: 'Freshness', seo: 'Structural SEO', content: 'Content quality' };
+export const AGENT_LABELS = { crawl: 'Lecture du site', freshness: 'Fraîcheur du contenu', seo: 'Structure des pages', content: 'Qualité du contenu' };
 
 export function AgentDots({ agents }) {
   const a = agents || {};
   return (
     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
       {AGENT_ORDER.map(k => (
-        <div key={k} title={`${AGENT_LABELS[k]}: ${a[k] === 'done' ? 'Done' : 'Running'}`}
+        <div key={k} title={`${AGENT_LABELS[k]}: ${a[k] === 'done' ? 'Terminé' : 'En cours'}`}
           style={{ width: 8, height: 8, borderRadius: '50%', background: a[k] === 'done' ? ORANGE : BORDER_STRONG }} />
       ))}
     </div>

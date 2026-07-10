@@ -66,34 +66,41 @@ export default function SiteAuditPage() {
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: 0, letterSpacing: '-0.03em' }}>Site Audit</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {nextDate && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, background: 'rgba(16,185,129,0.06)', fontSize: 12, color: '#0B815A' }}>
-                <RefreshCw size={11} />
-                Next automatic audit <strong>{nextDate.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
-              </span>
-            )}
-            <button onClick={runAudit} disabled={running || !siteUrl}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: running ? '#999' : INK, border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: running ? 'default' : 'pointer', fontFamily: F }}>
-              {running ? <Loader size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />}
-              {running ? 'Auditing…' : 'Run an audit'}
-            </button>
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h1 style={{ fontSize: 28, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.03em' }}>Ton site est-il prêt pour les IA ?</h1>
+              <p style={{ fontSize: 12.5, color: INK3, margin: 0, maxWidth: 560, lineHeight: 1.55 }}>
+                On vérifie ce qui empêche ChatGPT, Gemini et les autres de bien comprendre et recommander ton site — puis on te dit quoi corriger, étape par étape.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              {nextDate && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, background: 'rgba(16,185,129,0.06)', fontSize: 12, color: '#0B815A' }}>
+                  <RefreshCw size={11} />
+                  Prochaine vérif auto&nbsp;<strong>{nextDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
+                </span>
+              )}
+              <button onClick={runAudit} disabled={running || !siteUrl}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: running ? '#999' : INK, border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: running ? 'default' : 'pointer', fontFamily: F }}>
+                {running ? <Loader size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />}
+                {running ? 'Vérification…' : 'Vérifier mon site'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Table */}
         <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 0.9fr 0.9fr 0.9fr', padding: '13px 20px', borderBottom: `1px solid ${BORDER}` }}>
-            {['Date', 'Pages analyzed', 'Status', 'Agents', 'Website Score'].map(h => (
+            {['Date', 'Pages vérifiées', 'Statut', 'Étapes', 'Note du site'].map(h => (
               <span key={h} style={{ fontSize: 12, fontWeight: 700, color: INK }}>{h}</span>
             ))}
           </div>
 
-          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '28px 0' }}>Loading…</p>}
+          {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '28px 0' }}>Chargement…</p>}
           {!loading && audits.length === 0 && !running && (
-            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '32px 0' }}>No audits yet. Run your first site audit.</p>
+            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '32px 0' }}>Aucune vérification pour l'instant. Lance ta première vérification.</p>
           )}
           {running && (
             <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 0.9fr 0.9fr 0.9fr', padding: '14px 20px', borderBottom: `1px solid ${BORDER}`, alignItems: 'center' }}>
