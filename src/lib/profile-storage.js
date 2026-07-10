@@ -26,6 +26,21 @@ export async function getProfileData(profile) {
       result = {};
     }
   }
+
+  // ── Demo mode: load full data from localStorage ──
+  if (result && result._demo && result._ls_key) {
+    try {
+      const ls = localStorage.getItem(result._ls_key);
+      if (ls) {
+        const full = JSON.parse(ls);
+        _profileDataCache.set(key, full);
+        return full;
+      }
+    } catch {
+      // fall through to cached result
+    }
+  }
+
   _profileDataCache.set(key, result);
   return result;
 }
