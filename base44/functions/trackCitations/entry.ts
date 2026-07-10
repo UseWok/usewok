@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
 
 Return ONLY valid JSON.`,
       add_context_from_internet: true,
-      model: 'gemini_3_1_pro',
+      model: 'gemini_3_flash',
       response_json_schema: {
         type: 'object',
         properties: {

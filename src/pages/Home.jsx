@@ -141,7 +141,7 @@ async function runScan(inputUrl, userId, features) {
     base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'brand' }).catch(() => null),
     base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'reco' }).catch(() => null),
     base44.functions.invoke('generateBrandKnowledge', { url: inputUrl }).catch(() => null),
-    base44.functions.invoke('competitorEngine', { url: inputUrl }).catch(() => null),
+    base44.functions.invoke('competitorEngine', { action: 'scan', site_url: inputUrl }).catch(() => null),
     base44.functions.invoke('authorityTasks', { url: inputUrl }).catch(() => null),
     base44.functions.invoke('trackCitations', { url: inputUrl }).catch(() => null),
     base44.functions.invoke('citationGaps', { url: inputUrl }).catch(() => null),

@@ -221,7 +221,7 @@ CRITICAL LANGUAGE RULE: The audience is non-technical business owners (restauran
 - "schema markup" → "structured data that helps AI understand your business"
 Never name tools (Screaming Frog, Ahrefs, Semrush) — describe the action instead ("check all your pages for broken links"). If a step requires a developer, say "ask your developer to" in plain words.`,
         add_context_from_internet: true,
-        model: 'gemini_3_1_pro',
+        model: 'gemini_3_flash',
         response_json_schema: {
           type: 'object',
           properties: {
