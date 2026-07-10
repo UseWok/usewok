@@ -361,18 +361,6 @@ function getDemoSiteAudit(userId, cleanUrl) {
   };
 }
 
-// ── Regenerate full demo data on-the-fly (used when localStorage is empty) ──
-export function getDemoFullData(cleanUrl) {
-  const scanResult = getDemoScanResult(cleanUrl);
-  scanResult.overview_data = getDemoOverview(cleanUrl);
-  scanResult.overview_analyzed_at = new Date().toISOString();
-  scanResult.audit_data = getDemoAuditData(cleanUrl);
-  scanResult.audit_analyzed_at = new Date().toISOString();
-  scanResult.perf_data = getDemoPerfData(cleanUrl);
-  scanResult.perf_analyzed_at = new Date().toISOString();
-  return scanResult;
-}
-
 // ── Main entry: seeds all entities + returns scan result ──
 export async function runDemoScan(cleanUrl, userId) {
   const scanResult = getDemoScanResult(cleanUrl);
@@ -380,7 +368,7 @@ export async function runDemoScan(cleanUrl, userId) {
   const auditData = getDemoAuditData(cleanUrl);
   const perfData = getDemoPerfData(cleanUrl);
 
-  // Embed overview/audit/perf in the scan result JSON
+  // Embed overview/audit/perf in the scan result JSON (stored as brand_keywords)
   scanResult.overview_data = overview;
   scanResult.overview_analyzed_at = new Date().toISOString();
   scanResult.audit_data = auditData;
@@ -388,28 +376,7 @@ export async function runDemoScan(cleanUrl, userId) {
   scanResult.perf_data = perfData;
   scanResult.perf_analyzed_at = new Date().toISOString();
 
-  // ── Store the full demo data in localStorage (unlimited size) ──
-  // Only a tiny reference goes into brand_keywords to avoid breaking the entity.
-  const lsKey = `wok_demo_${userId}_${cleanUrl.replace(/[^a-z0-9]/gi, '_')}`;
-  try {
-    localStorage.setItem(lsKey, JSON.stringify(scanResult));
-  } catch (e) {
-    console.error('Failed to store demo data in localStorage', e);
-  }
-
-  // Small reference JSON for brand_keywords — getProfileData detects _demo and loads from localStorage
-  const brandKeywords = JSON.stringify({
-    _demo: true,
-    _ls_key: lsKey,
-    business_name: scanResult.business_name,
-    overall_score: scanResult.overall_score,
-    ai_visibility_score: scanResult.ai_visibility_score,
-    message_clarity_score: scanResult.message_clarity_score,
-    commercial_presence_score: scanResult.commercial_presence_score,
-    overview_analyzed_at: scanResult.overview_analyzed_at,
-    audit_analyzed_at: scanResult.audit_analyzed_at,
-    perf_analyzed_at: scanResult.perf_analyzed_at,
-  });
+  const brandKeywords = JSON.stringify(scanResult);
 
   // ── Create / update BusinessProfile ──
   const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: userId }).catch(() => []);
