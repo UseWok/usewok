@@ -11,9 +11,9 @@ export const PROMO = {
   badgeText: '-15%',
   // Per-plan Stripe promotion code IDs — applied at checkout.
   stripePromoCodes: {
-    starter: 'promo_1TrYzjGzhCsAbRD1fgcsKL6F',
-    pro: 'promo_1TrZ0SGzhCsAbRD1sqxFOV7a',
-    elite: 'promo_1TrZ1XGzhCsAbRD1Hrg7GJ2s',
+    starter: 'promo_1TrZRQGzhCsAbRD1t6jNNlB9',
+    pro: 'promo_1TrZSAGzhCsAbRD1rFrbJUY9',
+    elite: 'promo_1TrZSuGzhCsAbRD1T9e1lT17',
   },
 };
 
