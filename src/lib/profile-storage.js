@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import { isDemoDomain, getDemoFullData } from './demo-data';
 
 // In-memory cache for profile data — avoids re-fetching the same JSON
 // blob URL on every page visit. Keyed by brand_keywords value (URL or raw JSON).
@@ -27,7 +28,7 @@ export async function getProfileData(profile) {
     }
   }
 
-  // ── Demo mode: load full data from localStorage ──
+  // ── Demo mode: load full data from localStorage (or regenerate) ──
   if (result && result._demo && result._ls_key) {
     try {
       const ls = localStorage.getItem(result._ls_key);
@@ -37,7 +38,15 @@ export async function getProfileData(profile) {
         return full;
       }
     } catch {
-      // fall through to cached result
+      // fall through to regeneration
+    }
+    // localStorage empty (different browser / cleared) — regenerate on-the-fly
+    const profileUrl = profile.site_url;
+    if (isDemoDomain(profileUrl)) {
+      const full = getDemoFullData(profileUrl);
+      try { localStorage.setItem(result._ls_key, JSON.stringify(full)); } catch {}
+      _profileDataCache.set(key, full);
+      return full;
     }
   }
 

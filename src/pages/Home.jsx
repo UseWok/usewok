@@ -266,7 +266,10 @@ export default function Home() {
     if (!active?.url || !user?.id) { setOverviewPhase('done'); return; }
     const cacheKey = `dash_${active.url}`;
     const seed = peekCache(cacheKey);
-    if (seed?.data && !forceRefresh) { setOverview(seed.data); setWidgetVis(seed.visibility || {}); setOverviewPhase('done'); }
+    if (seed?.data && !forceRefresh) {
+      setOverview(seed.data); setWidgetVis(seed.visibility || {}); setOverviewPhase('done');
+      return;
+    }
     try {
       const profs = await getCachedProfiles(user.id);
       const p = profs.find(pr => pr.site_url === active.url) || profs[0];
@@ -284,6 +287,8 @@ export default function Home() {
           return;
         }
       }
+      // Skip API call for demo domains (no credits needed)
+      if (isDemoDomain(p.site_url)) { setOverviewPhase('done'); return; }
       if (!seed?.data) setOverviewPhase('thinking');
       const res = await base44.functions.invoke('dashboardOverview', { url: p.site_url, business_name: p.identity_name || '' });
       if (!res?.data || res.data.error) { if (!seed?.data) setOverviewPhase('error'); return; }

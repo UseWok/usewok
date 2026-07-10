@@ -361,6 +361,18 @@ function getDemoSiteAudit(userId, cleanUrl) {
   };
 }
 
+// ── Regenerate full demo data on-the-fly (used when localStorage is empty) ──
+export function getDemoFullData(cleanUrl) {
+  const scanResult = getDemoScanResult(cleanUrl);
+  scanResult.overview_data = getDemoOverview(cleanUrl);
+  scanResult.overview_analyzed_at = new Date().toISOString();
+  scanResult.audit_data = getDemoAuditData(cleanUrl);
+  scanResult.audit_analyzed_at = new Date().toISOString();
+  scanResult.perf_data = getDemoPerfData(cleanUrl);
+  scanResult.perf_analyzed_at = new Date().toISOString();
+  return scanResult;
+}
+
 // ── Main entry: seeds all entities + returns scan result ──
 export async function runDemoScan(cleanUrl, userId) {
   const scanResult = getDemoScanResult(cleanUrl);
