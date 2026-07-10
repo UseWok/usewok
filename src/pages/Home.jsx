@@ -15,7 +15,6 @@ import TestedQuestions from '@/components/home/TestedQuestions';
 import DomainManagerModal from '@/components/home/DomainManagerModal';
 import { getWokFeatures } from '@/lib/wok-plans';
 import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
-import { isDemoDomain, runDemoScan } from '@/lib/demo-data';
 
 import CustomizePanel, { DASHBOARD_WIDGETS } from '@/components/dashboard/CustomizePanel';
 import EvolutionCard from '@/components/dashboard/EvolutionCard';
@@ -322,15 +321,12 @@ export default function Home() {
   const maxDomains = planFeatures?.max_sites || 1;
 
   const startScan = async (cleanUrl) => {
-    const demo = isDemoDomain(cleanUrl);
-    if (!demo) {
-      const scanQuota = await checkScanQuota(user || await base44.auth.me().catch(() => null));
-      if (!scanQuota.allowed) { setDomainModal('manage'); return; }
-      const isNew = !profiles.find(p => p.site_url === cleanUrl);
-      if (isNew) {
-        const siteQuota = await checkSiteQuota(user || await base44.auth.me().catch(() => null));
-        if (!siteQuota.allowed) { setDomainModal('manage'); return; }
-      }
+    const scanQuota = await checkScanQuota(user || await base44.auth.me().catch(() => null));
+    if (!scanQuota.allowed) { setDomainModal('manage'); return; }
+    const isNew = !profiles.find(p => p.site_url === cleanUrl);
+    if (isNew) {
+      const siteQuota = await checkSiteQuota(user || await base44.auth.me().catch(() => null));
+      if (!siteQuota.allowed) { setDomainModal('manage'); return; }
     }
     if (scanningRef.current[cleanUrl]) return;
     scanningRef.current[cleanUrl] = true;
@@ -348,21 +344,13 @@ export default function Home() {
       const existingP = existingProfiles.find(p => p.site_url === cleanUrl);
       if (existingP) base44.entities.BusinessProfile.update(existingP.id, { scan_in_progress: true }).catch(() => {});
       else base44.entities.BusinessProfile.create({ site_url: cleanUrl, identity_name: getDomain(cleanUrl), score_overall: 0, scan_in_progress: true, created_by_id: u.id }).catch(() => {});
-      const result = demo
-        ? await runDemoScan(cleanUrl, u.id)
-        : await runScan(cleanUrl, u.id, getWokFeatures(u));
+      const result = await runScan(cleanUrl, u.id, getWokFeatures(u));
       const updatedProfiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const updatedP = updatedProfiles.find(p => p.site_url === cleanUrl);
       if (updatedP) base44.entities.BusinessProfile.update(updatedP.id, { scan_in_progress: false }).catch(() => {});
       invalidateProfiles(u.id);
       await loadAll();
-      if (demo && result.overview_data) {
-        setOverview(result.overview_data);
-        setOverviewPhase('done');
-        setCache(`dash_${cleanUrl}`, { data: result.overview_data, visibility: {} });
-      } else {
-        await loadOverview(true);
-      }
+      await loadOverview(true);
       setOnboardingData(result);
     } catch (err) { console.error(err); }
     finally {
