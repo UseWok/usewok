@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { getCachedUser, peekCache, setCache } from '@/lib/data-cache';
 import { Settings, RefreshCw, Zap } from 'lucide-react';
+import PerceptionSummary from '@/components/brandperception/PerceptionSummary';
 import BrandStatsRow from '@/components/brandperception/BrandStatsRow';
 import BrandPromptTable from '@/components/brandperception/BrandPromptTable';
 import RecoGrid from '@/components/brandperception/RecoGrid';
@@ -22,10 +23,10 @@ function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { re
  */
 export default function BrandPerceptionPage({ kind = 'brand' }) {
   const isReco = kind === 'reco';
-  const title = isReco ? 'What AI Says About Me' : 'Brand image';
+  const title = isReco ? 'Ce que les IA disent de toi' : 'Image de marque';
   const subtitle = isReco
-    ? "What we found when we asked the AI about you — and, for each finding, a one-click button to turn it into a task."
-    : "How AI engines talk about your brand — narrative, authority and sentiment.";
+    ? "En 3 temps : ce que les IA disent de toi, si c'est positif ou négatif, et comment l'améliorer."
+    : "Comment les IA parlent de ta marque : ton, description et niveau de confiance.";
 
   const _active0 = getActiveDomain();
   const _seed = peekCache(`bp_${kind}_${_active0?.url || 'all'}`);
@@ -101,37 +102,48 @@ export default function BrandPerceptionPage({ kind = 'brand' }) {
             {!isReco && (
               <button onClick={() => setShowConfig(true)} disabled={!record}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: '#fff', border: `1px solid ${VIOLET}`, borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: VIOLET, cursor: record ? 'pointer' : 'not-allowed', fontFamily: F, opacity: record ? 1 : 0.5 }}>
-                <Settings size={13} /> Configure prompts
+                <Settings size={13} /> Configurer les questions
               </button>
             )}
             <button onClick={run} disabled={running || !siteUrl}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: running ? '#999' : INK, border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: running ? 'default' : 'pointer', fontFamily: F }}>
               {running ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />}
-              {running ? 'Analyzing…' : record ? 'Re-run audit' : 'Run audit'}
+              {running ? 'Analyse…' : record ? 'Relancer l\'analyse' : 'Lancer l\'analyse'}
             </button>
           </div>
         </div>
-        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>{subtitle}{record?.analyzed_at ? ` · Last audit ${new Date(record.analyzed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}</p>
+        <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 20px' }}>{subtitle}{record?.analyzed_at ? ` · Dernière analyse le ${new Date(record.analyzed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}</p>
 
         {loading ? (
-          <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>Loading…</p>
+          <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '40px 0' }}>Chargement…</p>
         ) : !record ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '45vh', textAlign: 'center' }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fff', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
               <Zap size={22} color={INK3} />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>No analysis for this domain</p>
-            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Run the audit to see how AI engines perceive your brand.</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 6px' }}>Pas encore d'analyse pour ce site</p>
+            <p style={{ fontSize: 12.5, color: INK3, margin: '0 0 16px' }}>Lance l'analyse pour voir comment les IA te perçoivent.</p>
             <button onClick={run} disabled={running || !siteUrl}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: INK, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <Zap size={13} /> {running ? 'Analyzing…' : 'Run audit'}
+              <Zap size={13} /> {running ? 'Analyse…' : 'Lancer l\'analyse'}
             </button>
           </div>
         ) : (
           <>
+            {/* Temps 1 — résumé en 1-2 phrases */}
+            <PerceptionSummary
+              sentiment={{ positive: record.sentiment_positive, neutral: record.sentiment_neutral, negative: record.sentiment_negative }}
+              prompts={prompts} />
+
+            {/* Temps 2 — positif ou négatif + comment tu es perçu */}
             <BrandStatsRow scoreNarrative={record.score_narrative} scoreAuthority={record.score_authority}
               sentiment={{ positive: record.sentiment_positive, neutral: record.sentiment_neutral, negative: record.sentiment_negative }} />
+
+            {/* Détail question par question */}
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: INK, margin: '4px 0 10px' }}>Le détail, question par question</p>
             <BrandPromptTable prompts={prompts} />
+
+            {/* Temps 3 — comment améliorer (quick-wins d'abord) */}
             <RecoGrid recommendations={recos} onAddTask={addTask} addedKeys={addedKeys} />
           </>
         )}

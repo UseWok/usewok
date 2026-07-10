@@ -1,24 +1,29 @@
 import { useState } from 'react';
-import { ChevronDown, Check, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
-const F = 'Inter, system-ui, sans-serif';
+const F = "'Wix Madefor Text', 'Wix Madefor Display', system-ui, sans-serif";
 const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
 const BORDER = 'rgba(21,19,15,0.10)';
 const VIOLET = '#7C3AED';
 const GREEN = '#10B981';
 
+// Vocabulaire humain pour les types de questions
+const TYPE_LABEL = { authority: 'À quel point on te fait confiance', narrative: 'Comment on te décrit' };
+const TYPE_SHORT = { authority: 'Confiance', narrative: 'Description' };
+
 function Row({ p }) {
   const [open, setOpen] = useState(false);
+  const isAuth = p.type === 'authority';
   return (
     <div style={{ borderBottom: `1px solid ${BORDER}` }}>
       <div onClick={() => setOpen(v => !v)}
         style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12, padding: '12px 16px', alignItems: 'center', cursor: 'pointer' }}>
         <span style={{ fontSize: 13, color: INK, lineHeight: 1.5 }}>{p.text}</span>
-        <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: p.type === 'authority' ? 'rgba(124,58,237,0.10)' : 'rgba(249,115,22,0.10)', color: p.type === 'authority' ? VIOLET : '#F97316' }}>
-          {p.type === 'authority' ? 'Authority' : 'Narrative'}
+        <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: isAuth ? 'rgba(124,58,237,0.10)' : 'rgba(249,115,22,0.10)', color: isAuth ? VIOLET : '#F97316' }}>
+          {TYPE_SHORT[p.type] || 'Description'}
         </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: '50%', border: `2px solid ${p.cited ? GREEN : '#EF4444'}`, color: p.cited ? GREEN : '#EF4444' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: '50%', border: `2px solid ${p.cited ? GREEN : '#EF4444'}`, color: p.cited ? GREEN : '#EF4444' }} title={p.cited ? 'Tu es mentionné' : 'Tu n\'es pas mentionné'}>
           {p.cited ? <Check size={13} strokeWidth={2.5} /> : <X size={13} strokeWidth={2.5} />}
         </span>
       </div>
@@ -38,15 +43,21 @@ export default function BrandPromptTable({ prompts }) {
   const rows = prompts.filter(p => filter === 'all' || p.type === filter);
   return (
     <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden', fontFamily: F }}>
-      <div style={{ display: 'flex', gap: 6, padding: '12px 16px', borderBottom: `1px solid ${BORDER}` }}>
-        {[{ id: 'all', label: 'All' }, { id: 'narrative', label: 'Narrative' }, { id: 'authority', label: 'Authority' }].map(f => (
-          <button key={f.id} onClick={() => setFilter(f.id)}
-            style={{ padding: '5px 12px', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: F, fontSize: 11.5, fontWeight: 700, background: filter === f.id ? INK : '#F0EDE8', color: filter === f.id ? '#fff' : INK3 }}>
-            {f.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: `1px solid ${BORDER}`, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, flex: 1, flexWrap: 'wrap' }}>
+          {[{ id: 'all', label: 'Tout' }, { id: 'narrative', label: TYPE_LABEL.narrative }, { id: 'authority', label: TYPE_LABEL.authority }].map(f => (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+              style={{ padding: '5px 12px', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: F, fontSize: 11.5, fontWeight: 700, background: filter === f.id ? INK : '#F0EDE8', color: filter === f.id ? '#fff' : INK3 }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: INK3 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} color={GREEN} strokeWidth={3} /> mentionné</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><X size={12} color="#EF4444" strokeWidth={3} /> absent</span>
+        </span>
       </div>
-      {rows.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0', margin: 0 }}>No prompts.</p>}
+      {rows.length === 0 && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0', margin: 0 }}>Aucune question.</p>}
       {rows.map((p, i) => <Row key={i} p={p} />)}
     </div>
   );
