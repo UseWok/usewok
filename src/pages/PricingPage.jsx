@@ -107,7 +107,7 @@ export default function PricingPage() {
       const response = await base44.functions.invoke('createCheckoutSession', {
         price_id: priceId,
         email: userEmail,
-        promo_code: isPromoActive() ? PROMO.stripePromoCode : undefined,
+        promo_code: (isPromoActive() && plan.id === PROMO.planId) ? PROMO.stripePromoCode : undefined,
       });
       if (response.data?.url) window.location.href = response.data.url;
       else alert('Unable to create the Stripe checkout session.');

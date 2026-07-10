@@ -31,7 +31,7 @@ export default function PlanCard({ plan, billing, isCurrent, onCta, loading, cta
   const price = billing === 'yearly' && plan.price_yearly
     ? Math.round(plan.price_yearly / 12)
     : plan.price_monthly;
-  const promoOn = !isFree && isPromoActive();
+  const promoOn = !isFree && isPromoActive() && plan.id === PROMO.planId;
   const finalPrice = promoOn ? discountedPrice(price) : price;
 
   const engines = [...(plan.engines || [])].sort((a, b) => {
