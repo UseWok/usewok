@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Check, X, BookOpen } from 'lucide-react';
+import { Pencil, Check, X, BookOpen, Sparkles, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 import { getActiveDomain, onActiveDomainChange } from '@/lib/active-domain';
 import { peekCache, setCache } from '@/lib/data-cache';
 import { loadBrandKnowledge, saveBrandKnowledge, emptyBrandKnowledge } from '@/lib/brand-knowledge';
 import { BK_SECTIONS, completionPercent } from '@/lib/brand-knowledge-steps';
+import { answeredCount } from '@/lib/brand-knowledge-questions';
 import { FieldLabel, FieldValue, TextInput, TextArea } from '@/components/brand/BrandField';
 import TagListEditor, { PillList } from '@/components/brand/TagListEditor';
 import ChoiceChips from '@/components/brand/ChoiceChips';
+import BrandOnboarding from '@/components/brand/BrandOnboarding';
 import BrandKnowledgeSkeleton from '@/components/skeletons/BrandKnowledgeSkeleton';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
@@ -19,6 +22,7 @@ const BG = '#FBFAF7';
 const VIOLET = '#7B4FE0';
 
 const isTags = (t) => t === 'tags';
+const filled = (v) => Array.isArray(v) ? v.length > 0 : !!(v && String(v).trim());
 
 export default function BrandKnowledge() {
   const navigate = useNavigate();
@@ -32,6 +36,11 @@ export default function BrandKnowledge() {
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState(null); // snapshot while editing
 
+  // ── Onboarding conversationnel ──
+  const [mode, setMode] = useState(null);       // 'onboarding' | 'summary' (décidé au chargement)
+  const [prefilling, setPrefilling] = useState(false);
+  const prefilledRef = useRef({}); // évite de re-prefiller le même site
+
   const load = async () => {
     const active = getActiveDomain();
     setPhase(prev => (peekCache(`bk_${active?.url || 'all'}`) ? 'ready' : 'loading'));
@@ -41,12 +50,45 @@ export default function BrandKnowledge() {
       setProfile(p); setExtra(ex); setK(knowledge);
       setPhase('ready');
       setCache(`bk_${active?.url || 'all'}`, { profile: p, extra: ex, knowledge });
+
+      // Décide du mode : profil peu rempli → onboarding conversationnel
+      const answered = answeredCount(knowledge);
+      const initialMode = answered >= 6 ? 'summary' : 'onboarding';
+      setMode(initialMode);
+
+      // Pré-remplissage IA une seule fois par site, quand c'est encore vide
+      if (initialMode === 'onboarding' && answered <= 2 && !prefilledRef.current[p.site_url]) {
+        prefilledRef.current[p.site_url] = true;
+        prefill(p, knowledge, ex);
+      }
     } catch { if (!peekCache(`bk_${active?.url || 'all'}`)) setPhase('no_profile'); }
+  };
+
+  // Analyse le site et pré-remplit les champs vides (l'utilisateur valide/corrige ensuite)
+  const prefill = async (p, currentKnowledge, ex) => {
+    setPrefilling(true);
+    try {
+      const res = await base44.functions.invoke('generateBrandKnowledge', {
+        url: p.site_url, business_name: p.identity_name || '',
+      });
+      const ai = res?.data?.knowledge;
+      if (ai && typeof ai === 'object') {
+        setK(prev => {
+          const merged = { ...prev };
+          for (const [key, aiVal] of Object.entries(ai)) {
+            // ne remplit que les champs encore vides — on ne touche pas à ce que l'utilisateur a déjà mis
+            if (!filled(merged[key]) && filled(aiVal)) merged[key] = aiVal;
+          }
+          return merged;
+        });
+      }
+    } catch { /* silencieux : l'onboarding fonctionne même sans pré-remplissage */ }
+    finally { setPrefilling(false); }
   };
 
   useEffect(() => {
     load();
-    const unsub = onActiveDomainChange(() => { setEditing(false); load(); });
+    const unsub = onActiveDomainChange(() => { setEditing(false); setMode(null); load(); });
     return unsub;
   }, []);
 
@@ -54,16 +96,35 @@ export default function BrandKnowledge() {
   const cancelEdit = () => { setDraft(null); setEditing(false); };
   const setField = (field, value) => setDraft(prev => ({ ...prev, [field]: value }));
 
+  // Onboarding : met à jour directement k (pas de brouillon)
+  const setOnboardingField = (field, value) => setK(prev => ({ ...prev, [field]: value }));
+
+  const persist = async (knowledge) => {
+    if (!profile) return;
+    const newExtra = await saveBrandKnowledge(profile, extra, knowledge);
+    setExtra(newExtra);
+    setK(knowledge);
+    setCache(`bk_${profile?.site_url || 'all'}`, { profile, extra: newExtra, knowledge });
+  };
+
   const save = async () => {
     if (!profile) return;
     setSaving(true);
     try {
-      const newExtra = await saveBrandKnowledge(profile, extra, draft);
-      setExtra(newExtra);
-      setK(draft);
-      setCache(`bk_${profile?.site_url || 'all'}`, { profile, extra: newExtra, knowledge: draft });
+      await persist(draft);
       setEditing(false);
       setDraft(null);
+      toast.success('Profil de marque enregistré');
+    } catch {
+      toast.error("L'enregistrement a échoué");
+    } finally { setSaving(false); }
+  };
+
+  const finishOnboarding = async () => {
+    setSaving(true);
+    try {
+      await persist(k);
+      setMode('summary');
       toast.success('Profil de marque enregistré');
     } catch {
       toast.error("L'enregistrement a échoué");
@@ -86,7 +147,24 @@ export default function BrandKnowledge() {
     );
   }
 
+  // ═══════════ MODE ONBOARDING CONVERSATIONNEL ═══════════
+  if (mode === 'onboarding' && !editing) {
+    return (
+      <div style={{ minHeight: '100vh', background: BG, fontFamily: F }}>
+        <BrandOnboarding
+          values={k}
+          setValue={setOnboardingField}
+          prefilling={prefilling}
+          saving={saving}
+          onFinish={finishOnboarding}
+        />
+      </div>
+    );
+  }
+
+  // ═══════════ MODE RÉCAPITULATIF / ÉDITION ═══════════
   const pct = completionPercent(k);
+  const answered = answeredCount(k);
   const source = editing ? draft : k;
 
   const renderValue = (f) => {
@@ -110,7 +188,7 @@ export default function BrandKnowledge() {
           <div style={{ minWidth: 0 }}>
             <h1 style={{ fontSize: 20, fontWeight: 800, color: INK, margin: '0 0 3px', letterSpacing: '-0.02em' }}>Profil de marque</h1>
             <p style={{ fontSize: 12.5, color: INK3, margin: 0 }}>
-              {editing ? "Modifiez les réponses, puis enregistrez." : `Ce que l'IA sait de votre entreprise · ${pct}% complété`}
+              {editing ? "Modifiez les réponses, puis enregistrez." : `Plus ton profil est complet, plus les IA peuvent te citer avec précision · ${pct}% complété`}
             </p>
           </div>
           {editing ? (
@@ -125,10 +203,16 @@ export default function BrandKnowledge() {
               </button>
             </div>
           ) : (
-            <button onClick={startEdit}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', border: 'none', background: VIOLET, borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
-              <Pencil size={14} /> Modifier
-            </button>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <button onClick={() => { setEditing(false); setMode('onboarding'); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 15px', border: `1px solid ${BORDER}`, background: '#fff', borderRadius: 10, fontSize: 13, fontWeight: 600, color: INK, cursor: 'pointer', fontFamily: F }}>
+                <MessageCircle size={14} color={VIOLET} /> Compléter en dialogue
+              </button>
+              <button onClick={startEdit}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', border: 'none', background: VIOLET, borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: F }}>
+                <Pencil size={14} /> Modifier
+              </button>
+            </div>
           )}
         </div>
         {/* Barre de progression fine */}
