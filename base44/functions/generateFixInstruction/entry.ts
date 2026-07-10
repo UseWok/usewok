@@ -101,7 +101,7 @@ ${needsPrompt ? `4. "prompt" — an expert prompt to copy into ChatGPT/Claude. H
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
-      model: 'gpt_5_mini',
+      model: 'gemini_3_flash',
       response_json_schema: {
         type: 'object',
         properties: {

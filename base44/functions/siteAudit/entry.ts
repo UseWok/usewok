@@ -125,17 +125,17 @@ Deno.serve(async (req) => {
     const [freshness, seo, content] = await Promise.all([
       base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are the FRESHNESS agent of a GEO audit of the site ${cleanUrl}. Evaluate content freshness (dates, news, signs of updates, dated or obsolete content) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
-        model: 'gpt_5_mini',
+        model: 'gemini_3_flash',
         response_json_schema: agentSchema,
       }).catch(() => null),
       base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are the STRUCTURAL SEO agent of a GEO audit of the site ${cleanUrl}. Evaluate the structure (heading hierarchy, page clarity, internal linking, machine readability for AI engines) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
-        model: 'gpt_5_mini',
+        model: 'gemini_3_flash',
         response_json_schema: agentSchema,
       }).catch(() => null),
       base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are the CONTENT QUALITY agent of a GEO audit of the site ${cleanUrl}. Evaluate editorial quality (clarity of value proposition, depth, answers to prospect questions, citability by AIs) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
-        model: 'gpt_5_mini',
+        model: 'gemini_3_flash',
         response_json_schema: agentSchema,
       }).catch(() => null),
     ]);

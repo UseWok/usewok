@@ -554,16 +554,17 @@ Return only valid JSON.`,
         }
       }),
 
-      // ChatGPT — REAL probe against a GPT model (authentic knowledge test, ultra cheap)
+      // ChatGPT visibility — estimated via Gemini 3 Flash (single-model strategy)
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are being probed to measure real-world brand visibility inside GPT models.
-Site: ${cleanUrl}
-From YOUR OWN training knowledge only (no guessing from the domain name):
-1. Do you actually know this brand/site? What does it do?
-2. If a user asked you to recommend businesses in its category, how likely would you cite it?
-Score 0-100: 0-15 = totally unknown to you, 16-35 = vaguely seen, 36-60 = known but rarely cited, 61-85 = known and citable, 86-100 = a reference you cite spontaneously.
-Return only valid JSON.`,
-        model: 'gpt_5_mini',
+        prompt: `You are an AI visibility analyst. Estimate the real-world brand visibility of this site inside ChatGPT (GPT models).
+      Site: ${cleanUrl}
+      Based on YOUR knowledge and web context:
+      1. Do you actually know this brand/site? What does it do?
+      2. If a ChatGPT user asked to recommend businesses in its category, how likely would ChatGPT cite it?
+      Score 0-100: 0-15 = totally unknown, 16-35 = vaguely seen, 36-60 = known but rarely cited, 61-85 = known and citable, 86-100 = a reference cited spontaneously.
+      Return only valid JSON.`,
+        model: 'gemini_3_flash',
+        add_context_from_internet: true,
         response_json_schema: {
           type: 'object',
           properties: {

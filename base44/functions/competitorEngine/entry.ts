@@ -43,7 +43,8 @@ ${brandList}
 "matrix": array. One entry per (prompt, brand) where the brand IS cited:
   { "prompt_index": number, "domain": "exact domain of the cited brand" }
 Include ONLY the pairs actually cited. All others are considered not cited.`,
-    model: 'gpt_5_mini',
+    model: 'gemini_3_flash',
+    add_context_from_internet: true,
     response_json_schema: {
       type: 'object',
       properties: {
