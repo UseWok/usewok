@@ -1,10 +1,11 @@
 import DashCard from './DashCard';
-import { Plus } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 const INK = '#15130F';
 const INK3 = 'rgba(21,19,15,0.5)';
 const ORANGE = '#FF5A1F';
 const GREEN = '#1E7A4C';
+const RED = '#E53E3E';
 const CREAM2 = '#F3EEE3';
 const F = 'Inter, system-ui, sans-serif';
 
@@ -19,35 +20,63 @@ const AI_LOGO_URLS = {
   llama: 'https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/5189c1dc8_image.png',
 };
 
-export default function LLMCitingCard({ llms, onDetail, onWantMore }) {
-  const rows = (llms || []).slice().sort((a, b) => (b.citations || 0) - (a.citations || 0));
-  const max = Math.max(1, ...rows.map(r => r.citations || 0));
+function TrendBadge({ current, previous }) {
+  if (previous === undefined || previous === null) return null;
+  const delta = Math.round(current - previous);
+  if (delta === 0) return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: INK3 }}>
+      <Minus size={11} /> 0
+    </span>
+  );
+  if (delta > 0) return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: GREEN }}>
+      <TrendingUp size={11} /> +{delta}
+    </span>
+  );
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: RED }}>
+      <TrendingDown size={11} /> {delta}
+    </span>
+  );
+}
+
+export default function LLMCitingCard({ llms, previousLlms = [], onDetail, onWantMore }) {
+  const rows = (llms || []).slice().sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
+  const prevMap = {};
+  (previousLlms || []).forEach(l => { prevMap[l.engine] = l.pct ?? 0; });
 
   return (
-    <DashCard title="Who mentions you" dot={GREEN} action="See details →" onAction={onDetail}>
+    <DashCard title="Tes citations IA" dot={GREEN} action="Voir détails →" onAction={onDetail}>
       {rows.length === 0 && (
-        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>No AI mentions you yet.</p>
+        <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>Aucune IA ne te mentionne encore.</p>
       )}
-      {rows.map((l, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-          <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <img src={AI_LOGO_URLS[l.engine]} width={18} height={18} alt={l.label} style={{ objectFit: 'contain' }} />
+      {rows.map((l, i) => {
+        const pct = Math.min(100, Math.max(0, l.pct ?? 0));
+        const prev = prevMap[l.engine];
+        return (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+            <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <img src={AI_LOGO_URLS[l.engine]} width={18} height={18} alt={l.label} style={{ objectFit: 'contain' }} />
+            </div>
+            <span style={{ width: 68, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
+            <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${pct}%`, background: ORANGE, borderRadius: 100, transition: 'width 0.6s ease' }} />
+            </div>
+            <span style={{ width: 38, fontSize: 13, fontWeight: 800, color: INK, textAlign: 'right', flexShrink: 0 }}>{pct}%</span>
+            <span style={{ width: 42, flexShrink: 0, textAlign: 'right' }}>
+              <TrendBadge current={pct} previous={prev} />
+            </span>
           </div>
-          <span style={{ width: 76, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
-          <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${((l.citations || 0) / max) * 100}%`, background: ORANGE, borderRadius: 100 }} />
-          </div>
-          <span style={{ width: 56, fontSize: 11.5, color: INK3, textAlign: 'right', flexShrink: 0 }}>{l.citations || 0}× cited</span>
-        </div>
-      ))}
+        );
+      })}
 
       <div style={{ fontSize: 11, color: INK3, lineHeight: 1.5, margin: '12px 0 14px' }}>
-        How many times each AI engine mentioned you during the period.
+        Pourcentage de réponses où chaque IA te cite.
       </div>
 
       <button onClick={onWantMore}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: INK, color: '#FBF8F2', border: 'none', borderRadius: 10, height: 42, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-        <Plus size={14} /> Get cited more often
+        <Plus size={14} /> Être plus cité
       </button>
     </DashCard>
   );

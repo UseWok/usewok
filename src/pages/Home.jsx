@@ -280,7 +280,7 @@ export default function Home() {
         const age = Date.now() - new Date(extra.overview_analyzed_at).getTime();
         if (age < 24 * 60 * 60 * 1000) {
           setOverview(extra.overview_data); setOverviewPhase('done');
-          setCache(cacheKey, { data: extra.overview_data, visibility: vis });
+          setCache(cacheKey, { data: extra.overview_data, visibility: {} });
           return;
         }
       }
@@ -292,8 +292,8 @@ export default function Home() {
       if (!res?.data || res.data.error) { if (!seed?.data) setOverviewPhase('error'); return; }
       setOverview(res.data);
       setOverviewPhase('done');
-      setCache(cacheKey, { data: res.data, visibility: vis });
-      const newExtra = { ...extra, overview_data: res.data, overview_analyzed_at: new Date().toISOString() };
+      setCache(cacheKey, { data: res.data, visibility: {} });
+      const newExtra = { ...extra, previous_overview_data: extra.overview_data || null, previous_overview_at: extra.overview_analyzed_at || null, overview_data: res.data, overview_analyzed_at: new Date().toISOString() };
       const brand_keywords = await uploadProfileData(newExtra);
       base44.entities.BusinessProfile.update(p.id, { brand_keywords }).catch(() => {});
     } catch { if (!seed?.data) setOverviewPhase('error'); }
@@ -393,17 +393,9 @@ export default function Home() {
   const nextMilestone = lrs < 50 ? 50 : lrs < 65 ? 65 : lrs < 85 ? 85 : 100;
   const topIssue = issues[0]?.problem || null;
 
-  const ENGINES_TESTED = [
-    { label: 'ChatGPT', logoId: 'chatgpt', question: 'Does it recommend you in your category?', score: (activeProfile?.chatgpt_score ?? null) },
-    { label: 'Gemini',  logoId: 'gemini',  question: 'Does it cite you as a source?',          score: (activeProfile?.gemini_score ?? null) },
-    { label: 'Claude',  logoId: 'claude',  question: 'Does it mention your brand?',             score: (activeProfile?.claude_score ?? null) },
-  ];
-  const engineScores = ENGINES_TESTED.map(e => e.score).filter(s => s !== null && s !== undefined);
-  const positives = engineScores.filter(s => s >= 50).length;
-  const testedCount = engineScores.length;
-  const onTen = testedCount > 0 ? Math.round((positives / testedCount) * 10) : null;
-  // % of tested AI answers where the brand shows up (real number, null if never scanned deeply)
-  const appearPct = onTen !== null ? onTen * 10 : null;
+  // Real visibility %: the brand's own share-of-voice from the overview competitors data
+  const youEntry = (overview?.competitors || []).find(c => c.is_you);
+  const appearPct = youEntry ? Math.round(youEntry.visibility_pct || 0) : null;
   // The single top competitor to beat — highest visibility that isn't the user's own brand
   const leader = (() => {
     const comp = (overview?.competitors || []).filter(c => !c.is_you && c.name);
@@ -411,6 +403,9 @@ export default function Home() {
     const top = [...comp].sort((a, b) => (b.visibility_pct || 0) - (a.visibility_pct || 0))[0];
     return { name: top.name, pct: Math.round(top.visibility_pct || 0) };
   })();
+
+  // Previous scan's per-engine citation data — used for trend arrows
+  const previousLlms = activeProfile?.previous_overview_data?.llms_citing || [];
 
   const PILLARS = [
     { label: 'Ton contenu',    explain: 'Ce que les IA lisent sur toi.',        score: (activeProfile?.score_message_clarity ?? null) },
@@ -473,7 +468,7 @@ export default function Home() {
         )}
 
         {/* ═══════════ THE STORY: score + one action ═══════════ */}
-        {hasData && !isScanningActive && (
+        {hasData && !isScanningActive && overview && (
           <>
             <HeroVerdict score={lrs} appearPct={appearPct} leader={leader} pillars={PILLARS} />
             <TodayAction issues={issues} remaining={Math.max(actionsLeft - 1, 0)} onFix={() => navigate('/audit')} />
@@ -485,7 +480,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 4 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
               <CompetitorsCard competitors={overview.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />
-              <LLMCitingCard llms={overview.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />
+              <LLMCitingCard llms={overview.llms_citing} previousLlms={previousLlms} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />
             </div>
             <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />
           </div>

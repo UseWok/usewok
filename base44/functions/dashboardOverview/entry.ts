@@ -117,7 +117,7 @@ ${brandContext}
 - Base scores on the brand's REAL online authority. An unknown local brand scores low (10-35). A recognized brand scores higher.
 - geo_score is 0-100 (overall GEO/AI-visibility score).
 - narrative/authority/referral are raw counts (integers) representing how often the brand is cited in each context type across the enabled engines. Unknown brand → mostly 0.
-- For each enabled engine, estimate the number of AI answers where the brand is cited (integer, realistic — often 0-6 for smaller brands).
+- For each enabled engine: total_prompts = number of prompts tested (5-10), citations = how many cited the brand (integer, realistic), pct = round(citations / total_prompts * 100).
 - competitors: the 3-4 real leading competitors in this brand's industry, with a "visibility %" (how often AI recommends them vs the brand). The user's own brand is included with its own (usually low) %.
 - cited_pages: real page paths of ${domain} most likely cited by AI (e.g. "${domain}", "${domain}/pricing"), with an estimated citation count each. If none, return an empty array.
 - zones: ranking by continent (North America, Europe, Asia…) with a 0-100 score and rank position. Mark the best zone.
@@ -166,6 +166,8 @@ Return ONLY valid JSON.`,
               properties: {
                 engine: { type: 'string' },
                 citations: { type: 'number' },
+                total_prompts: { type: 'number' },
+                pct: { type: 'number' },
               },
             },
           },
@@ -221,7 +223,7 @@ Return ONLY valid JSON.`,
       .map((l: any) => {
         const raw = String(l.engine || '').toLowerCase();
         const id = ALL_ENGINES.find((e) => raw.includes(e)) || null;
-        return id ? { engine: id, label: ENGINE_LABELS[id], citations: Math.max(0, Math.round(l.citations || 0)) } : null;
+        return id ? { engine: id, label: ENGINE_LABELS[id], citations: Math.max(0, Math.round(l.citations || 0)), total_prompts: Math.max(0, Math.round(l.total_prompts || 0)), pct: Math.max(0, Math.min(100, Math.round(l.pct || 0))) } : null;
       })
       .filter((l: any) => l && enabledEngines.includes(l.engine));
 
