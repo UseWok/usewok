@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Zap, AlertCircle, Plus, Globe, SlidersHorizontal, RefreshCw, ChevronDown, LayoutGrid } from 'lucide-react';
+import { ArrowRight, Zap, AlertCircle, Plus, Globe, SlidersHorizontal, RefreshCw, ChevronDown, LayoutGrid, Calendar } from 'lucide-react';
 import { setActiveDomain, getActiveDomain, initActiveDomainFromUser, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
@@ -22,7 +22,7 @@ import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
 import AuthorityTasksCard from '@/components/authority/AuthorityTasksCard';
-import AgentCalendar from '@/components/dashboard/AgentCalendar';
+import ScanCalendarModal from '@/components/home/ScanCalendarModal';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 
 // ── Design System ──────────────────────────────
@@ -192,6 +192,7 @@ export default function Home() {
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [widgetVis, setWidgetVis] = useState({});
   const [showAllData, setShowAllData] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const scanningRef = useRef({});
   const pendingScanUrlsRef = useRef([]);
@@ -539,7 +540,18 @@ export default function Home() {
               onFix={() => navigate('/audit')}
             />
 
-            <AgentCalendar userId={user?.id} siteUrl={activeProfile?.site_url} />
+            {/* ── Calendrier des analyses (modal read-only) ── */}
+            <button onClick={() => setCalendarOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '16px 20px', marginTop: 20, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, cursor: 'pointer', fontFamily: F, textAlign: 'left' }}>
+              <div style={{ width: 38, height: 38, borderRadius: 11, background: 'rgba(255,90,31,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Calendar size={18} color={CORAL} strokeWidth={2} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: INK }}>Calendrier des analyses</div>
+                <div style={{ fontSize: 12.5, color: INK2 }}>Vois tes analyses passées et planifiées — de janvier 2026 à 2030</div>
+              </div>
+              <ChevronDown size={16} color={INK2} style={{ transform: 'rotate(-90deg)' }} />
+            </button>
           </>
         )}
 
@@ -612,6 +624,8 @@ export default function Home() {
       {onboardingData && (
         <ScanResultsOnboarding data={onboardingData} onClose={() => { setOnboardingData(null); navigate('/ai-report'); }} />
       )}
+
+      <ScanCalendarModal open={calendarOpen} onClose={() => setCalendarOpen(false)} userId={user?.id} siteUrl={activeProfile?.site_url} user={user} />
 
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
     </div>

@@ -40,6 +40,7 @@ export default function BrandKnowledge() {
   // ── Onboarding conversationnel ──
   const [mode, setMode] = useState(null);       // 'onboarding' | 'summary' (décidé au chargement)
   const [prefilling, setPrefilling] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
   const prefilledRef = useRef({}); // évite de re-prefiller le même site
 
   const load = async () => {
@@ -100,6 +101,24 @@ export default function BrandKnowledge() {
   // Onboarding : met à jour directement k (pas de brouillon)
   const setOnboardingField = (field, value) => setK(prev => ({ ...prev, [field]: value }));
 
+  // IA génère TOUT (écrase même les champs déjà remplis)
+  const aiGenerateAll = async () => {
+    if (!profile) return;
+    setAiGenerating(true);
+    try {
+      const res = await base44.functions.invoke('generateBrandKnowledge', {
+        url: profile.site_url, business_name: profile.identity_name || '',
+      });
+      const ai = res?.data?.knowledge;
+      if (ai && typeof ai === 'object') {
+        setK(prev => ({ ...prev, ...ai }));
+        toast.success("Profil généré par l'IA");
+      }
+    } catch {
+      toast.error("L'IA n'a pas pu analyser ton site");
+    } finally { setAiGenerating(false); }
+  };
+
   const persist = async (knowledge) => {
     if (!profile) return;
     const newExtra = await saveBrandKnowledge(profile, extra, knowledge);
@@ -158,6 +177,8 @@ export default function BrandKnowledge() {
           prefilling={prefilling}
           saving={saving}
           onFinish={finishOnboarding}
+          onAIGenerateAll={aiGenerateAll}
+          aiGenerating={aiGenerating}
         />
       </div>
     );

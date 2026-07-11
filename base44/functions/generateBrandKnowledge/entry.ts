@@ -16,12 +16,15 @@ Deno.serve(async (req) => {
     const brandLabel = businessName || domain;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `You are analyzing the website "${brandLabel}" (${cleanUrl}) using internet context, for someone who knows NOTHING about marketing.
+      prompt: `You are an expert in SEO and AI referencing (AEO — Answer Engine Optimization, GEO — Generative Engine Optimization). You specialize in helping businesses get recommended by AI engines like ChatGPT, Gemini, Claude, and Perplexity.
+
+You are analyzing the website "${brandLabel}" (${cleanUrl}) using internet context. Your goal: produce the most accurate, relevant Brand Knowledge that will maximize this business's chances of being cited and recommended by AI engines.
 
 Generate a simple, concrete "Brand Knowledge". STRICT rules:
 - Use SIMPLE, everyday language. FORBIDDEN: marketing jargon (persona, value proposition, sales play, GEO, authority, brand awareness…). Write as if explaining to a friend.
 - Each array contains EXACTLY 3 to 5 items (never more than 5), specific to this brand, not generic.
 - Each array item = 2 to 5 words MAX, short and clear.
+- Choose keywords and topics that real people actually type into AI engines — think about what a potential customer would ask.
 - If info is uncertain, leave EMPTY ("").
 - Respond in friendly English.
 

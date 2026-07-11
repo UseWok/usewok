@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, ArrowLeft, Check, Sparkles, Lightbulb, Info } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Sparkles, Lightbulb, Info, Wand2 } from 'lucide-react';
 import { TextInput, TextArea } from '@/components/brand/BrandField';
 import TagListEditor from '@/components/brand/TagListEditor';
 import ChoiceChips from '@/components/brand/ChoiceChips';
@@ -23,7 +23,7 @@ function filled(v) {
  * - prefilling : true pendant que l'IA analyse le site.
  * - onFinish : appelé quand l'utilisateur valide la dernière question.
  */
-export default function BrandOnboarding({ values, setValue, prefilling, onFinish, saving }) {
+export default function BrandOnboarding({ values, setValue, prefilling, onFinish, saving, onAIGenerateAll, aiGenerating }) {
   const [idx, setIdx] = useState(0);
   const total = BK_QUESTIONS.length;
   const q = BK_QUESTIONS[idx];
@@ -73,6 +73,36 @@ export default function BrandOnboarding({ values, setValue, prefilling, onFinish
           <span style={{ fontSize: 13, color: '#5B3BB0', fontWeight: 600 }}>UseWok lit ton site pour te faire gagner du temps…</span>
           <style>{`@keyframes bkspin{to{transform:rotate(360deg)}}`}</style>
         </div>
+      )}
+
+      {/* ── Bouton : l'IA remplit tout ── */}
+      {onAIGenerateAll && (
+        <button
+          onClick={onAIGenerateAll}
+          disabled={aiGenerating || saving}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            width: '100%', padding: '13px 16px', marginBottom: 24,
+            border: `1.5px solid ${aiGenerating ? '#E0D8FA' : VIOLET}`,
+            background: aiGenerating ? '#F5F3FF' : '#fff',
+            color: aiGenerating ? '#A99FD0' : VIOLET,
+            borderRadius: 12, fontSize: 14, fontWeight: 700,
+            cursor: aiGenerating || saving ? 'default' : 'pointer',
+            fontFamily: F, transition: 'all 150ms',
+          }}
+        >
+          {aiGenerating ? (
+            <>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2.5px solid #E0D8FA', borderTopColor: VIOLET, animation: 'bkspin 0.8s linear infinite' }} />
+              L'IA analyse ton site…
+            </>
+          ) : (
+            <>
+              <Wand2 size={16} />
+              Laisser l'IA tout remplir
+            </>
+          )}
+        </button>
       )}
 
       {/* ── La question ── */}
