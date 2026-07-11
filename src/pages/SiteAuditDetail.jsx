@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
-import { ArrowLeft, RefreshCw, ChevronUp, ChevronDown, CheckCircle2, Clock, Wrench, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Clock, Wrench, X } from 'lucide-react';
 import { StatusBadge, AgentChip, AGENT_ORDER } from '@/components/siteaudit/AuditBits';
 import AuditVerdict from '@/components/siteaudit/AuditVerdict';
 import FixDrawer from '@/components/report/FixDrawer';
@@ -25,9 +25,8 @@ const ORANGE_TINT = '#FFE6D6';
 function parseJSON(s, fb) { try { return JSON.parse(s || '') || fb; } catch { return fb; } }
 
 const TABS = [
-  { id: 'freshness', label: 'Fraîcheur du contenu' },
-  { id: 'seo', label: 'Structure des pages' },
-  { id: 'content', label: 'Qualité du contenu' },
+  { id: 'readability', label: 'Lisibilité IA' },
+  { id: 'clarity', label: 'Clarté du contenu' },
 ];
 
 function KPICard({ label, value, color, dash }) {
@@ -55,8 +54,7 @@ export default function SiteAuditDetail() {
   const navigate = useNavigate();
   const [audit, setAudit] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('freshness');
-  const [pagesOpen, setPagesOpen] = useState(true);
+  const [tab, setTab] = useState('readability');
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
   const [profile, setProfile] = useState(null);
@@ -96,7 +94,6 @@ export default function SiteAuditDetail() {
   if (!audit) return <div style={{ minHeight: '100vh', background: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F }}><p style={{ color: INK3 }}>Audit not found.</p></div>;
 
   const agents = parseJSON(audit.agents_json, {});
-  const pages = parseJSON(audit.pages_json, {});
   const results = parseJSON(audit.results_json, {});
   const dateLabel = new Date(audit.created_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const activeResult = results[tab];
@@ -166,62 +163,10 @@ export default function SiteAuditDetail() {
         {audit.status === 'done' && <AuditVerdict score={audit.score_website ?? 0} critical={criticalCount} />}
 
         {/* KPI cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 18 }}>
           <KPICard label="Note du site" value={`${audit.score_website ?? 0}/100`} color={ORANGE_DARK} />
-          <KPICard label="Fraîcheur" value={results.freshness ? `${Math.round(results.freshness.score || 0)}` : null} color={ORANGE} dash={!results.freshness} />
-          <KPICard label="Structure" value={results.seo ? `${Math.round(results.seo.score || 0)}` : null} color={ORANGE_DARK} dash={!results.seo} />
-          <KPICard label="Qualité contenu" value={results.content ? `${Math.round(results.content.score || 0)}` : '0'} color={ORANGE} />
-          <KPICard label="Pages vérifiées" value={audit.pages_analyzed ?? 0} color={INK} />
-        </div>
-
-        {/* Page selection */}
-        <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, padding: '18px 22px', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setPagesOpen(v => !v)}>
-            <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 4px' }}>
-                Pages analysées — {(pages.selected || []).length} retenues, {(pages.filtered || []).length} écartées
-              </p>
-              <p style={{ fontSize: 12.5, color: INK3, margin: 0, lineHeight: 1.6 }}>
-                {pages.discovered ?? 0} pages trouvées → {(pages.selected || []).length} retenues → {pages.fetched ?? 0} lues. Les pages sans intérêt pour les IA (pages techniques, doublons de langue, pages légales en trop) sont écartées ; les pages inaccessibles ne sont pas analysées.
-              </p>
-            </div>
-            {pagesOpen ? <ChevronUp size={16} color={INK3} /> : <ChevronDown size={16} color={INK3} />}
-          </div>
-
-          {pagesOpen && (
-            <div style={{ marginTop: 16 }}>
-              {(pages.category_limit_hits || 0) > 0 && (
-                <>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: INK, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    Limite par catégorie atteinte
-                    <span style={{ padding: '1px 8px', background: '#F0EDE8', borderRadius: 10, fontSize: 11, fontWeight: 700, color: INK }}>{pages.category_limit_hits}</span>
-                  </p>
-                  <p style={{ fontSize: 11.5, color: INK3, margin: '0 0 14px' }}>Les pages légales, recrutement et contact sont limitées à 1 chacune (inutile d'analyser 3 pages de conditions).</p>
-                </>
-              )}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 0.4fr', padding: '9px 4px', borderBottom: `1px solid ${BORDER}` }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>Page</span>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>Type</span>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK, textAlign: 'right' }}>Lue</span>
-              </div>
-              {(pages.selected || []).map((p, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 0.4fr', padding: '10px 4px', borderBottom: `1px solid ${BORDER}`, alignItems: 'center' }}>
-                  <span style={{ fontSize: 12, color: INK, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.url}</span>
-                  <span><span style={{ padding: '3px 10px', border: `1px solid ${BORDER}`, borderRadius: 12, fontSize: 11, color: INK }}>{p.category}</span></span>
-                  <span style={{ textAlign: 'right' }}>
-                    <CheckCircle2 size={16} color={p.fetched ? ORANGE_DARK : '#C9C6BF'} fill={p.fetched ? ORANGE_TINT : 'none'} style={{ display: 'inline-block' }} />
-                  </span>
-                </div>
-              ))}
-              {(pages.filtered || []).map((p, i) => (
-                <div key={`f${i}`} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 0.4fr', padding: '10px 4px', borderBottom: `1px solid ${BORDER}`, alignItems: 'center', opacity: 0.55 }}>
-                  <span style={{ fontSize: 12, color: INK3, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.url}</span>
-                  <span style={{ fontSize: 11, color: INK3 }}>{p.reason}</span>
-                  <span style={{ textAlign: 'right', fontSize: 12, color: INK3 }}>—</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <KPICard label="Lisibilité IA" value={results.readability ? `${Math.round(results.readability.score || 0)}` : null} color={ORANGE} dash={!results.readability} />
+          <KPICard label="Clarté du contenu" value={results.clarity ? `${Math.round(results.clarity.score || 0)}` : null} color={ORANGE_DARK} dash={!results.clarity} />
         </div>
 
         {/* Agent tabs */}

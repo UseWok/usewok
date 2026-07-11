@@ -24,8 +24,8 @@ export function StatusBadge({ status }) {
   );
 }
 
-export const AGENT_ORDER = ['crawl', 'freshness', 'seo', 'content'];
-export const AGENT_LABELS = { crawl: 'Lecture du site', freshness: 'Fraîcheur du contenu', seo: 'Structure des pages', content: 'Qualité du contenu' };
+export const AGENT_ORDER = ['crawl', 'readability', 'clarity'];
+export const AGENT_LABELS = { crawl: 'Lecture du site', readability: 'Lisibilité IA', clarity: 'Clarté du contenu' };
 
 export function AgentDots({ agents }) {
   const a = agents || {};

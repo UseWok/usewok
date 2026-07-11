@@ -22,6 +22,7 @@ import { prefetchAllPages } from '@/lib/prefetch';
 
 // ── Lazy-loaded pages (code-split for faster initial load) ──
 const Home = lazy(() => import('./pages/Home.jsx'));
+const Onboarding = lazy(() => import('./pages/Onboarding.jsx'));
 const AllProjects = lazy(() => import('./pages/AllProjects'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
@@ -134,6 +135,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Navigate to="/app" replace />} />
           <Route path="/welcome" element={<ForAgenciesPage />} />
           <Route path="/start" element={<ForEcommercePage />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/p/:id" element={<PublicFiche />} />
           <Route path="/blog" element={<BlogPage />} />

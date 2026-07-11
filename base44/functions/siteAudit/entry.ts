@@ -74,18 +74,13 @@ Deno.serve(async (req) => {
     // ── 2. Filter & categorize ──
     const filtered = [];
     const catCount = {};
-    let categoryLimitHits = 0;
     const selected = [{ url: cleanUrl, category: 'Home' }];
     for (const c of candidates) {
       if (selected.length >= MAX_PAGES) break;
-      if (UTILITY_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Utility page (no GEO value)' }); continue; }
+      if (UTILITY_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Utility page' }); continue; }
       if (LANG_DUP_RE.test(c.path)) { filtered.push({ url: c.url, reason: 'Language duplicate' }); continue; }
       const cat = categorize(c.path);
-      if (SINGLE_CATS.includes(cat) && (catCount[cat] || 0) >= 1) {
-        filtered.push({ url: c.url, reason: `Category limit (${cat})` });
-        categoryLimitHits++;
-        continue;
-      }
+      if (SINGLE_CATS.includes(cat) && (catCount[cat] || 0) >= 1) { filtered.push({ url: c.url, reason: `Category limit (${cat})` }); continue; }
       catCount[cat] = (catCount[cat] || 0) + 1;
       selected.push({ url: c.url, category: cat });
     }
@@ -97,7 +92,6 @@ Deno.serve(async (req) => {
       return { ...s, text: htmlToText(r.html), fetched: !!r.html };
     }));
     const fetchedPages = results.filter(p => p.fetched && p.text.length > 100);
-
     const corpus = fetchedPages.map(p => `--- PAGE: ${p.url} (${p.category}) ---\n${p.text.slice(0, 3200)}`).join('\n\n') || '(no accessible page)';
 
     const agentSchema = {
@@ -119,28 +113,36 @@ Deno.serve(async (req) => {
       },
     };
 
-    const baseRules = `Respond in English. score = realistic 0-100 (empty/inaccessible site = 0-20). items = 2-6 concrete findings max, each citing the exact page. severity: "high"|"medium"|"low". Valid JSON only.`;
+    // AEO-only rules: focus on Answer Engine Optimization, zero SEO jargon.
+    // Only return HIGH and MEDIUM severity items — skip trivial/low issues.
+    // Each finding must be actionable and impactful for AI visibility.
+    const baseRules = `Respond in English. You are evaluating AEO (Answer Engine Optimization) — can AI engines like ChatGPT, Gemini and Claude read this site and recommend it?
+score = realistic 0-100 (empty/inaccessible site = 0-20).
+items = 2-5 findings ONLY. Each must be a MEANINGFUL problem that directly hurts AI visibility — NOT minor or trivial issues.
+Skip low-priority nitpicks. Only report problems that genuinely cost the business AI recommendations.
+Each item: page (which page), title (the problem in plain English, no jargon), detail (one sentence explaining the impact), severity: "high" or "medium" only.
+Never use SEO jargon like "robots.txt", "crawlers", "indexed pages", "meta tags", "canonical", "schema markup".
+Speak in plain business English a non-technical owner understands. Valid JSON only.`;
 
-    // ── 4. Run the 3 agents in parallel ──
-    const [freshness, seo, content] = await Promise.all([
+    // ── 4. Run 2 AEO agents in parallel ──
+    const [readability, clarity] = await Promise.all([
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are the FRESHNESS agent of a GEO audit of the site ${cleanUrl}. Evaluate content freshness (dates, news, signs of updates, dated or obsolete content) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
+        prompt: `You are the AI READABILITY agent of an AEO audit of the site ${cleanUrl}.
+Evaluate: Can AI engines read and understand this site? Check if the site structure is clear, if pages load and are accessible, if the main offer is obvious within seconds, and if an AI could extract the business name, what they do, and who they serve.
+Focus only on problems that block AI comprehension — not minor code issues.\n\n${corpus}\n\n${baseRules}`,
         model: 'gemini_3_flash',
         response_json_schema: agentSchema,
       }).catch(() => null),
       base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are the STRUCTURAL SEO agent of a GEO audit of the site ${cleanUrl}. Evaluate the structure (heading hierarchy, page clarity, internal linking, machine readability for AI engines) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
-        model: 'gemini_3_flash',
-        response_json_schema: agentSchema,
-      }).catch(() => null),
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are the CONTENT QUALITY agent of a GEO audit of the site ${cleanUrl}. Evaluate editorial quality (clarity of value proposition, depth, answers to prospect questions, citability by AIs) from the pages actually crawled below.\n\n${corpus}\n\n${baseRules}`,
+        prompt: `You are the CONTENT CLARITY agent of an AEO audit of the site ${cleanUrl}.
+Evaluate: Does the content clearly answer what prospects ask? Check if the value proposition is crystal clear, if the content directly answers common buyer questions, if there's enough depth for an AI to cite this site as a source, and if the messaging is specific (not vague marketing speak).
+Focus only on problems that make AIs skip or ignore this site — not minor wording tweaks.\n\n${corpus}\n\n${baseRules}`,
         model: 'gemini_3_flash',
         response_json_schema: agentSchema,
       }).catch(() => null),
     ]);
 
-    const scores = [freshness, seo, content].filter(a => a && typeof a.score === 'number').map(a => a.score);
+    const scores = [readability, clarity].filter(a => a && typeof a.score === 'number').map(a => a.score);
     const scoreWebsite = fetchedPages.length === 0 ? 0 : Math.round(scores.reduce((a, b) => a + b, 0) / (scores.length || 1));
 
     const record = await base44.asServiceRole.entities.SiteAudit.create({
@@ -151,18 +153,17 @@ Deno.serve(async (req) => {
       pages_analyzed: fetchedPages.length,
       agents_json: JSON.stringify({
         crawl: home.html ? 'done' : 'failed',
-        freshness: freshness ? 'done' : 'pending',
-        seo: seo ? 'done' : 'pending',
-        content: content ? 'done' : 'pending',
+        readability: readability ? 'done' : 'pending',
+        clarity: clarity ? 'done' : 'pending',
       }),
       pages_json: JSON.stringify({
         discovered: candidates.length + 1,
         selected: selected.map(s => ({ url: s.url, category: s.category, fetched: results.find(r => r.url === s.url)?.fetched || false })),
         filtered,
         fetched: fetchedPages.length,
-        category_limit_hits: categoryLimitHits,
+        category_limit_hits: 0,
       }),
-      results_json: JSON.stringify({ freshness, seo, content }),
+      results_json: JSON.stringify({ readability, clarity }),
     });
 
     return Response.json(record);
