@@ -1,4 +1,4 @@
-import { Zap, Trash2 } from 'lucide-react';
+import { Zap, Trash2, Wrench } from 'lucide-react';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#1A1A1A';
@@ -19,7 +19,7 @@ const EFFORT_C = { 'Low': GREEN, 'Faible': GREEN, 'Medium': ORANGE, 'Moyen': ORA
 
 const isQuickWin = (m) => (m.impact_label === 'High' || m.impact_label === 'Fort' || m.impact_score >= 60) && (m.effort === 'Low' || m.effort === 'Faible');
 
-export default function TaskCard({ task, meta, dragProps, dragHandle, innerRef, onRemove, isDragging }) {
+export default function TaskCard({ task, meta, dragProps, dragHandle, innerRef, onRemove, onFix, isDragging }) {
   const typeC = TYPE_COLORS[meta.type] || { bg: '#F0EDE8', c: INK3 };
   const quick = isQuickWin(meta);
   return (
@@ -42,6 +42,12 @@ export default function TaskCard({ task, meta, dragProps, dragHandle, innerRef, 
           {EFFORT_LABEL[meta.effort] || 'Moyen'}
         </span>
         <span style={{ flex: 1 }} />
+        {(task.status || 'todo') !== 'done' && (
+          <button onClick={(e) => { e.stopPropagation(); onFix?.(task); }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 11px', border: 'none', borderRadius: 7, background: VIOLET, color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer', fontFamily: F }}>
+            <Wrench size={11} /> Fix
+          </button>
+        )}
         <button onClick={() => onRemove(task)} title="Supprimer"
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: INK3, padding: 2 }}>
           <Trash2 size={13} />

@@ -1,0 +1,91 @@
+{
+  "name": "AgentSchedule",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "site_url": {
+      "type": "string",
+      "title": "Site URL"
+    },
+    "agent_key": {
+      "type": "string",
+      "title": "Agent key"
+    },
+    "agent_name": {
+      "type": "string",
+      "title": "Agent name"
+    },
+    "day_of_week": {
+      "type": "number",
+      "title": "Day of week (0=Sunday)",
+      "default": 1
+    },
+    "time": {
+      "type": "string",
+      "title": "Time (HH:MM)",
+      "default": "09:00"
+    },
+    "active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id",
+    "agent_key"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

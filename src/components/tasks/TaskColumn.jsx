@@ -5,7 +5,7 @@ const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', syst
 const INK = '#1A1A1A';
 const INK3 = '#9B9BA8';
 
-export default function TaskColumn({ columnId, title, hint, dotColor, tasks, parseMeta, onRemove }) {
+export default function TaskColumn({ columnId, title, hint, dotColor, tasks, parseMeta, onRemove, onFix }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -37,6 +37,7 @@ export default function TaskColumn({ columnId, title, hint, dotColor, tasks, par
                     dragHandle={prov.dragHandleProps}
                     isDragging={snap.isDragging}
                     onRemove={onRemove}
+                    onFix={onFix}
                   />
                 )}
               </Draggable>

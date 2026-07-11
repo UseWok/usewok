@@ -22,6 +22,7 @@ import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
 import AuthorityTasksCard from '@/components/authority/AuthorityTasksCard';
+import AgentCalendar from '@/components/dashboard/AgentCalendar';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 
 // ── Design System ──────────────────────────────
@@ -505,6 +506,8 @@ export default function Home() {
               remaining={Math.max(actionsLeft - 1, 0)}
               onFix={() => navigate('/audit')}
             />
+
+            <AgentCalendar userId={user?.id} siteUrl={activeProfile?.site_url} />
           </>
         )}
 

@@ -6,6 +6,7 @@ import { getActiveDomain } from '@/lib/active-domain';
 import { getCachedUser, peekCache, setCache } from '@/lib/data-cache';
 import { Zap, Sparkles, ArrowRight } from 'lucide-react';
 import TaskColumn from '@/components/tasks/TaskColumn';
+import FixFlowModal from '@/components/tasks/FixFlowModal';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#1A1A1A';
@@ -50,6 +51,22 @@ export default function TasksPage() {
   const _seed = peekCache(`tasks_${_active0?.url || 'all'}`);
   const [tasks, setTasks] = useState(_seed || []);
   const [loading, setLoading] = useState(!_seed);
+  const [fixTask, setFixTask] = useState(null);
+
+  // "Fix" clicked → task automatically moves to In Progress + guided flow opens
+  const openFix = (t) => {
+    if ((t.status || 'todo') === 'todo') {
+      setTasks(prev => prev.map(x => x.id === t.id ? { ...x, status: 'in_progress' } : x));
+      base44.entities.ActionTask.update(t.id, { status: 'in_progress' }).catch(() => {});
+    }
+    setFixTask({ ...t, status: 'in_progress' });
+  };
+
+  const completeFix = (t) => {
+    setTasks(prev => prev.map(x => x.id === t.id ? { ...x, status: 'done' } : x));
+    base44.entities.ActionTask.update(t.id, { status: 'done' }).catch(() => {});
+    setFixTask(null);
+  };
 
   const load = async () => {
     try {
@@ -131,6 +148,7 @@ export default function TasksPage() {
                     tasks={byStatus(col.id)}
                     parseMeta={parseMeta}
                     onRemove={remove}
+                    onFix={openFix}
                   />
                 ))}
               </div>
@@ -138,6 +156,10 @@ export default function TasksPage() {
           </>
         )}
       </div>
+
+      {fixTask && (
+        <FixFlowModal task={fixTask} meta={parseMeta(fixTask)} onClose={() => setFixTask(null)} onComplete={completeFix} />
+      )}
     </div>
   );
 }

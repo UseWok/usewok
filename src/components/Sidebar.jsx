@@ -544,7 +544,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
 
           {/* Main nav */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
-            <NavItem icon={Home} label="Home" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
+            <NavItem icon={Home} label="Dashboard" onClick={() => nav('/app')} active={isActive('/app')} expanded={expanded} />
             <NavItem icon={Sparkles} label="WOK AI" onClick={() => nav('/wok-ai')} active={isActive('/wok-ai')} expanded={expanded} />
           </div>
 
@@ -553,30 +553,30 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, overflowY: 'auto', flex: 1 }}>
               {[
                 {
-                  section: 'KNOW MY BRAND',
+                  section: 'MY BRAND',
                   items: [
-                    { id: 'brand', label: 'Brand Knowledge', icon: BookOpen, route: '/brand-knowledge' },
+                    { id: 'brand', label: 'My ID Card', icon: BookOpen, route: '/brand-knowledge' },
                   ],
                 },
                 {
                   section: 'MY STRATEGY',
                   items: [
-                    { id: 'geo',         label: 'AI Visibility Plan', icon: Sparkle, route: '/geo-strategy' },
-                    { id: 'competitors', label: 'Competitors',        icon: Users,   route: '/competitors' },
+                    { id: 'geo',         label: 'My AI Plan',     icon: Sparkle, route: '/geo-strategy' },
+                    { id: 'competitors', label: 'My Competitors', icon: Users,   route: '/competitors' },
                   ],
                 },
                 {
-                  section: 'MY DIAGNOSIS',
+                  section: 'DIAGNOSTICS',
                   items: [
-                    { id: 'siteaudit', label: 'Site Audit',           icon: FileSearch, route: '/site-audit' },
-                    { id: 'auth',      label: 'My Online Reputation', icon: Award,      route: '/ai-report' },
-                    { id: 'reco',      label: 'What AI Says About Me', icon: Target,     route: '/recommendations' },
+                    { id: 'siteaudit', label: 'My Site Health',      icon: FileSearch, route: '/site-audit' },
+                    { id: 'auth',      label: 'My AI Reputation',    icon: Award,      route: '/ai-report' },
+                    { id: 'reco',      label: 'What AIs are Saying', icon: Target,     route: '/recommendations' },
                   ],
                 },
                 {
                   section: 'MY ACTIONS',
                   items: [
-                    { id: 'tasks', label: 'Tasks', icon: CheckSquare, route: '/tasks' },
+                    { id: 'tasks', label: 'My Actions', icon: CheckSquare, route: '/tasks' },
                   ],
                 },
               ].map(group => (
