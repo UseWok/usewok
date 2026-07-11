@@ -5,6 +5,7 @@ import { X, Download, Check, Clock, Calendar, MessageCircle, Scan, Settings } fr
 import { writeAuditLog } from '@/lib/serverGuard';
 import { AVATAR_GRADIENTS } from '@/lib/user-color';
 import AISettingsModal from '@/components/settings/AISettingsModal';
+import DeleteAccountModal from '@/components/sidebar/DeleteAccountModal';
 import { getUserPlan, getPlansConfig } from '@/lib/plans-config';
 import { getWokFeatures } from '@/lib/wok-plans';
 
@@ -436,12 +437,6 @@ export default function SettingsPage() {
     toast.success('Invoice request sent');
   };
 
-  const deleteAccount = async () => {
-    if (!user) return;
-    await base44.entities.User.delete(user.id);
-    base44.auth.logout();
-  };
-
   if (!user) return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '40px 48px 80px', background: '#F5F2EC' }}>
       <div style={{ maxWidth: 620 }}>
@@ -545,14 +540,30 @@ export default function SettingsPage() {
             <div style={{ height: 28 }} />
             <SectionTitle>Danger zone</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              <SettingRow label="Delete account" description="Permanently deletes your account and all associated data. Irreversible." noBorder>
-                <button onClick={() => setShowDeleteModal(true)}
-                  style={{ padding: '7px 14px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  Delete account
-                </button>
-              </SettingRow>
+              {user?.deletion_scheduled_at ? (
+                <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '14px 16px' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#ef4444', margin: '0 0 4px' }}>
+                    Suppression programmée dans {Math.max(0, Math.ceil((new Date(user.deletion_scheduled_at) - new Date()) / (1000*60*60*24)))} jour(s)
+                  </p>
+                  <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)', margin: '0 0 10px' }}>
+                    Votre compte sera automatiquement supprimé. Votre abonnement sera résilié.
+                  </p>
+                  <button
+                    onClick={async () => { await base44.auth.updateMe({ deletion_scheduled_at: '' }); const u = await base44.auth.me(); if (u) loadUser(u); toast.success('Suppression annulée — votre compte est conservé'); }}
+                    style={{ padding: '6px 14px', background: '#fff', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    Annuler la suppression
+                  </button>
+                </div>
+              ) : (
+                <SettingRow label="Supprimer le compte" description="7 jours de réflexion. Vous pouvez annuler à tout moment." noBorder>
+                  <button onClick={() => setShowDeleteModal(true)}
+                    style={{ padding: '7px 14px', background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    Supprimer le compte
+                  </button>
+                </SettingRow>
+              )}
             </div>
           </div>
         )}
@@ -751,28 +762,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
-          onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-          <div style={{ width: '100%', maxWidth: 380, background: '#fff', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.05)', borderBottom: '1px solid rgba(239,68,68,0.12)' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: '#ef4444', margin: 0 }}>Delete account</p>
-              </div>
-              <div style={{ padding: 18 }}>
-              <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', margin: '0 0 12px', lineHeight: 1.5 }}>This action is irreversible. All your data will be permanently deleted.</p>
-              <div style={{ background: '#F9F9F8', borderRadius: 6, padding: '8px 11px', marginBottom: 14 }}>
-                <p style={{ fontSize: 12, color: '#666', margin: 0 }}>Account: <strong style={{ color: '#111' }}>{user?.email}</strong></p>
-              </div>
-              <button onClick={deleteAccount} style={{ width: '100%', padding: '9px 0', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: 8 }}>
-                Confirm deletion
-              </button>
-              <button onClick={() => setShowDeleteModal(false)} style={{ width: '100%', padding: '9px 0', background: 'transparent', color: '#666', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 7, fontSize: 13, cursor: 'pointer' }}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteAccountModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} user={user} />
     </div>
   );
 }

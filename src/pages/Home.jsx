@@ -2,26 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Zap, AlertCircle, Plus, Globe, SlidersHorizontal, RefreshCw, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Zap, AlertCircle, Plus, Globe, RefreshCw } from 'lucide-react';
 import { setActiveDomain, getActiveDomain, initActiveDomainFromUser, onActiveDomainChange } from '@/lib/active-domain';
 import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
-import ScanStatusIndicator from '@/components/home/ScanStatusIndicator';
 import HeroVerdict from '@/components/home/HeroVerdict';
 import TodayAction from '@/components/home/TodayAction';
 import DomainManagerModal from '@/components/home/DomainManagerModal';
 import { getWokFeatures } from '@/lib/wok-plans';
 import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
 
-import CustomizePanel, { DASHBOARD_WIDGETS } from '@/components/dashboard/CustomizePanel';
-import EvolutionCard from '@/components/dashboard/EvolutionCard';
 import TasksCard from '@/components/dashboard/TasksCard';
 import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
-import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
-import AuthorityTasksCard from '@/components/authority/AuthorityTasksCard';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 
 // ── Design System ──────────────────────────────
@@ -188,10 +182,6 @@ export default function Home() {
   // Dashboard overview state
   const [overview, setOverview] = useState(null);
   const [overviewPhase, setOverviewPhase] = useState('loading'); // loading | thinking | done | error
-  const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [widgetVis, setWidgetVis] = useState({});
-  const [showAllData, setShowAllData] = useState(false);
-
 
   const scanningRef = useRef({});
   const pendingScanUrlsRef = useRef([]);
@@ -278,15 +268,13 @@ export default function Home() {
     if (!active?.url || !user?.id) { setOverviewPhase('done'); return; }
     const cacheKey = `dash_${active.url}`;
     const seed = peekCache(cacheKey);
-    if (seed?.data && !forceRefresh) { setOverview(seed.data); setWidgetVis(seed.visibility || {}); setOverviewPhase('done'); }
+    if (seed?.data && !forceRefresh) { setOverview(seed.data); setOverviewPhase('done'); }
     try {
       const profs = await getCachedProfiles(user.id);
       const p = profs.find(pr => pr.site_url === active.url) || profs[0];
       if (!p?.site_url) { setOverviewPhase('done'); return; }
       const extra = await getProfileData(p);
-      let vis = {};
-      try { vis = p.dashboard_widgets ? JSON.parse(p.dashboard_widgets) : {}; } catch { vis = {}; }
-      setWidgetVis(vis);
+
 
       if (!forceRefresh && extra.overview_data && extra.overview_analyzed_at) {
         const age = Date.now() - new Date(extra.overview_analyzed_at).getTime();
@@ -322,16 +310,6 @@ export default function Home() {
     });
     return unsub;
   }, []);
-
-  const toggleWidget = (id) => {
-    setWidgetVis(prev => {
-      const next = { ...prev, [id]: prev[id] === false ? true : false };
-      const active = getActiveDomain();
-      const p = profiles.find(pr => pr.site_url === active?.url);
-      if (p?.id) base44.entities.BusinessProfile.update(p.id, { dashboard_widgets: JSON.stringify(next) }).catch(() => {});
-      return next;
-    });
-  };
 
   const planFeatures = user ? getWokFeatures(user) : getWokFeatures(null);
   const maxDomains = planFeatures?.max_sites === -1 ? 999999 : (planFeatures?.max_sites || 1);
@@ -444,31 +422,22 @@ export default function Home() {
   const lastScanDate = activeProfile?.last_scan
     ? new Date(activeProfile.last_scan).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
     : '';
-  const vis = (id) => widgetVis[id] !== false;
-  const allHidden = DASHBOARD_WIDGETS.every(w => widgetVis[w.id] === false);
-
   return (
     <div style={{ minHeight: '100vh', background: BG, fontFamily: F }}>
-      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '26px 32px 80px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '26px 24px 80px' }}>
 
         {/* ── Header ── */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 14 }}>
-          <div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 14 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: INK, margin: '0 0 4px', letterSpacing: '-0.02em' }}>
               Salut {getFirstName(user?.full_name)} 👋
             </h1>
             <p style={{ fontSize: 15, color: INK2, margin: 0 }}>Voici comment les IA voient {brand}{lastScanDate ? ` · Dernière analyse le ${lastScanDate}` : ''}.</p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setDomainModal('add')}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 11, border: 'none', background: CORAL, color: WHITE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <Plus size={14} strokeWidth={2.4} /> Ajouter un site
-            </button>
-            <button onClick={() => setCustomizeOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 11, border: `1px solid ${CORAL}`, background: '#FFE7D6', color: ORANGE_DEEP, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-              <SlidersHorizontal size={14} /> Personnaliser
-            </button>
-          </div>
+          <button onClick={() => setDomainModal('add')}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 11, border: 'none', background: CORAL, color: WHITE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
+            <Plus size={14} strokeWidth={2.4} /> Ajouter un site
+          </button>
         </div>
 
         {/* ── Scanning banner ── */}
@@ -482,109 +451,51 @@ export default function Home() {
           </div>
         )}
 
-        {/* ═══════════ DASHBOARD CARDS FIRST ═══════════ */}
+        {/* ═══════════ Thinking skeleton ═══════════ */}
         {overviewPhase === 'thinking' && !overview && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: '5%', marginBottom: 24 }}>
-              <div style={{ background: CARD_BG, borderRadius: 14, padding: 22 }}>
-                <div style={{ height: 14, borderRadius: 4, marginBottom: 16, background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                  <div>
-                    <div style={{ width: 80, height: 20, borderRadius: 4, marginBottom: 6, background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                    <div style={{ width: 160, height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.06)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                  </div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ background: CARD_BG, borderRadius: 18, padding: '26px 24px', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+                <div style={{ width: 80, height: 80, borderRadius: '50%', flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ height: 12, width: 100, borderRadius: 4, marginBottom: 10, background: 'rgba(255,255,255,0.06)' }} />
+                  <div style={{ height: 20, width: '70%', borderRadius: 4, marginBottom: 6, background: 'rgba(255,255,255,0.06)' }} />
+                  <div style={{ height: 14, width: '50%', borderRadius: 4, background: 'rgba(255,255,255,0.06)' }} />
                 </div>
               </div>
-              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 22 }}>
-                {[0, 1, 2].map(i => (
-                  <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                    <div style={{ width: 18, height: 18, borderRadius: 6, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ width: '90%', height: 12, borderRadius: 4, marginBottom: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                      <div style={{ width: '50%', height: 10, borderRadius: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
-            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 22 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                {[0, 1, 2].map(i => (
-                  <div key={i} style={{ background: BG, borderRadius: 10, padding: 14 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, marginBottom: 8, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                    <div style={{ width: '80%', height: 12, borderRadius: 4, marginBottom: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                    <div style={{ width: '50%', height: 10, borderRadius: 4, background: 'rgba(21,19,15,0.05)', backgroundSize: '800px 100%', animation: 'hm-sk 2s ease-in-out infinite' }} />
-                  </div>
-                ))}
-              </div>
+            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 18, padding: '26px 24px' }}>
+              <div style={{ height: 16, width: 120, borderRadius: 4, marginBottom: 16, background: 'rgba(21,19,15,0.05)' }} />
+              <div style={{ height: 22, width: '60%', borderRadius: 4, marginBottom: 8, background: 'rgba(21,19,15,0.05)' }} />
+              <div style={{ height: 14, width: '40%', borderRadius: 4, background: 'rgba(21,19,15,0.05)' }} />
             </div>
-            <style>{`@keyframes hm-sk{0%{background-position:-800px 0}100%{background-position:800px 0}}`}</style>
           </div>
         )}
 
-        {/* ═══════════ THE STORY: one question, one answer, one action ═══════════ */}
+        {/* ═══════════ THE STORY: score + one action ═══════════ */}
         {hasData && !isScanningActive && (
           <>
-            <HeroVerdict
-              score={lrs}
-              appearPct={appearPct}
-              leader={leader}
-              pillars={PILLARS}
-            />
-
-            <TodayAction
-              issues={issues}
-              remaining={Math.max(actionsLeft - 1, 0)}
-              onFix={() => navigate('/audit')}
-            />
-
+            <HeroVerdict score={lrs} appearPct={appearPct} leader={leader} pillars={PILLARS} />
+            <TodayAction issues={issues} remaining={Math.max(actionsLeft - 1, 0)} onFix={() => navigate('/audit')} />
           </>
         )}
 
-        {/* ═══════════ ALL DATA — collapsed by default, opt-in ═══════════ */}
-        {overview && !allHidden && (
-          <>
-            <button onClick={() => setShowAllData(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '14px 18px', marginTop: 4, marginBottom: showAllData ? 20 : 0, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, cursor: 'pointer', fontFamily: F }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(21,19,15,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LayoutGrid size={15} color={INK2} />
-              </div>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <div style={{ fontSize: 14.5, fontWeight: 700, color: INK }}>Voir toutes les données</div>
-                <div style={{ fontSize: 12.5, color: INK2 }}>Concurrents, mentions, pages populaires et progression détaillée</div>
-              </div>
-              <ChevronDown size={18} color={INK2} style={{ transform: showAllData ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
-            </button>
-
-            {showAllData && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 28 }}>
-                {(vis('evolution') || vis('tasks')) && (
-                  <div style={{ display: 'grid', gridTemplateColumns: vis('evolution') && vis('tasks') ? '1.55fr 1fr' : '1fr', gap: '5%', alignItems: 'stretch' }}>
-                    {vis('evolution') && <EvolutionCard score={lrs} breakdown={overview.score_breakdown} evolution={overview.evolution} />}
-                    {vis('tasks') && <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />}
-                  </div>
-                )}
-
-                <AuthorityTasksCard siteUrl={activeProfile?.site_url} score={activeProfile?.score_ai_visibility || 0} onScoreUpdate={() => {}} />
-
-                {(vis('competitors') || vis('llms') || vis('pages')) && (
-                  <div style={{ display: 'grid', gridTemplateColumns: [vis('competitors'), vis('llms'), vis('pages')].filter(Boolean).map(() => '1fr').join(' '), gap: '5%', alignItems: 'stretch' }}>
-                    {vis('competitors') && <CompetitorsCard competitors={overview.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />}
-                    {vis('llms') && <LLMCitingCard llms={overview.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />}
-                    {vis('pages') && <CitedPagesCard pages={overview.cited_pages} />}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
+        {/* ═══════════ ESSENTIAL DATA ═══════════ */}
+        {hasData && !isScanningActive && overview && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+              <CompetitorsCard competitors={overview.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />
+              <LLMCitingCard llms={overview.llms_citing} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />
+            </div>
+            <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />
+          </div>
         )}
 
         {/* ── No data for this domain ── */}
         {!hasData && !isScanningActive && (
-          <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <AlertCircle size={18} color="rgba(255,255,255,0.4)" strokeWidth={1.7} style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
               <p style={{ fontSize: 14.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Pas encore d'analyse pour ce site</p>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Lance une analyse — 8 moteurs IA d'un coup</p>
             </div>
@@ -604,15 +515,11 @@ export default function Home() {
         )}
       </div>
 
-      <CustomizePanel open={customizeOpen} onClose={() => setCustomizeOpen(false)} visibility={widgetVis} onToggle={toggleWidget} />
-
       <DomainManagerModal open={!!domainModal} tab={domainModal || 'add'} onClose={() => setDomainModal(null)} user={user} maxDomains={maxDomains} scanningUrls={scanningUrls} />
 
       {onboardingData && (
         <ScanResultsOnboarding data={onboardingData} onClose={() => { setOnboardingData(null); navigate('/ai-report'); }} />
       )}
-
-
 
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
     </div>
