@@ -180,6 +180,7 @@ export default function Home() {
   // Dashboard overview state
   const [overview, setOverview] = useState(null);
   const [overviewPhase, setOverviewPhase] = useState('loading'); // loading | thinking | done | error
+  const [scanError, setScanError] = useState(null); // { url, message } when a scan fails
 
   const scanningRef = useRef({});
   const pendingScanUrlsRef = useRef([]);
@@ -336,10 +337,10 @@ export default function Home() {
       const existingP = existingProfiles.find(p => p.site_url === cleanUrl);
       if (existingP) base44.entities.BusinessProfile.update(existingP.id, { scan_in_progress: true }).catch(() => {});
       else base44.entities.BusinessProfile.create({ site_url: cleanUrl, identity_name: getDomain(cleanUrl), score_overall: 0, scan_in_progress: true, created_by_id: u.id }).catch(() => {});
-      // Timeout: if the scan hangs (e.g. usewok.com), abort after 90s
+      // Timeout: if the scan hangs (e.g. usewok.com behind Cloudflare), abort after 60s
       const result = await Promise.race([
         runScan(cleanUrl, u.id, getWokFeatures(u)),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Scan timeout')), 90000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Scan timeout')), 60000)),
       ]);
       const updatedProfiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const updatedP = updatedProfiles.find(p => p.site_url === cleanUrl);
@@ -350,6 +351,7 @@ export default function Home() {
       setOnboardingData(result);
     } catch (err) {
       console.error('Scan failed:', err);
+      setScanError({ url: cleanUrl, message: err?.message || 'Scan failed' });
       // CRITICAL: reset scan_in_progress so the page doesn't get stuck in an infinite retry loop on reload
       try {
         const u = await base44.auth.me();
@@ -359,6 +361,15 @@ export default function Home() {
           if (p) base44.entities.BusinessProfile.update(p.id, { scan_in_progress: false }).catch(() => {});
           invalidateProfiles(u.id);
           await loadAll();
+          // If this was a NEW site (no score), switch back to a profile that has data
+          // so the user doesn't stare at an empty "no analysis" card for the failed site
+          const refreshed = await getCachedProfiles(u.id);
+          const withData = refreshed.filter(p => (p.score_overall || 0) > 0);
+          if (withData.length > 0 && !withData.find(p => p.site_url === cleanUrl)) {
+            const fallback = withData[0];
+            setActiveUrl(fallback.site_url);
+            setActiveDomain({ url: fallback.site_url, name: fallback.identity_name || getDomain(fallback.site_url) });
+          }
         }
       } catch {}
     }
@@ -476,8 +487,23 @@ export default function Home() {
           </div>
         )}
 
+        {/* ── Scan error (e.g. Cloudflare block, timeout) ── */}
+        {scanError?.url === activeProfile?.site_url && !isScanningActive && (
+          <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+            <AlertCircle size={18} color="#F0533A" strokeWidth={1.7} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <p style={{ fontSize: 14.5, fontWeight: 600, color: WHITE, margin: '0 0 2px' }}>Analyse impossible pour {getDomain(scanError.url)}</p>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Le site bloque le crawl (Cloudflare) ou met trop de temps à répondre. Réessaie dans un instant.</p>
+            </div>
+            <button onClick={() => { setScanError(null); startScan(activeProfile.site_url); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: CORAL, borderRadius: 8, fontSize: 13, fontWeight: 700, color: WHITE, border: 'none', cursor: 'pointer', fontFamily: F, flexShrink: 0 }}>
+              <Zap size={13} strokeWidth={2} /> Réessayer
+            </button>
+          </div>
+        )}
+
         {/* ── No data for this domain ── */}
-        {!hasData && !isScanningActive && (
+        {!hasData && !isScanningActive && !scanError && (
           <div style={{ background: CARD_BG, borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <AlertCircle size={18} color="rgba(255,255,255,0.4)" strokeWidth={1.7} style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 200 }}>

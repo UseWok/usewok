@@ -54,16 +54,12 @@ function sleep(ms) {
 }
 
 // ── Real HTML crawler with retry + UA rotation ────────────────────────────────
-async function crawlPage(url, timeoutMs = 10000) {
+async function crawlPage(url, timeoutMs = 6000) {
   const strategies = [
     // 1. Googlebot — most sites whitelist this
     { ua: USER_AGENTS[0], referer: '' },
     // 2. Chrome user — looks human
     { ua: USER_AGENTS[1], referer: 'https://www.google.com/' },
-    // 3. SemrushBot — SEO-savvy sites allow it
-    { ua: USER_AGENTS[5], referer: '' },
-    // 4. Firefox user — different fingerprint
-    { ua: USER_AGENTS[3], referer: 'https://www.google.fr/' },
   ];
 
   for (let i = 0; i < strategies.length; i++) {
@@ -89,7 +85,13 @@ async function crawlPage(url, timeoutMs = 10000) {
 
       if (!res.ok) return null;
 
-      const html = await res.text();
+      // CRITICAL: truncate HTML to 200KB to prevent memory/CPU exhaustion on heavy sites
+      // (usewok.com has massive inline JS/CSS for animations — 2MB+ of HTML)
+      let html = await res.text();
+      if (html.length > 200000) {
+        console.log(`[crawlPage] HTML truncated from ${html.length} to 200000 chars for ${url}`);
+        html = html.slice(0, 200000);
+      }
 
       // Detect Cloudflare / bot challenge pages
       if (html.includes('cf-browser-verification') || html.includes('__cf_chl') || html.includes('Enable JavaScript') && html.length < 5000) {
@@ -277,11 +279,12 @@ Deno.serve(async (req) => {
     const homeHtml = await crawlPage(cleanUrl);
     const homeSignals = extractSignals(homeHtml || '', cleanUrl);
 
-    // Discover & crawl key sub-pages in parallel
-    const keyUrls = discoverKeyUrls(homeHtml || '', cleanUrl);
+    // Discover & crawl key sub-pages — only if homepage crawl succeeded
+    // If homepage failed (Cloudflare block etc.), skip sub-pages to save time
+    const keyUrls = homeHtml ? discoverKeyUrls(homeHtml, cleanUrl) : [cleanUrl];
     const [sitemapData, ...subPageHtmls] = await Promise.all([
       checkSitemapAndRobots(origin),
-      ...keyUrls.slice(1, 4).map(u => crawlPage(u, 5000)),
+      ...keyUrls.slice(1, 4).map(u => crawlPage(u, 3000)),
     ]);
 
     // Extract signals from sub-pages
