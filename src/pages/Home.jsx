@@ -22,7 +22,6 @@ import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import CitedPagesCard from '@/components/dashboard/CitedPagesCard';
 import AuthorityTasksCard from '@/components/authority/AuthorityTasksCard';
-import ScanCalendarInline from '@/components/home/ScanCalendarInline';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 
 // ── Design System ──────────────────────────────
@@ -540,10 +539,6 @@ export default function Home() {
               onFix={() => navigate('/audit')}
             />
 
-            {/* ── Calendrier des analyses (inline) ── */}
-            <div style={{ marginTop: 20 }}>
-              <ScanCalendarInline userId={user?.id} siteUrl={activeProfile?.site_url} user={user} scanInProgress={isScanningActive} />
-            </div>
           </>
         )}
 

@@ -2,13 +2,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen, Target, FileSearch, Users, CheckSquare, Award, Sparkle, PanelLeft } from 'lucide-react';
+import { Plus, X, Check, ChevronDown, LogOut, Settings, HelpCircle, Tag, CreditCard, FileCode2, Layers, Clock, Star, Home, FolderOpen, ChevronRight, Gift, BarChart2, TrendingUp, Lightbulb, ClipboardCheck, Sparkles, MessageSquare, Trash2, Zap, Trophy, LayoutDashboard, BookOpen, Target, FileSearch, Users, CheckSquare, Award, Sparkle, PanelLeft, CalendarDays } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getPlansConfig } from '@/lib/plans-config';
 import { getLocalDiscussions, loadDiscussionsFromCloud, saveLocalDiscussions } from '@/lib/chat-storage';
 import { toast } from 'sonner';
 import { useCredits } from '@/hooks/useCredits';
 import { AVATAR_GRADIENTS } from '@/lib/user-color';
+import ScanCalendarModal from '@/components/home/ScanCalendarModal';
+import { getActiveDomain } from '@/lib/active-domain';
 
 export const COLLAPSED_W = 52;
 export const EXPANDED_W = 232;
@@ -443,6 +445,8 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
   const [starredOpen, setStarredOpen] = useState(false);
   const [settingsMode, setSettingsMode] = useState(false);
   const [wokAIMode, setWokAIMode] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calDomain, setCalDomain] = useState(() => getActiveDomain());
 
   // Load recents
 
@@ -568,7 +572,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                 {
                   section: 'DIAGNOSTICS',
                   items: [
-                    { id: 'siteaudit', label: 'My Site Health',      icon: FileSearch, route: '/site-audit' },
+                    { id: 'siteaudit', label: 'Calendar',      icon: CalendarDays, route: '/site-audit', isCalendar: true },
                     { id: 'auth',      label: 'My AI Reputation',    icon: Award,      route: '/ai-report' },
                     { id: 'reco',      label: 'What AIs are Saying', icon: Target,     route: '/recommendations' },
                   ],
@@ -587,7 +591,7 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
                     const isToolActive = location.pathname === tool.route;
                     return (
                       <button key={tool.id}
-                        onClick={() => nav(tool.route)}
+                        onClick={() => tool.isCalendar ? (setCalDomain(getActiveDomain()), setCalendarOpen(true)) : nav(tool.route)}
                         style={{
                           display: 'flex', alignItems: 'center', width: '100%', height: 36,
                           padding: '0 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
@@ -622,6 +626,14 @@ export default function Sidebar({ expanded, setExpanded, user, userPlan }) {
       </motion.aside>
 
       <CodeModal open={showCodeModal} onClose={() => setShowCodeModal(false)} user={user} />
+
+      <ScanCalendarModal
+        open={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        userId={user?.id}
+        siteUrl={calDomain?.url || ''}
+        user={user}
+      />
     </>
   );
 }
