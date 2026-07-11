@@ -373,14 +373,11 @@ Deno.serve(async (req) => {
     console.log(`[analyzeWebsite] Technical audit built. Schemas found: ${allSchemaTypesFound.join(', ') || 'none'}`);
 
     // ── Step 2: LLM analysis on REAL crawled data ─────────────────────────────
-    // COST-OPTIMIZED: 1 single gemini_3_1_pro call (full scan, merged SEO+LRS+plan)
-    // + gpt_5_mini probe (REAL GPT model = authentic ChatGPT visibility test)
-    // + gemini_3_flash for other engine estimates. Was: 2× pro + 1× flash.
-    const [seoResult, aiEnginesResult, chatgptProbe] = await Promise.all([
-
-      // FULL SCAN — single gemini_3_1_pro call: SEO scores + issues + LRS + action plan
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are the WORLD'S BEST SEO and AI visibility (AEO) auditor. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
+    // COST-OPTIMIZED: 1 single gemini_3_flash call with internet — merges SEO +
+    // LRS + action plan + all AI engine scores + ChatGPT visibility.
+    // Was: 3 parallel calls (3× internet-enabled). Now: 1 call (1× internet).
+    const combinedResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: `You are the WORLD'S BEST SEO and AI visibility (AEO) auditor. You have received a REAL technical audit of the site ${cleanUrl} — all data below comes from an actual HTML crawl of the site, not estimates.
 
 REAL CRAWLED DATA:
 ${JSON.stringify(technicalAudit, null, 2)}
@@ -417,170 +414,93 @@ Based on this REAL data, calculate:
 - overall_score: 0-100 (weighted average)
 
 Also provide (from your knowledge + web):
-- business_name: string
-- business_type: string (actual industry of the business)
-- city: string
-- country: string (2-letter ISO code)
-- organic_traffic: number (monthly estimate)
-- organic_keywords: number
-- backlinks: number
-- authority_score: number 0-100
-- shock_insight: string (a short, punchy English sentence about what this site is concretely losing)
+- business_name, business_type, city, country (2-letter ISO)
+- organic_traffic, organic_keywords, backlinks, authority_score (0-100)
+- shock_insight: short, punchy English sentence about what this site is losing
 
-THEN generate ultra-specific ISSUES based ONLY on what the crawl revealed.
-Each issue must:
-- cite the exact page concerned if possible (e.g.: "on your homepage", "on /contact", "on your /blog page")
-- be written in simple English for a non-technical person
-- have an urgency: "high" | "medium" | "low"
-- have an impact: string (what it concretely costs you)
+THEN generate ultra-specific ISSUES based ONLY on what the crawl revealed (max 5, sorted by urgency).
+ALSO calculate the LLM Resonance Score (LRS) from the same real data.
+AND generate an ACTION PLAN (injection_plan) with 3-5 CONCRETE actions.
 
-Examples of GOOD issues based on real data:
-- If hasOrganization=false → "Your homepage contains no structured information about your business — ChatGPT and Gemini don't know who you are when a customer asks them about your industry."
-- If aboutPageFound=false → "No 'About' page detected — AI engines cannot identify who runs this business or build the trust needed to recommend you."
-- If metaDescLength=0 → "Your homepage has no description — Google and AI engines see a page with no context, reducing your chances of appearing in response to a question."
-- If hasFaqSchema=false and questionMarksInText>0 → "Your site contains questions but no structured FAQ markup — Perplexity and Google show your competitors in featured snippets instead of you."
-
-Only generate issues based on what the crawl ACTUALLY found or didn't find. Maximum 5 issues, sorted by decreasing urgency.
-
-ALSO calculate the LLM Resonance Score (LRS) from the same real data:
-- lrs_score, lrs_citation_score, lrs_sentiment_score, lrs_accuracy_score (0-100 each)
-- lrs_trend: "rising" | "stable" | "declining"
-- lrs_vs_industry: number (delta vs industry average)
-
-AND generate AN ACTION PLAN (injection_plan) with 3 to 5 CONCRETE and SPECIFIC actions.
-Each action must:
-- Name the EXACT page to modify (e.g.: "/", "/about", "/blog/my-article")
-- Name the EXACT element to add/modify (e.g.: "JSON-LD Organization block", "<meta name='description'> tag", "FAQ section with 6 questions in FAQPage schema")
-- Explain in 1 sentence WHY it will change AI recommendations (gap)
-- Estimate real effort (low = < 1h, medium = 2-4h, high = 1 day+)
-
-EXAMPLES OF CONCRETE ACTIONS:
-- If hasOrganization=false: "Add a JSON-LD Organization block on the homepage (/) with name, url, description, sameAs (social media)"
-- If aboutPageFound=false: "Create an /about page with the founder's name and photo + Person schema"
-- If hasFaqSchema=false: "Turn existing questions into FAQPage JSON-LD block on /faq — Perplexity directly cites structured FAQs"
-- If metaDescLength < 50: "Write a 155-character meta description on / including your activity, city, and main benefit"
-- If canonicalMatchesUrl=false: "Fix the canonical tag on / that points to ${homeSignals.canonical} instead of ${cleanUrl}"
+ALSO estimate REALISTIC visibility scores for each AI engine (0-100). Be brutally honest:
+- gemini_score, claude_score, perplexity_score, copilot_score, mistral_score, llama_score, grok_score
+- chatgpt_score (0-100), chatgpt_known (boolean), what_it_does (string)
+- ai_mentions_count: how many times this brand is mentioned in AI-relevant contexts
+- NEVER give 60+ to a site you don't recognize. Differentiate between engines.
 
 All content in English. Return valid JSON only.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            ai_visibility_score: { type: 'number' },
-            message_clarity_score: { type: 'number' },
-            commercial_presence_score: { type: 'number' },
-            overall_score: { type: 'number' },
-            business_name: { type: 'string' },
-            business_type: { type: 'string' },
-            city: { type: 'string' },
-            country: { type: 'string' },
-            organic_traffic: { type: 'number' },
-            organic_keywords: { type: 'number' },
-            backlinks: { type: 'number' },
-            authority_score: { type: 'number' },
-            shock_insight: { type: 'string' },
-            issues: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  problem: { type: 'string' },
-                  impact: { type: 'string' },
-                  urgency: { type: 'string' },
-                  page: { type: 'string' },
-                }
+      add_context_from_internet: true,
+      model: 'gemini_3_flash',
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          ai_visibility_score: { type: 'number' },
+          message_clarity_score: { type: 'number' },
+          commercial_presence_score: { type: 'number' },
+          overall_score: { type: 'number' },
+          business_name: { type: 'string' },
+          business_type: { type: 'string' },
+          city: { type: 'string' },
+          country: { type: 'string' },
+          organic_traffic: { type: 'number' },
+          organic_keywords: { type: 'number' },
+          backlinks: { type: 'number' },
+          authority_score: { type: 'number' },
+          shock_insight: { type: 'string' },
+          issues: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                problem: { type: 'string' },
+                impact: { type: 'string' },
+                urgency: { type: 'string' },
+                page: { type: 'string' },
               }
-            },
-            lrs_score: { type: 'number' },
-            lrs_citation_score: { type: 'number' },
-            lrs_sentiment_score: { type: 'number' },
-            lrs_accuracy_score: { type: 'number' },
-            lrs_trend: { type: 'string' },
-            lrs_vs_industry: { type: 'number' },
-            injection_plan: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  engine: { type: 'string' },
-                  action_title: { type: 'string' },
-                  action_detail: { type: 'string' },
-                  page_url: { type: 'string' },
-                  element: { type: 'string' },
-                  gap: { type: 'string' },
-                  platform: { type: 'string' },
-                  impact: { type: 'string' },
-                  effort: { type: 'string' },
-                }
+            }
+          },
+          lrs_score: { type: 'number' },
+          lrs_citation_score: { type: 'number' },
+          lrs_sentiment_score: { type: 'number' },
+          lrs_accuracy_score: { type: 'number' },
+          lrs_trend: { type: 'string' },
+          lrs_vs_industry: { type: 'number' },
+          injection_plan: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                engine: { type: 'string' },
+                action_title: { type: 'string' },
+                action_detail: { type: 'string' },
+                page_url: { type: 'string' },
+                element: { type: 'string' },
+                gap: { type: 'string' },
+                platform: { type: 'string' },
+                impact: { type: 'string' },
+                effort: { type: 'string' },
               }
-            },
-          }
+            }
+          },
+          gemini_score: { type: 'number' },
+          claude_score: { type: 'number' },
+          mistral_score: { type: 'number' },
+          llama_score: { type: 'number' },
+          perplexity_score: { type: 'number' },
+          grok_score: { type: 'number' },
+          copilot_score: { type: 'number' },
+          ai_mentions_count: { type: 'number' },
+          chatgpt_score: { type: 'number' },
+          chatgpt_known: { type: 'boolean' },
+          what_it_does: { type: 'string' },
         }
-      }),
-
-      // Other AI engines — ultra-realistic Pro estimate with web context
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an AI visibility auditor. Estimate REALISTIC visibility scores for ${cleanUrl} on each AI engine (0-100).
-
-## RIGOROUS SCORING RULES — BE BRUTALLY HONEST
-
-- **gemini_score**: Would Gemini actually mention this site? A local plumber nobody talks about online = 5-15. A national brand = 50-80. A famous reference = 85-95.
-- **claude_score**: Same logic. Claude has different training data — slightly different from Gemini.
-- **perplexity_score**: Perplexity cites SOURCES. Does this site get cited? A blog with good content but no authority = 20-40. A recognized source = 60-90.
-- **copilot_score**: Microsoft's engine. Leans towards Bing-indexed, well-structured sites.
-- **mistral_score**: French AI — better knowledge of French/European SMBs.
-- **llama_score**: Open source, broad but shallow knowledge.
-- **grok_score**: X/Twitter data. Strong for brands active on social media.
-- **ai_mentions_count**: How many times across the web is this brand actually mentioned in AI-relevant contexts? A local business = 0-5. A national brand = 50-500.
-
-NEVER give 60+ to a site you don't actually recognize. Differentiate scores between engines — they have different knowledge. If you don't know the site, score it 5-25, not 50+.
-
-Return only valid JSON.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            gemini_score: { type: 'number' },
-            claude_score: { type: 'number' },
-            mistral_score: { type: 'number' },
-            llama_score: { type: 'number' },
-            perplexity_score: { type: 'number' },
-            grok_score: { type: 'number' },
-            copilot_score: { type: 'number' },
-            ai_mentions_count: { type: 'number' },
-          }
-        }
-      }),
-
-      // ChatGPT visibility — estimated via Gemini 3 Flash (single-model strategy)
-      base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an AI visibility analyst. Estimate the real-world brand visibility of this site inside ChatGPT (GPT models).
-      Site: ${cleanUrl}
-      Based on YOUR knowledge and web context:
-      1. Do you actually know this brand/site? What does it do?
-      2. If a ChatGPT user asked to recommend businesses in its category, how likely would ChatGPT cite it?
-      Score 0-100: 0-15 = totally unknown, 16-35 = vaguely seen, 36-60 = known but rarely cited, 61-85 = known and citable, 86-100 = a reference cited spontaneously.
-      Return only valid JSON.`,
-        model: 'gemini_3_flash',
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            chatgpt_score: { type: 'number' },
-            known: { type: 'boolean' },
-            what_it_does: { type: 'string' },
-          }
-        }
-      }).catch(() => ({ chatgpt_score: 0 })),
-    ]);
+      }
+    });
 
     const result = {
-      ...seoResult,
-      ...aiEnginesResult,
-      chatgpt_score: Math.round(chatgptProbe?.chatgpt_score || 0),
-      chatgpt_known: chatgptProbe?.known || false,
+      ...combinedResult,
+      chatgpt_score: Math.round(combinedResult?.chatgpt_score || 0),
+      chatgpt_known: combinedResult?.chatgpt_known || false,
       // Technical signals from real crawl (used by UI)
       has_schema_markup: allSchemaTypesFound.length > 0,
       has_ssl: homeSignals.isSSL,

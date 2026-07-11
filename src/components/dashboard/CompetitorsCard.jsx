@@ -18,25 +18,38 @@ function initials(name) {
   return (name || '??').slice(0, 2).toUpperCase();
 }
 
+// Try Clearbit (high-quality logos), fallback to Google favicon (very reliable)
+function logoUrl(c) {
+  const raw = c.domain || c.url || c.website || '';
+  if (!raw) return null;
+  const host = raw.replace(/https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+  if (!host || !host.includes('.')) return null;
+  return `https://logo.clearbit.com/${host}?size=80`;
+}
 function faviconUrl(c) {
   const raw = c.domain || c.url || c.website || '';
   if (!raw) return null;
   const host = raw.replace(/https?:\/\//, '').replace(/^www\./, '').split('/')[0];
   if (!host || !host.includes('.')) return null;
-  return `https://logo.clearbit.com/${host}?size=128`;
+  return `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
 }
 
-function CompetitorLogo({ c, you, rank }) {
-  const url = faviconUrl(c);
-  const bg = you ? ORANGE : '#fff';
-  const ringColor = you ? ORANGE : RANK_COLORS[rank % RANK_COLORS.length];
+// Flat logo — no circle, no border
+function CompetitorLogo({ c, rank }) {
+  const clearbit = logoUrl(c);
+  const google = faviconUrl(c);
+  const accent = RANK_COLORS[rank % RANK_COLORS.length];
   return (
-    <div style={{ width: 34, height: 34, borderRadius: '50%', background: bg, border: `2px solid ${ringColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
-      {url ? (
-        <img src={url} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-          onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }} />
-      ) : null}
-      <span style={{ display: url ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 11, fontWeight: 700, color: you ? '#fff' : '#4A453B' }}>{initials(c.name)}</span>
+    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
+      {clearbit && (
+        <img src={clearbit} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 2 }}
+          onError={e => { e.currentTarget.style.display = 'none'; const sib = e.currentTarget.nextSibling; if (sib) sib.style.display = 'flex'; }} />
+      )}
+      {google && (
+        <img src={google} alt={c.name} style={{ display: clearbit ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'contain', padding: 4 }}
+          onError={e => { e.currentTarget.style.display = 'none'; const sib = e.currentTarget.nextSibling; if (sib) sib.style.display = 'flex'; }} />
+      )}
+      <span style={{ display: (clearbit || google) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 11, fontWeight: 700, color: accent, background: '#F5F1E8', borderRadius: 8 }}>{initials(c.name)}</span>
     </div>
   );
 }
@@ -76,23 +89,23 @@ export default function CompetitorsCard({ competitors, previousCompetitors = [],
           const prev = prevMap[c.name?.toLowerCase() || c.domain];
           return (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: you ? '12px 14px' : '11px 4px',
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: you ? '12px 14px' : '10px 4px',
               borderRadius: you ? 14 : 0,
               background: you ? ORANGE_PALE : 'transparent',
               borderBottom: i === rows.length - 1 ? 'none' : '1px solid rgba(21,19,15,0.06)',
             }}>
-              <span style={{ width: 18, fontSize: 12, fontWeight: 800, color: you ? ORANGE : RANK_COLORS[i % RANK_COLORS.length], flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
-              <CompetitorLogo c={c} you={you} rank={i} />
+              <span style={{ width: 16, fontSize: 11, fontWeight: 800, color: you ? ORANGE : RANK_COLORS[i % RANK_COLORS.length], flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
+              <CompetitorLogo c={c} rank={i} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <b style={{ display: 'block', fontSize: 13.5, fontWeight: 700, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
-                {you && <span style={{ fontSize: 11, color: ORANGE, fontWeight: 600 }}>toi</span>}
+                <b style={{ display: 'block', fontSize: 13, fontWeight: 700, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
+                {you && <span style={{ fontSize: 10.5, color: ORANGE, fontWeight: 600 }}>toi</span>}
               </div>
-              <div style={{ width: 60, height: 4, borderRadius: 100, background: CREAM2, overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 56, height: 4, borderRadius: 100, background: CREAM2, overflow: 'hidden', flexShrink: 0 }}>
                 <div style={{ height: '100%', width: `${(pct / max) * 100}%`, background: you ? ORANGE : RANK_COLORS[i % RANK_COLORS.length], borderRadius: 100, transition: 'width 0.6s ease' }} />
               </div>
-              <span style={{ fontSize: 14, fontWeight: 800, color: INK, flexShrink: 0, width: 36, textAlign: 'right' }}>{pct}%</span>
-              <span style={{ width: 40, flexShrink: 0, textAlign: 'right' }}>
+              <span style={{ fontSize: 13.5, fontWeight: 800, color: INK, flexShrink: 0, width: 34, textAlign: 'right' }}>{pct}%</span>
+              <span style={{ width: 38, flexShrink: 0, textAlign: 'right' }}>
                 <TrendBadge current={pct} previous={prev} />
               </span>
             </div>

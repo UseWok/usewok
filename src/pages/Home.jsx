@@ -465,7 +465,7 @@ export default function Home() {
         {/* ═══════════ THE STORY: score + one action ═══════════ */}
         {/* ═══════════ THE STORY: score ═══════════ */}
         {hasData && !isScanningActive && overview && (
-          <HeroVerdict score={lrs} appearPct={appearPct} leader={leader} pillars={PILLARS} />
+          <HeroVerdict score={lrs} appearPct={appearPct} leader={leader} pillars={PILLARS} overview={overview} />
         )}
 
         {/* ═══════════ ESSENTIAL DATA ═══════════ */}

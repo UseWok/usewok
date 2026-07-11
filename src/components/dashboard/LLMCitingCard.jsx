@@ -20,8 +20,8 @@ const AI_LOGO_URLS = {
   llama: 'https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/5189c1dc8_image.png',
 };
 
-// Colored pastille per engine — like image 1
-const ENGINE_DOTS = {
+// Brand color per engine — used for the progress bar
+const ENGINE_COLORS = {
   chatgpt: '#10A37F',
   gemini: '#4285F4',
   claude: '#D97757',
@@ -33,20 +33,22 @@ const ENGINE_DOTS = {
 };
 
 function TrendBadge({ current, previous }) {
-  if (previous === undefined || previous === null) return null;
+  if (previous === undefined || previous === null) return (
+    <span style={{ width: 44, flexShrink: 0 }} />
+  );
   const delta = Math.round(current - previous);
   if (delta === 0) return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: CREAM2 }}>
-      <Minus size={11} color={INK3} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: INK3, width: 44 }}>
+      <Minus size={11} />
     </span>
   );
   if (delta > 0) return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: GREEN }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: GREEN, width: 44 }}>
       <TrendingUp size={12} /> +{delta}
     </span>
   );
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: RED }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: RED, width: 44 }}>
       <TrendingDown size={12} /> {delta}
     </span>
   );
@@ -65,22 +67,19 @@ export default function LLMCitingCard({ llms, previousLlms = [], onDetail, onWan
       {rows.map((l, i) => {
         const pct = Math.min(100, Math.max(0, l.pct ?? 0));
         const prev = prevMap[l.engine];
-        const dotColor = ENGINE_DOTS[l.engine] || ORANGE;
+        const color = ENGINE_COLORS[l.engine] || ORANGE;
         return (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i === rows.length - 1 ? 'none' : '1px solid rgba(21,19,15,0.05)' }}>
-            {/* Colored pastille */}
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0, boxShadow: `0 0 0 3px ${dotColor}1A` }} />
+            {/* Logo only — no circle, no dot */}
             <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <img src={AI_LOGO_URLS[l.engine]} width={18} height={18} alt={l.label} style={{ objectFit: 'contain' }} />
+              <img src={AI_LOGO_URLS[l.engine]} width={20} height={20} alt={l.label} style={{ objectFit: 'contain' }} />
             </div>
             <span style={{ width: 64, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
             <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: dotColor, borderRadius: 100, transition: 'width 0.6s ease' }} />
+              <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 100, transition: 'width 0.6s ease' }} />
             </div>
-            <span style={{ width: 36, fontSize: 14, fontWeight: 800, color: INK, textAlign: 'right', flexShrink: 0 }}>{pct}%</span>
-            <span style={{ width: 44, flexShrink: 0, textAlign: 'right' }}>
-              <TrendBadge current={pct} previous={prev} />
-            </span>
+            <span style={{ width: 34, fontSize: 14, fontWeight: 800, color: INK, textAlign: 'right', flexShrink: 0 }}>{pct}%</span>
+            <TrendBadge current={pct} previous={prev} />
           </div>
         );
       })}
