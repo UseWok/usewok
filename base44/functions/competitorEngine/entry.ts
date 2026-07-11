@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action;
     const siteUrl = body.site_url || '';
+    const maxCompetitors = body.max_competitors || 3;
     if (!siteUrl) return Response.json({ error: 'site_url required' }, { status: 400 });
 
     // Brand context
@@ -138,8 +139,8 @@ Deno.serve(async (req) => {
       if (existing.some(c => !c.is_you && c.domain === domain)) {
         return Response.json({ error: 'This competitor is already tracked.' }, { status: 409 });
       }
-      if (existing.filter(c => !c.is_you).length >= 3) {
-        return Response.json({ error: 'Maximum 3 competitors tracked. Remove one to add another.' }, { status: 409 });
+      if (existing.filter(c => !c.is_you).length >= maxCompetitors) {
+        return Response.json({ error: `Maximum ${maxCompetitors} competitors tracked. Remove one to add another.` }, { status: 409 });
       }
 
       const competitor = await svc.entities.Competitor.create({
@@ -162,9 +163,9 @@ Deno.serve(async (req) => {
 
       // ── Auto-discover competitors so every scan has 3 (min) real rivals to compare ──
       // If the user tracks fewer than 3, find the missing ones automatically from AI recommendations.
-      if (competitors.length < 3) {
+      if (competitors.length < maxCompetitors) {
         try {
-          const needed = 3 - competitors.length;
+          const needed = maxCompetitors - competitors.length;
           const already = competitors.map(c => c.domain).concat(youDomain);
           const disc = await svc.integrations.Core.InvokeLLM({
             prompt: `Brand: "${brandName}" (${youDomain})${industry ? `, industry: ${industry}` : ''}.
@@ -190,7 +191,7 @@ Strict JSON: { "competitors": [ { "name": "Brand Name", "domain": "domain.com" }
           // de-dupe within the discovered batch
           const seen = new Set(already);
           for (const c of found) {
-            if (competitors.length >= 3) break;
+            if (competitors.length >= maxCompetitors) break;
             if (seen.has(c.domain)) continue;
             seen.add(c.domain);
             const created = await svc.entities.Competitor.create({

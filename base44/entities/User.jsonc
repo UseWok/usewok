@@ -79,6 +79,12 @@
       "type": "boolean",
       "title": "Suspended",
       "default": false
+    },
+    "deletion_scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Account Deletion Scheduled At",
+      "description": "When set, the account will be automatically deleted after this date. User can cancel before then."
     }
   },
   "required": [

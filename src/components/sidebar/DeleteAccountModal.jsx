@@ -1,30 +1,30 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, Clock, Shield } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 export default function DeleteAccountModal({ open, onClose, user }) {
   const [step, setStep] = useState(1); // 1: confirm, 2: email verification
   const [emailInput, setEmailInput] = useState('');
-  const [deleting, setDeleting] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
 
   const emailMatches = emailInput.trim() === (user?.email || '');
 
-  const handleDelete = async () => {
+  const handleScheduleDeletion = async () => {
     if (!emailMatches) {
       toast.error('Email incorrect');
       return;
     }
-    setDeleting(true);
+    setScheduling(true);
     try {
-      // Supprimer le compte en supprimant l'utilisateur
-      await base44.entities.User.delete(user.id);
-      toast.success('Compte supprimé définitivement');
-      base44.auth.logout();
+      const deletionDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      await base44.auth.updateMe({ deletion_scheduled_at: deletionDate });
+      toast.success('Suppression programmée dans 7 jours');
+      base44.auth.logout('/');
     } catch (err) {
-      toast.error('Erreur lors de la suppression');
-      setDeleting(false);
+      toast.error('Erreur lors de la programmation');
+      setScheduling(false);
     }
   };
 
@@ -36,19 +36,19 @@ export default function DeleteAccountModal({ open, onClose, user }) {
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
           <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-sm bg-white overflow-hidden"
-            style={{ borderRadius: '8px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid rgba(0,0,0,0.08)' }}>
+            className="w-full max-w-md bg-white overflow-hidden"
+            style={{ borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
 
             {/* Header */}
             <div className="px-6 pt-5 pb-4 flex items-start justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.1)', borderRadius: '6px' }}>
+                <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>
                   <AlertCircle className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
                   <h2 className="text-base font-black" style={{ color: '#0A0A0A' }}>Supprimer le compte</h2>
                   <p className="text-[10px] mt-0.5" style={{ color: '#aaa' }}>
-                    {step === 1 ? 'Cette action est irréversible' : 'Confirmez votre identité'}
+                    {step === 1 ? '7 jours de réflexion' : 'Confirmez votre identité'}
                   </p>
                 </div>
               </div>
@@ -61,23 +61,36 @@ export default function DeleteAccountModal({ open, onClose, user }) {
             <div className="px-6 py-5">
               {step === 1 ? (
                 <>
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-5">
-                    <p className="text-sm" style={{ color: '#7f1d1d' }}>
-                      ⚠️ Tous vos messages, paramètres et données seront supprimés définitivement et ne pourront pas être récupérés.
-                    </p>
+                  {/* 7-day grace period info */}
+                  <div className="space-y-3 mb-5">
+                    <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)' }}>
+                      <Clock className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold text-blue-900">Suppression dans 7 jours</p>
+                        <p className="text-xs text-blue-700 mt-1 leading-relaxed">
+                          Votre compte reste accessible pendant 7 jours. Vous pouvez annuler à tout moment depuis votre profil.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                      <Shield className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold text-red-900">Suppression automatique</p>
+                        <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                          Sans action de votre part, votre compte et toutes ses données seront définitivement supprimés. Votre abonnement payant sera automatiquement résilié.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm mb-5" style={{ color: '#555' }}>
-                    Êtes-vous sûr de vouloir supprimer votre compte {user?.full_name || user?.email} ?
-                  </p>
                   <div className="flex gap-3">
                     <button onClick={onClose}
                       className="flex-1 py-2.5 text-sm font-semibold transition-colors"
-                      style={{ background: 'rgba(0,0,0,0.06)', color: '#0A0A0A', borderRadius: '4px' }}>
+                      style={{ background: 'rgba(0,0,0,0.06)', color: '#0A0A0A', borderRadius: '8px' }}>
                       Annuler
                     </button>
                     <button onClick={() => { setStep(2); setEmailInput(''); }}
                       className="flex-1 py-2.5 text-sm font-semibold transition-colors"
-                      style={{ background: '#ef4444', color: 'white', borderRadius: '4px' }}>
+                      style={{ background: '#ef4444', color: 'white', borderRadius: '8px' }}>
                       Continuer
                     </button>
                   </div>
@@ -85,7 +98,7 @@ export default function DeleteAccountModal({ open, onClose, user }) {
               ) : (
                 <>
                   <p className="text-sm mb-4" style={{ color: '#555' }}>
-                    Tapez votre adresse email pour confirmer :
+                    Tapez votre adresse email pour confirmer la suppression programmée :
                   </p>
                   <input
                     type="email"
@@ -93,20 +106,20 @@ export default function DeleteAccountModal({ open, onClose, user }) {
                     onChange={(e) => setEmailInput(e.target.value)}
                     placeholder={user?.email || 'email@example.com'}
                     className="w-full px-3 py-2.5 text-sm focus:outline-none mb-4"
-                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px', background: '#fafafa' }}
+                    style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px', background: '#fafafa' }}
                     autoFocus
                   />
                   <div className="flex gap-3">
                     <button onClick={() => setStep(1)}
                       className="flex-1 py-2.5 text-sm font-semibold transition-colors"
-                      style={{ background: 'rgba(0,0,0,0.06)', color: '#0A0A0A', borderRadius: '4px' }}>
+                      style={{ background: 'rgba(0,0,0,0.06)', color: '#0A0A0A', borderRadius: '8px' }}>
                       Retour
                     </button>
-                    <button onClick={handleDelete}
-                      disabled={!emailMatches || deleting}
+                    <button onClick={handleScheduleDeletion}
+                      disabled={!emailMatches || scheduling}
                       className="flex-1 py-2.5 text-sm font-semibold transition-colors disabled:opacity-40"
-                      style={{ background: emailMatches ? '#ef4444' : '#ccc', color: 'white', borderRadius: '4px' }}>
-                      {deleting ? '⏳ Suppression...' : 'Supprimer définitivement'}
+                      style={{ background: emailMatches ? '#ef4444' : '#ccc', color: 'white', borderRadius: '8px' }}>
+                      {scheduling ? '⏳ Programmation…' : 'Programmer la suppression'}
                     </button>
                   </div>
                 </>

@@ -33,6 +33,7 @@ export const WOK_PLAN_FEATURES_DEFAULT = {
     engines_count: 1,               // Nombre de moteurs actifs
     // Sites
     max_sites: 1,                   // Nombre max de sites surveillés simultanément
+    max_competitors: 0,              // Nombre max de concurrents suivis (0 = pas accès)
     // Historique
     history_days: 30,               // Jours d'historique conservés
     // Chatbot IA
@@ -62,6 +63,7 @@ export const WOK_PLAN_FEATURES_DEFAULT = {
     engines_count: 5,               // Nombre de moteurs actifs
     // Sites
     max_sites: 5,                   // Nombre max de sites surveillés simultanément
+    max_competitors: 3,              // Nombre max de concurrents suivis
     // Historique
     history_days: 180,              // 6 mois d'historique
     // Chatbot IA
@@ -91,6 +93,7 @@ export const WOK_PLAN_FEATURES_DEFAULT = {
     engines_count: 8,               // 8 moteurs IA testés en parallèle
     // Sites
     max_sites: 10,                  // Nombre max de sites surveillés simultanément
+    max_competitors: 5,              // Nombre max de concurrents suivis
     // Historique
     history_days: 365,              // 12 mois d'historique complet
     // Chatbot IA
@@ -119,6 +122,7 @@ export const WOK_PLAN_FEATURES_DEFAULT = {
     engines_count: 8,
     // Sites
     max_sites: -1,                  // Illimité
+    max_competitors: 10,             // Nombre max de concurrents suivis
     // Historique
     history_days: 730,              // 24 mois
     // Chatbot IA

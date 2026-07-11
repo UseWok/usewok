@@ -40,7 +40,9 @@ export default function BrandKnowledge() {
   // ── Onboarding conversationnel ──
   const [mode, setMode] = useState(null);       // 'onboarding' | 'summary' (décidé au chargement)
   const [prefilling, setPrefilling] = useState(false);
-  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiQuestionLoading, setAiQuestionLoading] = useState(false);
+  const aiCacheRef = useRef({});
+  const aiCacheFetchedRef = useRef(false);
   const prefilledRef = useRef({}); // évite de re-prefiller le même site
 
   const load = async () => {
@@ -101,22 +103,28 @@ export default function BrandKnowledge() {
   // Onboarding : met à jour directement k (pas de brouillon)
   const setOnboardingField = (field, value) => setK(prev => ({ ...prev, [field]: value }));
 
-  // IA génère TOUT (écrase même les champs déjà remplis)
-  const aiGenerateAll = async () => {
+  // L'IA répond à une seule question (cache le résultat complet pour éviter les appels multiples)
+  const aiFillQuestion = async (questionKey) => {
     if (!profile) return;
-    setAiGenerating(true);
+    setAiQuestionLoading(true);
     try {
-      const res = await base44.functions.invoke('generateBrandKnowledge', {
-        url: profile.site_url, business_name: profile.identity_name || '',
-      });
-      const ai = res?.data?.knowledge;
-      if (ai && typeof ai === 'object') {
-        setK(prev => ({ ...prev, ...ai }));
-        toast.success("Profil généré par l'IA");
+      if (!aiCacheFetchedRef.current) {
+        const res = await base44.functions.invoke('generateBrandKnowledge', {
+          url: profile.site_url, business_name: profile.identity_name || '',
+        });
+        aiCacheRef.current = res?.data?.knowledge || {};
+        aiCacheFetchedRef.current = true;
+      }
+      const aiVal = aiCacheRef.current[questionKey];
+      if (aiVal !== undefined && aiVal !== null && aiVal !== '') {
+        setK(prev => ({ ...prev, [questionKey]: aiVal }));
+        toast.success("Réponse de l'IA ajoutée");
+      } else {
+        toast.error("L'IA n'a pas pu répondre à cette question");
       }
     } catch {
       toast.error("L'IA n'a pas pu analyser ton site");
-    } finally { setAiGenerating(false); }
+    } finally { setAiQuestionLoading(false); }
   };
 
   const persist = async (knowledge) => {
@@ -177,8 +185,8 @@ export default function BrandKnowledge() {
           prefilling={prefilling}
           saving={saving}
           onFinish={finishOnboarding}
-          onAIGenerateAll={aiGenerateAll}
-          aiGenerating={aiGenerating}
+          onAIFillQuestion={aiFillQuestion}
+          aiQuestionLoading={aiQuestionLoading}
         />
       </div>
     );

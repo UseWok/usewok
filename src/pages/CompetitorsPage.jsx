@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { getActiveDomain } from '@/lib/active-domain';
 import { getProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, peekCache, setCache } from '@/lib/data-cache';
 import { Plus, Trash2, Loader, RefreshCw } from 'lucide-react';
+import { getWokFeatures } from '@/lib/wok-plans';
 import CompetitorDetailModal from '@/components/competitors/CompetitorDetailModal';
 import PromptsMatrix from '@/components/competitors/PromptsMatrix';
 import HeadToHead from '@/components/competitors/HeadToHead';
@@ -33,6 +34,8 @@ export default function CompetitorsPage() {
   const [domain, setDomain] = useState('');
   const [detail, setDetail] = useState(null);
   const [tab, setTab] = useState('referral');
+  const [maxCompetitors, setMaxCompetitors] = useState(3);
+  const autoScanRef = useRef(false);
   const [siteUrl, setSiteUrl] = useState('');
 
   const load = async () => {
@@ -41,6 +44,7 @@ export default function CompetitorsPage() {
       if (!u) return;
       const active = getActiveDomain();
       setSiteUrl(active?.url || '');
+      setMaxCompetitors(getWokFeatures(u)?.max_competitors ?? 3);
       const q = { user_id: u.id };
       if (active?.url) q.site_url = active.url;
       const list = await base44.entities.Competitor.filter(q, '-created_date', 50);
@@ -60,19 +64,27 @@ export default function CompetitorsPage() {
   };
   useEffect(() => { load(); }, []);
 
+  // Auto-scan if no competitors exist yet — discovers rivals based on subscription
+  useEffect(() => {
+    if (!loading && !autoScanRef.current && siteUrl && maxCompetitors > 0 && all.filter(c => !c.is_you).length === 0) {
+      autoScanRef.current = true;
+      runScan();
+    }
+  }, [loading, siteUrl, maxCompetitors, all]);
+
   const you = all.find(c => c.is_you);
   const competitors = all.filter(c => !c.is_you).sort((a, b) => (b.referral_pct || 0) - (a.referral_pct || 0));
-  const atMax = competitors.length >= 3;
+  const atMax = competitors.length >= maxCompetitors;
 
   // Instant add — NO AI, NO loading
   const addCompetitor = async (presetName, presetDomain) => {
     const dn = (presetDomain ?? domain).trim();
     const nm = (presetName ?? name).trim();
     if (!dn) return;
-    if (atMax) { setAddError('Maximum de 3 concurrents suivis.'); return; }
+    if (atMax) { setAddError(`Maximum de ${maxCompetitors} concurrents suivis.`); return; }
     setAddError('');
     try {
-      const res = await base44.functions.invoke('competitorEngine', { action: 'add', site_url: siteUrl, name: nm, domain: dn });
+      const res = await base44.functions.invoke('competitorEngine', { action: 'add', site_url: siteUrl, name: nm, domain: dn, max_competitors: maxCompetitors });
       if (res?.data?.error) { setAddError(res.data.error); return; }
       setName(''); setDomain('');
       const created = res?.data?.competitor;
@@ -92,7 +104,7 @@ export default function CompetitorsPage() {
     if (scanning || !siteUrl) return;
     setScanning(true);
     try {
-      const res = await base44.functions.invoke('competitorEngine', { action: 'scan', site_url: siteUrl });
+      const res = await base44.functions.invoke('competitorEngine', { action: 'scan', site_url: siteUrl, max_competitors: maxCompetitors });
       if (res?.data?.suggestions) setSuggestions(res.data.suggestions.slice(0, 2));
       await load();
     } catch (e) {
@@ -146,7 +158,7 @@ export default function CompetitorsPage() {
           </div>
           {loading && <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '24px 0' }}>Chargement…</p>}
           {!loading && competitors.length === 0 && (
-            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '26px 0' }}>Aucun concurrent suivi pour l'instant. Ajoutes-en un ci-dessous (3 max), puis lance l'analyse.</p>
+            <p style={{ fontSize: 13, color: INK3, textAlign: 'center', padding: '26px 0' }}>Aucun concurrent suivi pour l'instant. Ajoutes-en un ci-dessous ({maxCompetitors} max), puis lance l'analyse.</p>
           )}
           {competitors.map((c, i) => (
             <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '0.5fr 2.2fr 1.2fr 1fr 1.2fr 1fr', padding: '13px 20px', borderBottom: `1px solid ${BORDER}`, alignItems: 'center' }}>
@@ -186,7 +198,7 @@ export default function CompetitorsPage() {
             </div>
           )}
           {atMax && (
-            <p style={{ fontSize: 11.5, color: INK3, padding: '12px 20px', margin: 0 }}>Maximum de 3 concurrents suivis atteint.</p>
+            <p style={{ fontSize: 11.5, color: INK3, padding: '12px 20px', margin: 0 }}>Maximum de {maxCompetitors} concurrents suivis atteint.</p>
           )}
         </div>
 

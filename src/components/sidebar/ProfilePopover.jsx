@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Settings, HelpCircle, LogOut, Gift, Ticket, Plus, Globe, ChevronRight } from 'lucide-react';
+import { Settings, HelpCircle, LogOut, Gift, Ticket, Plus, Globe, ChevronRight, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import ReferralModal from '@/components/ReferralModal';
 import ActivationCodeModal from '@/components/ActivationCodeModal';
 import DomainManagerModal from '@/components/home/DomainManagerModal';
@@ -33,6 +34,15 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
 
   const navigate = useNavigate();
   const [deleteHoldTime, setDeleteHoldTime] = useState(0);
+  const [deletionCancelled, setDeletionCancelled] = useState(false);
+
+  const cancelDeletion = async () => {
+    try {
+      await base44.auth.updateMe({ deletion_scheduled_at: '' });
+      setDeletionCancelled(true);
+      toast.success('Suppression annulée — votre compte est conservé');
+    } catch { toast.error("Erreur lors de l'annulation"); }
+  };
   const deleteHoldRef = useRef(null);
 
   const handleDeleteMouseDown = () => {
@@ -70,6 +80,7 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
     { icon: Gift, label: 'Earn Tensors', action: () => setShowReferral(true) },
     { icon: Ticket, label: 'I have a code', action: () => setShowCodeModal(true) },
     { divider: true },
+    { icon: Trash2, label: 'Supprimer le compte', action: handleDeleteClick, destructive: true },
     { icon: LogOut, label: 'Sign out', action: () => base44.auth.logout('/') },
   ];
 
@@ -100,6 +111,20 @@ export default function ProfilePopover({ open, onClose, anchorRef, user, userIni
               <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
             </div>
           </div>
+
+          {/* ── Deletion countdown banner ── */}
+          {!deletionCancelled && user?.deletion_scheduled_at && (
+            <div className="p-2 border-b border-border">
+              <div className="rounded-lg p-2.5" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <p className="text-[11px] font-bold text-destructive mb-1">
+                  Compte supprimé dans {Math.max(0, Math.ceil((new Date(user.deletion_scheduled_at) - new Date()) / (1000*60*60*24)))} jour(s)
+                </p>
+                <button onClick={cancelDeletion} className="text-[11px] font-semibold text-destructive underline">
+                  Annuler la suppression
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ── Playful domain actions ── */}
           <div className="p-2 border-b border-border flex flex-col gap-1.5">
