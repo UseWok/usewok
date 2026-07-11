@@ -196,6 +196,7 @@ export default function Home() {
 
   const scanningRef = useRef({});
   const pendingScanUrlsRef = useRef([]);
+  const resumedRef = useRef(new Set()); // tracks auto-resumed URLs — prevents infinite retry loops
 
   // ── Auto-scan from navigation state (sidebar "Add a website", WOK AI scan mode) ──
   useEffect(() => {
@@ -244,7 +245,19 @@ export default function Home() {
     loadAll().then(async () => {
       const toResume = pendingScanUrlsRef.current || [];
       pendingScanUrlsRef.current = [];
-      toResume.forEach(url => { if (!scanningRef.current[url]) startScan(url); });
+      toResume.forEach(url => {
+        // Only auto-resume once per session — if it fails again, let the user trigger manually
+        if (!scanningRef.current[url] && !resumedRef.current.has(url)) {
+          resumedRef.current.add(url);
+          startScan(url);
+        } else {
+          // Already tried — mark as not scanning so the UI shows the "retry" button instead of a frozen state
+          base44.entities.BusinessProfile.filter({ site_url: url }).then(profs => {
+            const p = profs?.[0];
+            if (p?.scan_in_progress) base44.entities.BusinessProfile.update(p.id, { scan_in_progress: false }).catch(() => {});
+          }).catch(() => {});
+        }
+      });
 
       const pendingUrl = sessionStorage.getItem('wok_post_login_url');
       const pendingQuiz = sessionStorage.getItem('wok_post_login_quiz');
@@ -345,7 +358,11 @@ export default function Home() {
       const existingP = existingProfiles.find(p => p.site_url === cleanUrl);
       if (existingP) base44.entities.BusinessProfile.update(existingP.id, { scan_in_progress: true }).catch(() => {});
       else base44.entities.BusinessProfile.create({ site_url: cleanUrl, identity_name: getDomain(cleanUrl), score_overall: 0, scan_in_progress: true, created_by_id: u.id }).catch(() => {});
-      const result = await runScan(cleanUrl, u.id, getWokFeatures(u));
+      // Timeout: if the scan hangs (e.g. usewok.com), abort after 90s
+      const result = await Promise.race([
+        runScan(cleanUrl, u.id, getWokFeatures(u)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Scan timeout')), 90000)),
+      ]);
       const updatedProfiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
       const updatedP = updatedProfiles.find(p => p.site_url === cleanUrl);
       if (updatedP) base44.entities.BusinessProfile.update(updatedP.id, { scan_in_progress: false }).catch(() => {});
@@ -353,7 +370,20 @@ export default function Home() {
       await loadAll();
       await loadOverview(true);
       setOnboardingData(result);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error('Scan failed:', err);
+      // CRITICAL: reset scan_in_progress so the page doesn't get stuck in an infinite retry loop on reload
+      try {
+        const u = await base44.auth.me();
+        if (u) {
+          const profiles = await base44.entities.BusinessProfile.filter({ created_by_id: u.id }).catch(() => []);
+          const p = profiles.find(pr => pr.site_url === cleanUrl);
+          if (p) base44.entities.BusinessProfile.update(p.id, { scan_in_progress: false }).catch(() => {});
+          invalidateProfiles(u.id);
+          await loadAll();
+        }
+      } catch {}
+    }
     finally {
       scanningRef.current[cleanUrl] = false;
       setScanningUrls(prev => { const n = { ...prev }; delete n[cleanUrl]; return n; });
