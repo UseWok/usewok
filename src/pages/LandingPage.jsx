@@ -622,6 +622,11 @@ export default function LandingPage() {
             <span>© 2026 UseWok. All rights reserved.</span>
             <span className="fr"><span className="flag" style={{width:14, height:11, borderRadius:2, background:'linear-gradient(90deg,#002395 33%,#fff 33%,#fff 66%,#ED2939 66%)', display:'inline-block'}}></span>Made in France</span>
           </div>
+          <div style={{display:'flex', justifyContent:'center', marginTop:32}}>
+            <a href="https://nicklaunches.com/products/usewok/?utm_source=usewok.com&utm_medium=badge&utm_campaign=featured" target="_blank" rel="noopener">
+              <img src="https://nicklaunches.com/badges/featured.png" alt="UseWok on Nick Launches" width={244} height={56} style={{display:'block'}} />
+            </a>
+          </div>
         </div>
       </footer>
 
