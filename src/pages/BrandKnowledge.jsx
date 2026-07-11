@@ -13,6 +13,7 @@ import TagListEditor, { PillList } from '@/components/brand/TagListEditor';
 import ChoiceChips from '@/components/brand/ChoiceChips';
 import BrandOnboarding from '@/components/brand/BrandOnboarding';
 import BrandKnowledgeSkeleton from '@/components/skeletons/BrandKnowledgeSkeleton';
+import InfoTip from '@/components/ui/InfoTip';
 
 const F = "'Wix Madefor Text', 'Wix Madefor Display', 'Inter var', 'Inter', system-ui, sans-serif";
 const INK = '#111827';
@@ -232,7 +233,7 @@ export default function BrandKnowledge() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {section.fields.map((f) => (
                 <div key={f.key}>
-                  <FieldLabel>{f.label}</FieldLabel>
+                  <FieldLabel>{f.label}{f.impact && <InfoTip text={f.impact} />}</FieldLabel>
                   <div style={{ marginTop: 4 }}>
                     {editing ? renderEditor(f) : renderValue(f)}
                   </div>

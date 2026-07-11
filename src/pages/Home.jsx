@@ -530,7 +530,7 @@ export default function Home() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 28 }}>
                 {(vis('evolution') || vis('tasks')) && (
                   <div style={{ display: 'grid', gridTemplateColumns: vis('evolution') && vis('tasks') ? '1.55fr 1fr' : '1fr', gap: '5%', alignItems: 'stretch' }}>
-                    {vis('evolution') && <EvolutionCard score={overview.geo_score} breakdown={overview.score_breakdown} evolution={overview.evolution} />}
+                    {vis('evolution') && <EvolutionCard score={lrs} breakdown={overview.score_breakdown} evolution={overview.evolution} />}
                     {vis('tasks') && <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />}
                   </div>
                 )}

@@ -41,7 +41,7 @@ Utilise ce contexte + le web pour proposer un plan CONCRET et spécifique à cet
 - Les questions cibles = de vraies questions qu'un client taperait à ChatGPT, spécifiques au secteur.
 - Les sources d'autorité = de vrais sites/médias crédibles et pertinents pour CE secteur (pas juste "Wikipedia" par défaut).
 - Les concurrents = de vrais concurrents connus de cette marque.
-- Si tu n'es pas sûr, laisse vide ("" ou []).
+- OBLIGATION : remplis TOUS les champs, sans exception. Si tu n'es pas sûr, fais ta meilleure estimation — ne JAMAIS laisser un champ vide ("") ou un tableau vide ([]).
 
 Renvoie un JSON avec exactement ces champs :
 {

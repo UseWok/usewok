@@ -59,7 +59,7 @@ export default function GeoStrategy() {
       // Génération auto quand le plan est encore vide — l'IA propose, l'utilisateur ajuste ensuite
       if (isEmptyStrategy(strategy) && !generatedRef.current[p.site_url]) {
         generatedRef.current[p.site_url] = true;
-        generate(p, strategy, ex, false);
+        generate(p, strategy, ex, true);
       }
     } catch { if (!peekCache(`geo_${active?.url || 'all'}`)) setPhase('no_profile'); }
   };

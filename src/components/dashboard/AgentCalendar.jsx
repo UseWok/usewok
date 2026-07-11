@@ -9,10 +9,10 @@ const INK2 = '#857E6E';
 const BORDER = 'rgba(21,19,15,0.12)';
 
 const AGENT_STYLE = {
-  scan:        { color: '#FF5A1F', bg: 'rgba(255,90,31,0.10)',  icon: Zap },
-  health:      { color: '#3B8BEB', bg: 'rgba(59,139,235,0.10)', icon: HeartPulse },
-  reputation:  { color: '#7C3AED', bg: 'rgba(124,58,237,0.10)', icon: Eye },
-  competitors: { color: '#0B815A', bg: 'rgba(11,129,90,0.10)',  icon: Users },
+  scan:        { color: '#FF5A1F', bg: 'rgba(255,90,31,0.10)',  icon: Zap,        tip: 'Checks if ChatGPT, Gemini and Claude recommend you when prospects ask about your industry.' },
+  health:      { color: '#3B8BEB', bg: 'rgba(59,139,235,0.10)', icon: HeartPulse, tip: 'Scans your website to see if AI engines can read and understand your pages.' },
+  reputation:  { color: '#7C3AED', bg: 'rgba(124,58,237,0.10)', icon: Eye,        tip: 'Monitors what AI engines say about your brand — positive, neutral, or negative mentions.' },
+  competitors: { color: '#0B815A', bg: 'rgba(11,129,90,0.10)',  icon: Users,      tip: 'Tracks which competitors the AI recommends instead of you, and where you can catch up.' },
 };
 
 const DEFAULT_AGENTS = [
@@ -91,7 +91,10 @@ export default function AgentCalendar({ userId, siteUrl }) {
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, color: st.color }}>
                       <Icon size={10} /> {r.time}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: INK, lineHeight: 1.25 }}>{r.agent_name}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: INK, lineHeight: 1.25, display: 'flex', alignItems: 'center', gap: 3 }}>
+                      {r.agent_name}
+                      <InfoTip text={st.tip} />
+                    </span>
                   </button>
                 );
               })}

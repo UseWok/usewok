@@ -8,10 +8,10 @@ export const BK_SECTIONS = [
     title: 'Identité',
     intro: "Les informations de base sur votre entreprise.",
     fields: [
-      { key: 'business_name', type: 'text', label: "Nom de l'entreprise", placeholder: 'ex. UseWok' },
-      { key: 'industry',      type: 'text', label: 'Secteur d\'activité', placeholder: 'ex. logiciel marketing' },
-      { key: 'site_url',      type: 'text', label: 'Site web', placeholder: 'usewok.com' },
-      { key: 'headquarters',  type: 'text', label: 'Siège / localisation', placeholder: 'ex. Paris, France' },
+      { key: 'business_name', type: 'text', label: "Nom de l'entreprise", placeholder: 'ex. UseWok', impact: "Sans ton nom exact, les IA ne sauront pas que c'est de toi qu'on parle." },
+      { key: 'industry',      type: 'text', label: 'Secteur d\'activité', placeholder: 'ex. logiciel marketing', impact: "Les IA classent par secteur. Le tien détermine dans quelle catégorie tu apparais." },
+      { key: 'site_url',      type: 'text', label: 'Site web', placeholder: 'usewok.com', impact: "C'est la source que les IA consultent pour te décrire. Un site clair = une description juste." },
+      { key: 'headquarters',  type: 'text', label: 'Siège / localisation', placeholder: 'ex. Paris, France', impact: "Les IA recommandent en priorité les marques locales. Ta ville t'aide à sortir dans ta zone." },
     ],
   },
   {
@@ -22,16 +22,19 @@ export const BK_SECTIONS = [
       {
         key: 'business_model', type: 'choice', label: 'Modèle économique',
         options: ['B2B', 'B2C', 'B2B2C', 'Marketplace'],
+        impact: "B2B ou B2C change les questions que les IA te posent et la façon dont elles te présentent.",
       },
       {
         key: 'target_segment', type: 'choice', label: 'Type de clients',
         options: ['Grandes entreprises', 'PME', 'Startups', 'Indépendants', 'Grand public', 'Secteur public'],
+        impact: "Les IA recommandent différemment selon qui demande. Ton type de client cible les guide.",
       },
       {
         key: 'scope', type: 'choice', label: 'Zone de vente',
         options: ['Local', 'Régional', 'National', 'Continental', 'Mondial'],
+        impact: "Les IA privilégient les résultats locaux. Ta zone de vente détermine où tu peux apparaître.",
       },
-      { key: 'audience', type: 'textarea', label: 'Décrivez votre client type (optionnel)', placeholder: 'ex. dirigeants de PME cherchant plus de visibilité…', rows: 3 },
+      { key: 'audience', type: 'textarea', label: 'Décrivez votre client type (optionnel)', placeholder: 'ex. dirigeants de PME cherchant plus de visibilité…', rows: 3, impact: "Décrire ton client aide les IA à te proposer quand quelqu'un qui lui ressemble demande." },
     ],
   },
   {
@@ -39,10 +42,11 @@ export const BK_SECTIONS = [
     title: 'Proposition de valeur',
     intro: 'Ce qui vous distingue de la concurrence.',
     fields: [
-      { key: 'value_description', type: 'textarea', label: 'En une phrase, que faites-vous de mieux ?', placeholder: 'ex. nous aidons les entreprises à apparaître dans les réponses de ChatGPT…', rows: 3 },
+      { key: 'value_description', type: 'textarea', label: 'En une phrase, que faites-vous de mieux ?', placeholder: 'ex. nous aidons les entreprises à apparaître dans les réponses de ChatGPT…', rows: 3, impact: "C'est la phrase que les IA reprennent pour te décrire. Plus elle est claire, plus elles la répètent à l'identique." },
       {
         key: 'value_keywords', type: 'tags', label: 'Vos points forts (max 5)',
         chipOptions: ['Simple à utiliser', 'Rapide', 'Support réactif', 'Meilleur prix', 'Sur-mesure', 'Innovant', 'Fiable', 'Expertise reconnue'],
+        impact: "Ces mots-clés deviennent les adjectifs que les IA utilisent quand elles parlent de toi.",
       },
     ],
   },
@@ -54,6 +58,7 @@ export const BK_SECTIONS = [
       {
         key: 'use_cases', type: 'tags', label: "Cas d'usage courants (max 5)",
         chipOptions: ['Gagner en visibilité', 'Automatiser une tâche', 'Analyser des données', 'Réduire les coûts', 'Se lancer rapidement', 'Piloter la performance'],
+        impact: "Quand un prospect décrit son problème à une IA, ces cas d'usage aident l'IA à penser à toi.",
       },
     ],
   },
@@ -65,6 +70,7 @@ export const BK_SECTIONS = [
       {
         key: 'authority_topics', type: 'tags', label: "Vos domaines d'expertise (max 5)",
         chipOptions: ['Visibilité IA', 'SEO', 'Marketing digital', 'Data & analytics', 'Automatisation', 'Stratégie de contenu'],
+        impact: "Les IA citent en priorité les experts. Tes sujets d'expertise décident sur quelles questions tu apparais.",
       },
     ],
   },
@@ -76,6 +82,7 @@ export const BK_SECTIONS = [
       {
         key: 'pre_purchase_questions', type: 'tags', label: 'Questions fréquentes (max 5)',
         chipOptions: ['Combien ça coûte ?', 'Est-ce difficile à installer ?', 'Quels résultats attendre ?', 'Y a-t-il un essai gratuit ?', 'Est-ce adapté à mon secteur ?'],
+        impact: "Ces questions sont exactement ce que les gens tapent dans ChatGPT. Y répondre = apparaître dans la réponse.",
       },
     ],
   },
@@ -87,6 +94,7 @@ export const BK_SECTIONS = [
       {
         key: 'objections', type: 'tags', label: 'Hésitations fréquentes (max 5)',
         chipOptions: ['Trop cher', 'Trop compliqué', 'Manque de temps', 'Pas sûr du résultat', 'Déjà un autre outil'],
+        impact: "Si les IA connaissent tes objections, elles peuvent les lever et te recommander avec confiance.",
       },
     ],
   },
@@ -98,6 +106,7 @@ export const BK_SECTIONS = [
       {
         key: 'avoid_topics', type: 'tags', label: 'Sujets à éviter (optionnel)',
         chipOptions: ['Sujets politiques', 'Concurrents nommés', 'Promesses irréalistes', 'Sujets sensibles'],
+        impact: "Les IA répètent ce qu'elles trouvent. Ces sujets à éviter les aident à ne pas teassocier à tort.",
       },
     ],
   },

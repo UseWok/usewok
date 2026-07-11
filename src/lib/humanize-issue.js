@@ -7,21 +7,21 @@
 const RULES = [
   {
     match: /robots\.txt|disallow|bloqu|crawl.*block|block.*crawl|noindex/i,
-    title: "Les robots des IA n'ont pas le droit de visiter ton site",
-    explain: "C'est probablement une erreur de configuration — on peut la corriger en 1 clic pour que ChatGPT et Gemini puissent enfin te lire.",
-    autoFix: true,
+    title: "Les IA n'ont pas le droit de visiter ton site",
+    explain: "C'est probablement une erreur de configuration. On te guide pas à pas pour la corriger et que ChatGPT et Gemini puissent enfin te lire.",
+    autoFix: false,
   },
   {
     match: /json-?ld|schema|structured data|softwareapplication|organization schema|microdata/i,
     title: "Aide les IA à comprendre automatiquement ce que fait ton site",
-    explain: "Les IA lisent ta page mais ne savent pas résumer ton activité. On ajoute une petite fiche d'identité invisible qui leur explique tout.",
-    autoFix: true,
+    explain: "Les IA lisent ta page mais ne savent pas résumer ton activité. On te montre comment ajouter une petite fiche d'identité invisible qui leur explique tout.",
+    autoFix: false,
   },
   {
     match: /meta ?desc|description manquante|missing description/i,
     title: "Ta page d'accueil n'a pas de description",
-    explain: "Sans elle, Google et les IA voient une page sans contexte. On rédige une phrase claire qui dit qui tu es et ce que tu fais.",
-    autoFix: true,
+    explain: "Sans elle, Google et les IA voient une page sans contexte. On t'aide à rédiger une phrase claire qui dit qui tu es et ce que tu fais.",
+    autoFix: false,
   },
   {
     match: /about|à propos|qui.sommes/i,
@@ -38,14 +38,14 @@ const RULES = [
   {
     match: /sitemap/i,
     title: "Les IA n'ont pas la carte de ton site",
-    explain: "Un plan de site aide les IA à trouver toutes tes pages. On peut le générer automatiquement.",
-    autoFix: true,
+    explain: "Un plan de site aide les IA à trouver toutes tes pages. On te guide pour le mettre en place.",
+    autoFix: false,
   },
   {
     match: /title|balise titre|h1/i,
     title: "Le titre de ta page n'est pas assez clair pour les IA",
-    explain: "Un titre précis aide les IA à comprendre ta page en un coup d'œil. On le reformule pour toi.",
-    autoFix: true,
+    explain: "Un titre précis aide les IA à comprendre ta page en un coup d'œil. On te propose une reformulation.",
+    autoFix: false,
   },
 ];
 
