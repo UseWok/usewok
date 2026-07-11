@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { LanguageProvider } from '@/lib/i18n';
 import Layout from './components/Layout';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -127,7 +128,7 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <ScrollToTop />
       <BuildToast />
       <Suspense fallback={<PageLoader />}>
@@ -172,7 +173,7 @@ const AuthenticatedApp = () => {
           </Route>
         </Routes>
       </Suspense>
-    </>
+    </ErrorBoundary>
   );
 };
 

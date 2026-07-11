@@ -130,32 +130,31 @@ function EmptyState({ onAdd }) {
 async function runScan(inputUrl, userId, features) {
   const isFull = features?.scan_type === 'full';
   const mainFn = isFull ? 'analyzeWebsite' : 'analyzeWebsiteLite';
-  const [mainRes, auditRes, perfRes, overviewRes] = await Promise.all([
-    base44.functions.invoke(mainFn, { url: inputUrl }),
-    isFull && base44.functions.invoke('analyzeAudit', { url: inputUrl }).catch(() => ({ data: {} })),
-    isFull && base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: '' }).catch(() => ({ data: {} })),
-    isFull && base44.functions.invoke('dashboardOverview', { url: inputUrl, business_name: '' }).catch(() => ({ data: null })),
-  ]);
-  Promise.all([
-    base44.functions.invoke('siteAudit', { url: inputUrl }).catch(() => null),
-    base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'brand' }).catch(() => null),
-    base44.functions.invoke('brandPerception', { url: inputUrl, kind: 'reco' }).catch(() => null),
-    base44.functions.invoke('generateBrandKnowledge', { url: inputUrl }).catch(() => null),
-    base44.functions.invoke('competitorEngine', { action: 'scan', site_url: inputUrl }).catch(() => null),
-    base44.functions.invoke('authorityTasks', { url: inputUrl }).catch(() => null),
-    base44.functions.invoke('trackCitations', { url: inputUrl }).catch(() => null),
-    base44.functions.invoke('citationGaps', { url: inputUrl }).catch(() => null),
-  ]).catch(() => {});
+
+  // SEQUENTIAL — not parallel. Browsers cap at 6 connections per domain.
+  // Firing 12 simultaneous backend calls saturates the pool and freezes the entire app.
+  const mainRes = await base44.functions.invoke(mainFn, { url: inputUrl });
   const d = mainRes?.data || {};
+
   if (isFull) {
-    d.audit_data = auditRes?.data || {};
-    d.perf_data = perfRes?.data || {};
-    d.audit_analyzed_at = new Date().toISOString();
-    d.perf_analyzed_at = new Date().toISOString();
-    if (overviewRes?.data && !overviewRes.data.error) {
-      d.overview_data = overviewRes.data;
-      d.overview_analyzed_at = new Date().toISOString();
-    }
+    // These are optional enrichments — run one at a time, never block the main result
+    try {
+      const auditRes = await base44.functions.invoke('analyzeAudit', { url: inputUrl }).catch(() => ({ data: {} }));
+      d.audit_data = auditRes?.data || {};
+      d.audit_analyzed_at = new Date().toISOString();
+    } catch {}
+    try {
+      const perfRes = await base44.functions.invoke('analyzePerformance', { url: inputUrl, business_name: '' }).catch(() => ({ data: {} }));
+      d.perf_data = perfRes?.data || {};
+      d.perf_analyzed_at = new Date().toISOString();
+    } catch {}
+    try {
+      const overviewRes = await base44.functions.invoke('dashboardOverview', { url: inputUrl, business_name: '' }).catch(() => ({ data: null }));
+      if (overviewRes?.data && !overviewRes.data.error) {
+        d.overview_data = overviewRes.data;
+        d.overview_analyzed_at = new Date().toISOString();
+      }
+    } catch {}
   }
   d.scan_type = features?.scan_type || 'lite';
   const brand_keywords = await uploadProfileData(d);
@@ -298,7 +297,10 @@ export default function Home() {
         }
       }
       if (!seed?.data) setOverviewPhase('thinking');
-      const res = await base44.functions.invoke('dashboardOverview', { url: p.site_url, business_name: p.identity_name || '' });
+      const res = await Promise.race([
+        base44.functions.invoke('dashboardOverview', { url: p.site_url, business_name: p.identity_name || '' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('overview_timeout')), 30000)),
+      ]);
       if (!res?.data || res.data.error) { if (!seed?.data) setOverviewPhase('error'); return; }
       setOverview(res.data);
       setOverviewPhase('done');
