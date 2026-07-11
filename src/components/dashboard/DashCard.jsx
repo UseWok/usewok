@@ -1,22 +1,33 @@
-// Reusable dashboard card shell — header with title + optional right action.
 const INK = '#15130F';
 const INK_SOFT = '#4A453B';
 const INK3 = 'rgba(21,19,15,0.5)';
-const BORDER = 'rgba(21,19,15,0.09)';
+const BORDER = 'rgba(21,19,15,0.07)';
 const WHITE = '#FFFFFF';
-const F = 'Inter, system-ui, sans-serif';
+const F = '"Wix Madefor Text", "Wix Madefor Display", system-ui, sans-serif';
 
 export default function DashCard({ title, dot, action, onAction, children, style }) {
   return (
-    <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '22px 24px', fontFamily: F, display: 'flex', flexDirection: 'column', ...style }}>
+    <div style={{
+      background: WHITE,
+      border: `1px solid ${BORDER}`,
+      borderRadius: 20,
+      padding: '24px 26px',
+      fontFamily: F,
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03)',
+      ...style,
+    }}>
       {(title || action) && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot }} />}
-            <span style={{ fontSize: 13, fontWeight: 700, color: INK_SOFT, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{title}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {dot && <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, boxShadow: `0 0 0 3px ${dot}22` }} />}
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: INK_SOFT, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{title}</span>
           </div>
           {action && (
-            <button onClick={onAction} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: '#C43E14', fontFamily: F, padding: 0 }}>
+            <button onClick={onAction} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#FF5A1F', fontFamily: F, padding: 0, transition: 'opacity 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = 0.7}
+              onMouseLeave={e => e.currentTarget.style.opacity = 1}>
               {action}
             </button>
           )}

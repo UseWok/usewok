@@ -8,12 +8,10 @@ import { getProfileData, uploadProfileData } from '@/lib/profile-storage';
 import { getCachedUser, getCachedProfiles, invalidateProfiles, peekCache, setCache } from '@/lib/data-cache';
 import ScanResultsOnboarding from '@/components/home/ScanResultsOnboarding';
 import HeroVerdict from '@/components/home/HeroVerdict';
-import TodayAction from '@/components/home/TodayAction';
 import DomainManagerModal from '@/components/home/DomainManagerModal';
 import { getWokFeatures } from '@/lib/wok-plans';
 import { checkScanQuota, checkSiteQuota } from '@/lib/quota-enforcement';
 
-import TasksCard from '@/components/dashboard/TasksCard';
 import CompetitorsCard from '@/components/dashboard/CompetitorsCard';
 import LLMCitingCard from '@/components/dashboard/LLMCitingCard';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
@@ -388,11 +386,6 @@ export default function Home() {
   const isScanningActive = !!scanningUrls[activeProfile?.site_url];
   const hasData = !!(activeProfile?.score_overall > 0 || activeProfile?.lrs_score > 0);
 
-  const issues = Array.isArray(activeProfile?.issues) ? activeProfile.issues : [];
-  const actionsLeft = issues.length;
-  const nextMilestone = lrs < 50 ? 50 : lrs < 65 ? 65 : lrs < 85 ? 85 : 100;
-  const topIssue = issues[0]?.problem || null;
-
   // Real visibility %: the brand's own share-of-voice from the overview competitors data
   const youEntry = (overview?.competitors || []).find(c => c.is_you);
   const appearPct = youEntry ? Math.round(youEntry.visibility_pct || 0) : null;
@@ -404,8 +397,10 @@ export default function Home() {
     return { name: top.name, pct: Math.round(top.visibility_pct || 0) };
   })();
 
-  // Previous scan's per-engine citation data — used for trend arrows
-  const previousLlms = activeProfile?.previous_overview_data?.llms_citing || [];
+  // Previous scan data — used for trend arrows
+  const previousOverview = activeProfile?.previous_overview_data || null;
+  const previousLlms = previousOverview?.llms_citing || [];
+  const previousCompetitors = previousOverview?.competitors || [];
 
   const PILLARS = [
     { label: 'Ton contenu',    explain: 'Ce que les IA lisent sur toi.',        score: (activeProfile?.score_message_clarity ?? null) },
@@ -468,21 +463,16 @@ export default function Home() {
         )}
 
         {/* ═══════════ THE STORY: score + one action ═══════════ */}
+        {/* ═══════════ THE STORY: score ═══════════ */}
         {hasData && !isScanningActive && overview && (
-          <>
-            <HeroVerdict score={lrs} appearPct={appearPct} leader={leader} pillars={PILLARS} />
-            <TodayAction issues={issues} remaining={Math.max(actionsLeft - 1, 0)} onFix={() => navigate('/audit')} />
-          </>
+          <HeroVerdict score={lrs} appearPct={appearPct} leader={leader} pillars={PILLARS} />
         )}
 
         {/* ═══════════ ESSENTIAL DATA ═══════════ */}
         {hasData && !isScanningActive && overview && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 4 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-              <CompetitorsCard competitors={overview.competitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />
-              <LLMCitingCard llms={overview.llms_citing} previousLlms={previousLlms} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />
-            </div>
-            <TasksCard tasks={overview.tasks} onSeeAll={() => navigate('/tasks')} onLaunch={() => navigate('/tasks')} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginTop: 4 }}>
+            <CompetitorsCard competitors={overview.competitors} previousCompetitors={previousCompetitors} onSeeAll={() => navigate('/competitors')} onWantRank2={() => navigate('/wok-ai', { state: { autoSend: 'How can I reach 2nd place vs my competitors in AI recommendations?' } })} />
+            <LLMCitingCard llms={overview.llms_citing} previousLlms={previousLlms} onDetail={() => navigate('/ai-report')} onWantMore={() => navigate('/wok-ai', { state: { autoSend: 'How can I get cited more often by AI engines?' } })} />
           </div>
         )}
 

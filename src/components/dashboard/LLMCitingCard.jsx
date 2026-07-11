@@ -6,8 +6,8 @@ const INK3 = 'rgba(21,19,15,0.5)';
 const ORANGE = '#FF5A1F';
 const GREEN = '#1E7A4C';
 const RED = '#E53E3E';
-const CREAM2 = '#F3EEE3';
-const F = 'Inter, system-ui, sans-serif';
+const CREAM2 = '#F5F1E8';
+const F = '"Wix Madefor Text", "Wix Madefor Display", system-ui, sans-serif';
 
 const AI_LOGO_URLS = {
   chatgpt: 'https://media.base44.com/images/public/6a2edc91082e534601118582/67cb277ed_image.png',
@@ -20,22 +20,34 @@ const AI_LOGO_URLS = {
   llama: 'https://media.base44.com/images/public/6a4140bf0af287d6d896b1f1/5189c1dc8_image.png',
 };
 
+// Colored pastille per engine — like image 1
+const ENGINE_DOTS = {
+  chatgpt: '#10A37F',
+  gemini: '#4285F4',
+  claude: '#D97757',
+  perplexity: '#20808D',
+  mistral: '#FA520F',
+  grok: '#1D1D1F',
+  copilot: '#0078D4',
+  llama: '#0866FF',
+};
+
 function TrendBadge({ current, previous }) {
   if (previous === undefined || previous === null) return null;
   const delta = Math.round(current - previous);
   if (delta === 0) return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: INK3 }}>
-      <Minus size={11} /> 0
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: CREAM2 }}>
+      <Minus size={11} color={INK3} />
     </span>
   );
   if (delta > 0) return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: GREEN }}>
-      <TrendingUp size={11} /> +{delta}
+      <TrendingUp size={12} /> +{delta}
     </span>
   );
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: RED }}>
-      <TrendingDown size={11} /> {delta}
+      <TrendingDown size={12} /> {delta}
     </span>
   );
 }
@@ -53,30 +65,35 @@ export default function LLMCitingCard({ llms, previousLlms = [], onDetail, onWan
       {rows.map((l, i) => {
         const pct = Math.min(100, Math.max(0, l.pct ?? 0));
         const prev = prevMap[l.engine];
+        const dotColor = ENGINE_DOTS[l.engine] || ORANGE;
         return (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i === rows.length - 1 ? 'none' : '1px solid rgba(21,19,15,0.05)' }}>
+            {/* Colored pastille */}
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0, boxShadow: `0 0 0 3px ${dotColor}1A` }} />
             <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <img src={AI_LOGO_URLS[l.engine]} width={18} height={18} alt={l.label} style={{ objectFit: 'contain' }} />
             </div>
-            <span style={{ width: 68, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
+            <span style={{ width: 64, fontSize: 12.5, fontWeight: 600, color: INK, flexShrink: 0 }}>{l.label}</span>
             <div style={{ flex: 1, height: 6, borderRadius: 100, background: CREAM2, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: ORANGE, borderRadius: 100, transition: 'width 0.6s ease' }} />
+              <div style={{ height: '100%', width: `${pct}%`, background: dotColor, borderRadius: 100, transition: 'width 0.6s ease' }} />
             </div>
-            <span style={{ width: 38, fontSize: 13, fontWeight: 800, color: INK, textAlign: 'right', flexShrink: 0 }}>{pct}%</span>
-            <span style={{ width: 42, flexShrink: 0, textAlign: 'right' }}>
+            <span style={{ width: 36, fontSize: 14, fontWeight: 800, color: INK, textAlign: 'right', flexShrink: 0 }}>{pct}%</span>
+            <span style={{ width: 44, flexShrink: 0, textAlign: 'right' }}>
               <TrendBadge current={pct} previous={prev} />
             </span>
           </div>
         );
       })}
 
-      <div style={{ fontSize: 11, color: INK3, lineHeight: 1.5, margin: '12px 0 14px' }}>
+      <div style={{ fontSize: 11, color: INK3, lineHeight: 1.5, margin: '14px 0 14px' }}>
         Pourcentage de réponses où chaque IA te cite.
       </div>
 
       <button onClick={onWantMore}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: INK, color: '#FBF8F2', border: 'none', borderRadius: 10, height: 42, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>
-        <Plus size={14} /> Être plus cité
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: INK, color: '#FBF8F2', border: 'none', borderRadius: 12, height: 44, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: F, transition: 'opacity 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.opacity = 0.85}
+        onMouseLeave={e => e.currentTarget.style.opacity = 1}>
+        <Plus size={15} /> Être plus cité
       </button>
     </DashCard>
   );
